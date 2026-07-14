@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/odin/:path*", "destination": "https://api.odin.fun/v2/:path*" }
+  ]
+}
