@@ -83,18 +83,35 @@ main{position:relative;z-index:1}
 .planet:hover,.planet:focus-visible{transform:scale(1.2)}
 .planet:focus-visible{stroke:var(--noodle-y)}
 
-.ms{fill:#6d7396;stroke:rgba(244,234,208,.5);stroke-width:2;opacity:.95;transition:fill .6s}
-.ms.lit{stroke:none}
-.ms.lit{fill:#ffe08a;filter:drop-shadow(0 0 7px rgba(252,209,79,.9))}
+.ms{
+  fill:#6d7396;stroke:rgba(244,234,208,.5);stroke-width:2;opacity:.95;
+  transition:fill .6s,stroke .25s,transform .2s;cursor:pointer;outline:none;
+  transform-box:fill-box;transform-origin:center;
+}
+.ms.lit{fill:#ffe08a;stroke:rgba(255,244,205,.3);filter:drop-shadow(0 0 7px rgba(252,209,79,.9))}
+.ms:hover,.ms:focus-visible{transform:scale(1.3);stroke:var(--noodle-y);stroke-width:2.5}
 
-#head{filter:drop-shadow(0 0 8px rgba(255,240,190,.95));animation:headpulse 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+/* decorative only — must never intercept hits on the milestone star beneath it */
+#head{pointer-events:none;filter:drop-shadow(0 0 8px rgba(255,240,190,.95));animation:headpulse 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes headpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
 
-.ms-chip{fill:rgba(15,19,42,.78);rx:9px}
-.ms-label{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:16px;fill:#8b90ad;text-anchor:middle;dominant-baseline:middle;transition:fill .6s}
-.ms-label.lit{fill:#ffe9a3}
+.ms-label{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:16px;text-anchor:middle;dominant-baseline:middle}
 #headLabel{fill:#fff1c2;font-size:16.5px}
 #headChip{fill:rgba(15,19,42,.85)}
+
+/* ---------- milestone tooltip ---------- */
+#tip{
+  position:fixed;z-index:60;pointer-events:none;left:0;top:0;
+  background:rgba(15,19,42,.96);border:2px solid rgba(244,234,208,.3);
+  color:var(--cream);font-weight:700;font-size:13.5px;letter-spacing:.02em;
+  padding:7px 13px;border-radius:11px;
+  white-space:normal;max-width:min(280px,calc(100vw - 20px));text-align:center;
+  opacity:0;transition:opacity .15s;box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+#tip.show{opacity:1}
+#tip b{color:var(--noodle-y)}
+#tip .no{color:#8b90ad}
+#tip .yes{color:#5fd8a0}
 
 /* ---------- title ---------- */
 .title-block{text-align:center;margin-top:6px}
@@ -248,9 +265,8 @@ footer a:hover{color:var(--noodle-y)}
 
       <!-- non-rotating label layer -->
       <svg id="labelSvg" viewBox="0 0 1000 1000" aria-hidden="true">
-        <g id="labels"></g>
         <rect id="headChip" width="0" height="26" rx="9"/>
-        <text id="headLabel" class="ms-label lit"></text>
+        <text id="headLabel" class="ms-label"></text>
       </svg>
     </div>
 
@@ -277,6 +293,8 @@ footer a:hover{color:var(--noodle-y)}
   <span data-i="footerLinks">© 2026 NOODL.club ·</span>
   <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun/token/hjrg</a>
 </footer>
+
+<div id="tip" role="tooltip" aria-hidden="true"></div>
 
 <!-- idea card modal -->
 <div id="overlay" role="presentation">
@@ -325,6 +343,8 @@ en:{
     launch:'LAUNCH',nova:'NOVA',btc:'BTC',
     live:'LIVE',cached:'CACHED',offline:'OFFLINE',mcap:'MARKET CAP',holders:'HODLERS',
     toNext:(pct,next)=>pct+'% of the way to '+next+' BTC',
+    tipTarget:(btc,hit)=>'Target market cap <b>'+btc+' BTC</b> <span class="'+(hit?'yes':'no')+'">('+(hit?'reached':'not reached')+')</span>',
+    tipNova:(hit)=>'<b>NOVA</b> · final target <b>5000 BTC</b> <span class="'+(hit?'yes':'no')+'">('+(hit?'reached':'not reached')+')</span>',
     reached:'🌟 NOVA REACHED — the noodle has left the bowl',
     footer:'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice — just noodles.',
     footerLinks:'© 2026 NOODL.club ·'
@@ -342,11 +362,13 @@ zh:{
   ui:{
     linkToken:'Odin.Fun ↗',linkCommunity:'社区 ↗',linkNoodle:'Noodle Nova 🍜 ↗',
     tagline:'NEW · ODIN · HODL —— ODIN•FUN 平台第一枚代币',
-    missionTitle:'通往新星之路 · 0.211 → 5000 BTC',
-    launch:'发射',nova:'新星',btc:'BTC',
+    missionTitle:'通往超新星之路 · 0.211 → 5000 BTC',
+    launch:'发射',nova:'超新星',btc:'BTC',
     live:'实时',cached:'缓存',offline:'离线',mcap:'市值',holders:'位持有者',
     toNext:(pct,next)=>'距 '+next+' BTC 里程碑已完成 '+pct+'%',
-    reached:'🌟 新星达成 —— 面条已冲出碗外',
+    tipTarget:(btc,hit)=>'目标市值 <b>'+btc+' BTC</b><span class="'+(hit?'yes':'no')+'">（'+(hit?'已达成':'尚未达成')+'）</span>',
+    tipNova:(hit)=>'<b>NOVA · 超新星</b> 终点市值 <b>5000 BTC</b><span class="'+(hit?'yes':'no')+'">（'+(hit?'已达成':'尚未达成')+'）</span>',
+    reached:'🌟 超新星达成 —— 面条已冲出碗外',
     footer:'NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议 —— 只有面条。',
     footerLinks:'© 2026 NOODL.club ·'
   },
@@ -389,14 +411,15 @@ document.querySelectorAll('[data-star]').forEach(p=>{
 });
 
 /* ================= spiral ================= */
-const TURNS=2.55,R0=40,R1=262,THETA_END=145*Math.PI/180;
+const TURNS=2.55,R0=58,R1=262,THETA_END=145*Math.PI/180;
 function spiralPt(t){
   const th=THETA_END-(1-t)*TURNS*2*Math.PI, r=R0+(R1-R0)*t;
   return [CX+r*Math.cos(th),CY+r*Math.sin(th)];
 }
 (function(){
+  // Drawn from the OUTER end inward, so path length 0 = launch (rim) and TOTAL = NOVA (core).
   const N=280;let d='';
-  for(let i=0;i<=N;i++){const p=spiralPt(i/N);d+=(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}
+  for(let i=N;i>=0;i--){const p=spiralPt(i/N);d+=(i===N?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1);}
   ['nGlow1','nGlow2','nEdge','nFill','nHatch','nDim'].forEach(id=>document.getElementById(id).setAttribute('d',d));
 })();
 const measure=$('#nFill');
@@ -407,32 +430,13 @@ function radialOffset(p,d){
   return [p[0]+vx/L*d,p[1]+vy/L*d];
 }
 
-/* ================= labels (non-rotating overlay) ================= */
-const labelItems=[]; // {text, chip, base:[x,y], w}
-function makeLabel(txt,base,cls){
-  const chip=document.createElementNS(SVGNS,'rect');
-  chip.setAttribute('class','ms-chip');chip.setAttribute('height','26');chip.setAttribute('rx','9');
-  const t=document.createElementNS(SVGNS,'text');
-  t.setAttribute('class','ms-label'+(cls?' '+cls:''));t.textContent=txt;
-  $('#labels').appendChild(chip);$('#labels').appendChild(t);
-  const item={text:t,chip:chip,base:base,w:0};
-  labelItems.push(item);
-  requestAnimationFrame(()=>{item.w=t.getBBox().width+16;placeLabels();});
-  return item;
-}
+/* ================= head label (non-rotating overlay) ================= */
 let angle=0;
 function rotPt(p,aDeg){
   const a=aDeg*Math.PI/180,s=Math.sin(a),c=Math.cos(a),vx=p[0]-CX,vy=p[1]-CY;
   return [CX+vx*c-vy*s,CY+vx*s+vy*c];
 }
 function placeLabels(){
-  for(const it of labelItems){
-    const [x,y]=rotPt(it.base,angle);
-    it.text.setAttribute('x',x);it.text.setAttribute('y',y+1);
-    it.chip.setAttribute('width',it.w||40);
-    it.chip.setAttribute('x',x-(it.w||40)/2);it.chip.setAttribute('y',y-13);
-  }
-  // progress head label
   const [hx,hy]=rotPt(headLabelBase,angle);
   headLabelEl.setAttribute('x',hx);headLabelEl.setAttribute('y',hy+1);
   const hw=headLabelW||60;
@@ -440,20 +444,59 @@ function placeLabels(){
   headChipEl.setAttribute('x',hx-hw/2);headChipEl.setAttribute('y',hy-13);
 }
 
+/* ================= rotation pause bookkeeping ================= */
+// Reason-counted so overlapping pauses (hover / keyboard focus / open card) can't
+// clobber each other and strand the galaxy stopped.
+const pauses=new Set();
+function pause(k){pauses.add(k);targetSpeed=0;}
+function resume(k){pauses.delete(k);if(!pauses.size)targetSpeed=1;}
+
+/* ================= milestone tooltip ================= */
+const tipEl=$('#tip');
+let tipM=null; // milestone whose tooltip is currently shown
+function tipHtml(m){
+  const ui=I18N[lang].ui,hit=state.mc>=m;
+  return m===FINAL_MC?ui.tipNova(hit):ui.tipTarget(m,hit);
+}
+function moveTip(x,y){
+  const pad=10,w=tipEl.offsetWidth,h=tipEl.offsetHeight;
+  const cx=clamp(x-w/2,pad,Math.max(pad,innerWidth-w-pad));
+  let cy=y-h-14;
+  if(cy<pad)cy=y+18; // flip below the cursor near the top edge
+  tipEl.style.transform='translate('+cx+'px,'+cy+'px)';
+}
+function showTip(m,x,y){
+  tipM=m;tipEl.innerHTML=tipHtml(m);tipEl.classList.add('show');moveTip(x,y);
+}
+function hideTip(){tipM=null;tipEl.classList.remove('show');}
+function attachTip(node,m){
+  node.addEventListener('pointerenter',e=>{pause('hover');showTip(m,e.clientX,e.clientY);});
+  node.addEventListener('pointermove',e=>{if(tipM===m)moveTip(e.clientX,e.clientY);});
+  node.addEventListener('pointerleave',()=>{resume('hover');hideTip();});
+  node.addEventListener('focus',()=>{
+    if(!node.matches(':focus-visible'))return; // only keyboard focus pauses / shows the tip
+    pause('focus');
+    const r=node.getBoundingClientRect();
+    showTip(m,r.left+r.width/2,r.top);
+  });
+  node.addEventListener('blur',()=>{resume('focus');hideTip();});
+  node.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip();});
+}
+// tapping elsewhere dismisses a tooltip opened by touch
+document.addEventListener('pointerdown',e=>{if(tipM!==null&&!e.target.classList.contains('ms'))hideTip();});
+
 /* ================= milestones ================= */
-const msNodes=[],msLabels=[];
+const msNodes=[];
 MILESTONES.forEach(m=>{
-  const f=fracOf(m),p=ptAt(f);
+  const p=ptAt(fracOf(m));
   const node=document.createElementNS(SVGNS,'path');
-  node.setAttribute('d',starPath(p[0],p[1],m===5000?16:11.5));
+  node.setAttribute('d',starPath(p[0],p[1],m===FINAL_MC?18:13));
   node.setAttribute('class','ms');node.dataset.m=m;
+  node.setAttribute('tabindex','0');node.setAttribute('role','img');
   $('#milestones').appendChild(node);msNodes.push({m,el:node});
-  const off=m===5000?radialOffset(p,-54):radialOffset(p,36);
-  const lb=makeLabel(m+' BTC',off);lb.text.dataset.m=m;
-  msLabels.push({m,el:lb.text});
+  attachTip(node,m);
 });
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{
-  labelItems.forEach(it=>{try{it.w=it.text.getBBox().width+16;}catch(e){}});
   try{if(headLabelEl.textContent)headLabelW=headLabelEl.getBBox().width+16;}catch(e){}
   placeLabels();
 });
@@ -469,7 +512,9 @@ function openCardByKey(key,fromEl){
   overlay.classList.add('open');
   document.body.classList.add('modal');document.documentElement.classList.add('modal');
   ['header','main','footer'].forEach(s=>{const el=document.querySelector(s);if(el)el.inert=true;});
-  overlay.dataset.ret=key;targetSpeed=0;
+  overlay.dataset.ret=key;
+  // inert main can swallow the planet's pointerleave, so reset every reason and hold one
+  pauses.clear();pause('modal');
   clearTimeout(openTimer);openTimer=setTimeout(()=>$('#cardClose').focus(),80);
 }
 function makePlanet(key,x,y,r,color,icon){
@@ -486,10 +531,10 @@ function makePlanet(key,x,y,r,color,icon){
   if(!reduceMotion)c.appendChild(a);
   c.addEventListener('click',()=>openCardByKey(key,c));
   c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openCardByKey(key,c);}});
-  c.addEventListener('pointerenter',()=>{targetSpeed=0;});
-  c.addEventListener('pointerleave',()=>{if(!overlay.classList.contains('open'))targetSpeed=1;});
-  c.addEventListener('focus',()=>{targetSpeed=0;});
-  c.addEventListener('blur',()=>{if(!overlay.classList.contains('open'))targetSpeed=1;});
+  c.addEventListener('pointerenter',()=>pause('hover'));
+  c.addEventListener('pointerleave',()=>resume('hover'));
+  c.addEventListener('focus',()=>{if(c.matches(':focus-visible'))pause('focus');});
+  c.addEventListener('blur',()=>resume('focus'));
   $('#planets').appendChild(c);
   return c;
 }
@@ -618,9 +663,12 @@ function render(){
   if(Math.abs(f-shownFrac)>0.0005)setProgress(f);else applyFrac(shownFrac);
   headLabelEl.textContent=(!state.live&&seeded)?'…':fmtBtc(state.mc)+' BTC';
   requestAnimationFrame(()=>{try{headLabelW=headLabelEl.getBBox().width+16;}catch(e){}placeLabels();});
-  // milestone lit states
-  msNodes.forEach(o=>o.el.classList.toggle('lit',state.mc>=o.m));
-  msLabels.forEach(o=>o.el.classList.toggle('lit',state.mc>=o.m));
+  // milestone lit states; aria-label carries the same text the tooltip shows
+  msNodes.forEach(o=>{
+    o.el.classList.toggle('lit',state.mc>=o.m);
+    o.el.setAttribute('aria-label',tipHtml(o.m).replace(/<[^>]+>/g,''));
+  });
+  if(tipM!==null)tipEl.innerHTML=tipHtml(tipM);
   document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('lit',state.mc>=parseFloat(c.dataset.m)));
   // live line (skip DOM write when unchanged so aria-live doesn't re-announce)
   let html;
@@ -658,7 +706,8 @@ function closeCard(){
   ['header','main','footer'].forEach(s=>{const el=document.querySelector(s);if(el)el.inert=false;});
   overlay.classList.remove('open');
   document.body.classList.remove('modal');document.documentElement.classList.remove('modal');
-  targetSpeed=1;
+  resume('modal');
+  // focus() runs its handler synchronously: keyboard focus re-pauses, mouse focus does not
   const k=overlay.dataset.ret;
   if(k&&planetEls[k])planetEls[k].focus({preventScroll:true});
 }
