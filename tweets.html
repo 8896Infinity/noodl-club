@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#NOODL posts · NOODL.club</title>
+<meta name="description" content="A hand-picked collection of #NOODL posts from the Noodle Nova community, ranked by heat or by time.">
+<meta name="theme-color" content="#151a36">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#151a36;--cream:#f4ead0;--cream-bright:#fff6e0;--noodle-y:#fcd14f;
+  --noodle-deep:#e0762b;--outline:#e4572e;--dim:#6a7093;--text-dim:#aab0d0;--card-bg:#1c2246;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--cream);min-height:100vh;
+  font-family:'Baloo 2','PingFang SC','Microsoft YaHei',sans-serif;
+}
+a{color:inherit}
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+#stars i{position:absolute;border-radius:1.5px;animation:tw linear infinite}
+@keyframes tw{0%,100%{opacity:.12}50%{opacity:.9}}
+
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:18px 18px 60px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:26px;flex-wrap:wrap}
+.wordmark{font-weight:800;font-size:18px;letter-spacing:.06em;color:var(--cream-bright);text-decoration:none;display:flex;align-items:center;gap:8px}
+.btn{
+  font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.04em;cursor:pointer;
+  color:var(--cream);text-decoration:none;background:rgba(244,234,208,.04);
+  border:2px solid rgba(244,234,208,.35);border-radius:999px;padding:6px 14px;
+  transition:border-color .2s,background .2s;
+}
+.btn:hover{border-color:var(--noodle-y);background:rgba(252,209,79,.08)}
+#langBtn{color:var(--noodle-y)}
+
+h1{font-weight:800;font-size:clamp(30px,7vw,46px);line-height:1.05;color:var(--cream-bright);letter-spacing:.01em;
+  text-shadow:3px 0 0 var(--outline),-3px 0 0 var(--outline),0 3px 0 var(--outline),0 -3px 0 var(--outline),0 6px 0 rgba(0,0,0,.25)}
+.sub{color:var(--text-dim);font-weight:600;font-size:14px;margin-top:12px;line-height:1.6}
+.sub a{color:#8fd0c8;text-decoration:none}
+.sub a:hover{color:var(--noodle-y)}
+
+.sorts{display:flex;align-items:center;gap:8px;margin:22px 0 16px;flex-wrap:wrap}
+.sorts .lbl{font-size:11.5px;font-weight:800;letter-spacing:.16em;color:var(--dim)}
+.sort{
+  font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;
+  background:none;color:var(--dim);border:2px solid rgba(244,234,208,.2);
+  border-radius:999px;padding:6px 15px;transition:all .2s;
+}
+.sort:hover{color:var(--cream)}
+.sort[aria-pressed="true"]{background:var(--noodle-y);color:#1c2246;border-color:var(--noodle-y)}
+.count{margin-left:auto;font-size:12px;font-weight:700;color:var(--dim)}
+
+.card{
+  background:var(--card-bg);border:2px solid rgba(244,234,208,.18);border-radius:18px;
+  padding:16px 17px 14px;margin-bottom:13px;transition:border-color .2s,transform .2s;
+}
+.card:hover{border-color:rgba(252,209,79,.5);transform:translateY(-2px)}
+.c-top{display:flex;align-items:center;gap:10px}
+.c-av{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--noodle-y),var(--noodle-deep));color:#1c2246;font-weight:800;font-size:16px}
+.c-who{min-width:0;line-height:1.25}
+.c-name{font-weight:800;font-size:15px;color:var(--cream-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-handle{font-weight:600;font-size:12.5px;color:#8b90ad}
+.c-rank{margin-left:auto;font-size:12px;font-weight:800;color:#f5a83c;flex:none}
+.c-text{color:#c9cfee;font-weight:600;font-size:14px;line-height:1.65;margin:11px 0 11px;white-space:pre-wrap;overflow-wrap:anywhere}
+.fd-tag{color:var(--noodle-y)}
+.fd-link{color:#8fd0c8}
+.c-meta{display:flex;align-items:center;gap:14px;font-size:12px;font-weight:700;color:#8b90ad;flex-wrap:wrap}
+.c-meta .hot{color:#f5a83c}
+.c-open{margin-left:auto;color:#8fd0c8;text-decoration:none;font-weight:700}
+.c-open:hover{color:var(--noodle-y)}
+.empty{text-align:center;color:var(--dim);font-weight:600;padding:50px 0}
+footer{text-align:center;color:#585f86;font-weight:600;font-size:12px;padding:34px 0 0;line-height:1.9}
+footer a{color:#7d84ad;text-decoration:none}
+footer a:hover{color:var(--noodle-y)}
+@media (prefers-reduced-motion:reduce){#stars i{animation:none!important}.card{transition:none}}
+</style>
+</head>
+<body>
+<div id="stars" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="topbar">
+    <a class="wordmark" href="index.html">🍜 NOODL·CLUB</a>
+    <nav style="display:flex;gap:8px;align-items:center">
+      <a class="btn" href="index.html" data-i="back">← Home</a>
+      <button class="btn" id="langBtn" type="button">中文</button>
+    </nav>
+  </header>
+
+  <h1 data-i="title">#NOODL POSTS</h1>
+  <p class="sub" id="sub"></p>
+
+  <div class="sorts">
+    <span class="lbl" data-i="sortBy">SORT BY</span>
+    <button class="sort" id="sHeat" type="button" aria-pressed="true" data-i="byHeat">Heat</button>
+    <button class="sort" id="sTime" type="button" aria-pressed="false" data-i="byTime">Newest</button>
+    <span class="count" id="count"></span>
+  </div>
+
+  <!-- no aria-live here: re-sorting would re-announce every post in full -->
+  <div id="list"></div>
+
+  <footer>
+    <span data-i="foot"></span><br>
+    <a href="index.html">NOODL.club</a> ·
+    <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun/token/hjrg</a>
+  </footer>
+</div>
+
+<script src="tweets.js"></script>
+<script src="tweets-ui.js"></script>
+<script>
+'use strict';
+const T=window.NoodlTweets,$=s=>document.querySelector(s);
+
+const I18N={
+ en:{
+  back:'← Home',title:'#NOODL POSTS',sortBy:'SORT BY',byHeat:'Heat',byTime:'Newest',
+  sub:'A hand-picked collection of #NOODL posts from the Noodle Nova community. Heat = likes + 2×reposts + replies. <a href="'+T.SEARCH_URL+'" target="_blank" rel="noopener">See the live #NOODL feed on X ↗</a>',
+  count:n=>n+' posts',rank:i=>'#'+i,open:'View on X ↗',
+  empty:'No posts collected yet.',
+  foot:'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice — just noodles. 🍜'
+ },
+ zh:{
+  back:'← 首页',title:'#NOODL 帖子',sortBy:'排序',byHeat:'热度',byTime:'最新',
+  sub:'Noodle Nova 社区的 #NOODL 帖子精选。热度 = 点赞 + 2×转发 + 回复。<a href="'+T.SEARCH_URL+'" target="_blank" rel="noopener">去 X 看 #NOODL 实时动态 ↗</a>',
+  count:n=>n+' 条帖子',rank:i=>'第 '+i+' 名',open:'在 X 查看 ↗',
+  empty:'还没有收录帖子。',
+  foot:'NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议 —— 只有面条。🍜'
+ }
+};
+let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
+if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
+let sort='heat';
+
+(function(){
+  const box=$('#stars'),colors=['#f4ead0','#f5a86a','#8fd0c8','#ffffff','#e06a2b'];
+  for(let i=0;i<70;i++){
+    const s=document.createElement('i'),w=(1.5+Math.random()*2.5).toFixed(1);
+    s.style.cssText='left:'+(Math.random()*100).toFixed(2)+'%;top:'+(Math.random()*100).toFixed(2)+
+      '%;width:'+w+'px;height:'+w+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+
+      ';animation-delay:-'+(Math.random()*8).toFixed(2)+'s;animation-duration:'+(3+Math.random()*5).toFixed(2)+'s';
+    box.appendChild(s);
+  }
+})();
+
+function render(){
+  const ui=I18N[lang];
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.querySelectorAll('[data-i]').forEach(el=>{const v=ui[el.dataset.i];if(typeof v==='string')el.textContent=v;});
+  $('#sub').innerHTML=ui.sub;
+  $('#langBtn').textContent=lang==='en'?'中文':'EN';
+  $('#sHeat').setAttribute('aria-pressed',String(sort==='heat'));
+  $('#sTime').setAttribute('aria-pressed',String(sort==='time'));
+
+  const all=T.list();
+  const rows=sort==='heat'?T.byHeat(all):T.byTime(all);
+  $('#count').textContent=ui.count(rows.length);
+  if(!rows.length){$('#list').innerHTML='<p class="empty">'+T.esc(ui.empty)+'</p>';return;}
+  $('#list').innerHTML=rows.map((t,i)=>
+    '<article class="card">'+
+      '<div class="c-top">'+
+        '<span class="c-av" aria-hidden="true">'+T.esc(T.initial(t.name))+'</span>'+
+        '<div class="c-who">'+
+          '<div class="c-name">'+T.esc(t.name)+'</div>'+
+          '<div class="c-handle">@'+T.esc(t.handle)+'</div>'+
+        '</div>'+
+        (sort==='heat'?'<span class="c-rank">'+T.esc(ui.rank(i+1))+'</span>':'')+
+      '</div>'+
+      '<p class="c-text">'+T.rich(t.text)+'</p>'+
+      '<div class="c-meta">'+
+        '<span>'+T.esc(T.fmtDate(t.date,lang))+'</span>'+
+        '<span>♥ '+T.esc(T.fmtNum(t.likes))+'</span>'+
+        '<span>🔁 '+T.esc(T.fmtNum(t.retweets))+'</span>'+
+        '<span>💬 '+T.esc(T.fmtNum(t.replies))+'</span>'+
+        '<span class="hot">🔥 '+T.esc(T.fmtNum(T.heat(t)))+'</span>'+
+        '<a class="c-open" href="'+T.esc(t.url)+'" target="_blank" rel="noopener">'+T.esc(ui.open)+'</a>'+
+      '</div>'+
+    '</article>').join('');
+}
+
+$('#sHeat').addEventListener('click',()=>{sort='heat';render();});
+$('#sTime').addEventListener('click',()=>{sort='time';render();});
+$('#langBtn').addEventListener('click',()=>{
+  lang=lang==='en'?'zh':'en';
+  try{localStorage.setItem('noodl_lang',lang);}catch(e){}
+  render();
+});
+render();
+</script>
+</body>
+</html>
