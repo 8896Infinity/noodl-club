@@ -15,6 +15,17 @@
  * ========================================================================== */
 window.NOODL_TWEETS = [
   {
+    id: '2077450893545689151',
+    url: 'https://x.com/NOODL_club/status/2077450893545689151',
+    name: 'NOODL',
+    handle: 'NOODL_club',
+    date: '2026-07-15T17:51:04Z',
+    text: 'Welcome to the best club in the galaxy.\n\nnoodl.club\n\nNOODL in!\n\n#NOODL',
+    likes: 2,
+    retweets: 0,
+    replies: 0
+  },
+  {
     id: '2077064246001795285',
     url: 'https://x.com/SuZhe_eth/status/2077064246001795285',
     name: 'SuZhe',

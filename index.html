@@ -14,30 +14,43 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Palette lifted from odin.fun's own computed styles so this reads as part of
+   the platform: Work Sans, near-black #111117, cyan accent, hairline borders. */
 :root{
-  --bg:#151a36;
-  --bowl-navy:#3b4270;
-  --cream:#f4ead0;
-  --cream-bright:#fff6e0;
+  --bg:#111117;
+  --panel:#18181d;
+  --line:#27272a;
+  --line-soft:#1f1f25;
+  --cyan:#00ffff;
+  --cyan-dim:#00c9c9;
+  --text:#fafafa;
+  --text-2:#a8aab8;
+  --dim:#6b6d7c;
+  --up:#00a329;
+  --down:#c40303;
+  --blue:#2b62e3;
+  /* the bowl artwork keeps its own warm tones — it is the brand illustration */
+  --bowl-navy:#1b1b24;
+  --cream:#e8e4d6;
+  --cream-bright:#fafafa;
   --noodle-y:#fcd14f;
   --noodle-o:#ef9530;
   --noodle-deep:#e0762b;
-  --outline:#e4572e;
-  --teal:#8ab8b2;
+  --outline:#111117;
+  --teal:#00ffff;
   --orange:#ee8435;
   --brick:#a8492f;
-  --dim:#6a7093;
-  --text-dim:#aab0d0;
-  --card-bg:#1c2246;
+  --text-dim:#a8aab8;
+  --card-bg:#18181d;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
   background:var(--bg);
   color:var(--cream);
-  font-family:'Baloo 2','PingFang SC','Microsoft YaHei',sans-serif;
+  font-family:'Work Sans','PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
   overflow-x:hidden;
   min-height:100vh;
 }
@@ -53,19 +66,24 @@ a{color:inherit}
 .topbar{
   position:relative;z-index:5;
   display:flex;justify-content:space-between;align-items:center;
-  padding:16px 26px;gap:12px;flex-wrap:wrap;
+  padding:14px 22px;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);background:rgba(17,17,23,.85);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
 }
-.wordmark{font-weight:800;font-size:19px;letter-spacing:.06em;color:var(--cream-bright);text-decoration:none;display:flex;align-items:center;gap:8px}
-.toplinks{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wordmark{
+  font-weight:700;font-size:17px;letter-spacing:.14em;color:var(--cyan);
+  text-decoration:none;display:flex;align-items:center;gap:8px;
+}
+.toplinks{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .toplinks a,#langBtn{
-  font-family:inherit;font-weight:700;font-size:13.5px;letter-spacing:.04em;
-  color:var(--cream);text-decoration:none;cursor:pointer;
-  border:2px solid rgba(244,234,208,.35);border-radius:999px;
-  padding:6px 14px;background:rgba(244,234,208,.04);
-  transition:border-color .2s,background .2s;
+  font-family:inherit;font-weight:500;font-size:13px;letter-spacing:.02em;
+  color:var(--text-2);text-decoration:none;cursor:pointer;
+  border:1px solid var(--line);border-radius:6px;
+  padding:6px 12px;background:transparent;
+  transition:border-color .15s,color .15s,background .15s;
 }
-.toplinks a:hover,#langBtn:hover{border-color:var(--noodle-y);background:rgba(252,209,79,.08)}
-#langBtn{color:var(--noodle-y)}
+.toplinks a:hover,#langBtn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+#langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
 
 /* ---------- hero / scene ---------- */
 main{position:relative;z-index:1}
@@ -88,12 +106,12 @@ main{position:relative;z-index:1}
 .planet:focus-visible{stroke:var(--noodle-y)}
 
 .ms{
-  fill:#6d7396;stroke:rgba(244,234,208,.5);stroke-width:2;opacity:.95;
+  fill:#8b8d9e;stroke:#c9cbd8;stroke-width:1.5;opacity:.95;
   transition:fill .6s,stroke .25s,transform .2s;cursor:pointer;outline:none;
   transform-box:fill-box;transform-origin:center;
 }
-.ms.lit{fill:#ffe08a;stroke:rgba(255,244,205,.3);filter:drop-shadow(0 0 7px rgba(252,209,79,.9))}
-.ms:hover,.ms:focus-visible{transform:scale(1.3);stroke:var(--noodle-y);stroke-width:2.5}
+.ms.lit{fill:var(--cyan);stroke:none;filter:drop-shadow(0 0 8px rgba(0,255,255,.8))}
+.ms:hover,.ms:focus-visible{transform:scale(1.3);stroke:var(--cyan);stroke-width:2.5}
 
 /* decorative only — must never intercept hits on the milestone star beneath it */
 #head{pointer-events:none;filter:drop-shadow(0 0 8px rgba(255,240,190,.95))}
@@ -108,16 +126,16 @@ main{position:relative;z-index:1}
 /* ---------- milestone tooltip ---------- */
 #tip{
   position:fixed;z-index:60;pointer-events:none;left:0;top:0;
-  background:rgba(15,19,42,.96);border:2px solid rgba(244,234,208,.3);
-  color:var(--cream);font-weight:700;font-size:13.5px;letter-spacing:.02em;
-  padding:7px 13px;border-radius:11px;
+  background:var(--panel);border:1px solid var(--line);
+  color:var(--text-2);font-weight:500;font-size:12.5px;letter-spacing:.02em;
+  padding:7px 12px;border-radius:6px;
   white-space:normal;max-width:min(280px,calc(100vw - 20px));text-align:center;
   opacity:0;transition:opacity .15s;box-shadow:0 10px 30px rgba(0,0,0,.5);
 }
 #tip.show{opacity:1}
-#tip b{color:var(--noodle-y)}
-#tip .no{color:#8b90ad}
-#tip .yes{color:#5fd8a0}
+#tip b{color:var(--cyan);font-weight:600;font-variant-numeric:tabular-nums}
+#tip .no{color:var(--dim)}
+#tip .yes{color:var(--up)}
 
 /* ---------- chopsticks (opens the #NOODL post feed) ---------- */
 #chopsticks{cursor:pointer;outline:none}
@@ -126,8 +144,8 @@ main{position:relative;z-index:1}
 #chopsticks:focus-visible #chopArt{filter:drop-shadow(0 0 7px var(--noodle-y))}
 #chopHint{
   position:absolute;z-index:6;pointer-events:none;white-space:nowrap;
-  font-weight:800;font-size:11.5px;letter-spacing:.12em;color:var(--noodle-y);
-  background:rgba(15,19,42,.9);border-radius:8px;padding:4px 9px;
+  font-weight:600;font-size:11px;letter-spacing:.08em;color:var(--cyan);
+  background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 9px;
   opacity:0;transition:opacity .2s;
 }
 #chopHint.show{opacity:1}
@@ -135,8 +153,8 @@ main{position:relative;z-index:1}
 /* ---------- #NOODL post dropdown ---------- */
 #feed{
   position:fixed;z-index:55;width:min(360px,calc(100vw - 24px));
-  background:var(--card-bg);border:3px solid var(--cream);border-radius:20px;
-  padding:16px 16px 13px;box-shadow:0 22px 60px rgba(0,0,0,.6);
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:15px 15px 12px;box-shadow:0 22px 60px rgba(0,0,0,.75);
   opacity:0;pointer-events:none;transform:translateY(-10px) scale(.97);
   /* visibility (not just opacity) keeps the closed panel's buttons out of the tab order */
   visibility:hidden;transform-origin:top center;
@@ -150,88 +168,86 @@ main{position:relative;z-index:1}
 }
 .fd-top{display:flex;align-items:center;gap:9px}
 .fd-av{
-  width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--noodle-y),var(--noodle-deep));
-  color:#1c2246;font-weight:800;font-size:15px;
+  width:32px;height:32px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:var(--cyan);color:#06060a;font-weight:700;font-size:14px;
 }
-.fd-who{min-width:0;line-height:1.25}
-.fd-name{font-weight:800;font-size:14.5px;color:var(--cream-bright);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fd-handle{font-weight:600;font-size:12.5px;color:#8b90ad}
-.fd-x{margin-left:auto;color:#8b90ad;font-size:16px;text-decoration:none;flex:none}
-.fd-x:hover{color:var(--cream)}
+.fd-who{min-width:0;line-height:1.3}
+.fd-name{font-weight:600;font-size:14px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fd-handle{font-weight:400;font-size:12px;color:var(--dim)}
+.fd-x{margin-left:auto;color:var(--dim);font-size:15px;text-decoration:none;flex:none}
+.fd-x:hover{color:var(--cyan)}
 .fd-text{
-  color:#c9cfee;font-weight:600;font-size:13.5px;line-height:1.6;margin:11px 0 10px;
+  color:var(--text-2);font-weight:400;font-size:13px;line-height:1.65;margin:11px 0 10px;
   white-space:pre-wrap;overflow-wrap:anywhere;
   display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden;
 }
-.fd-tag{color:var(--noodle-y)}
-.fd-link{color:#8fd0c8}
-.fd-meta{display:flex;align-items:center;gap:13px;font-size:12px;font-weight:700;color:#8b90ad}
-.fd-meta .hot{color:#f5a83c}
-.fd-foot{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:11px;border-top:1px solid rgba(244,234,208,.14)}
+.fd-tag{color:var(--cyan)}
+.fd-link{color:var(--cyan-dim)}
+.fd-meta{display:flex;align-items:center;gap:12px;font-size:11.5px;font-weight:500;color:var(--dim);font-variant-numeric:tabular-nums}
+.fd-meta b{font-weight:600;color:var(--text-2)}
+.fd-meta .hot{color:var(--cyan)}
+.fd-foot{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
 .fd-next{
-  font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;
-  background:var(--noodle-y);color:#1c2246;border:none;border-radius:999px;padding:7px 14px;
+  font-family:inherit;font-weight:600;font-size:12px;cursor:pointer;
+  background:var(--cyan);color:#06060a;border:none;border-radius:6px;padding:7px 13px;
 }
-.fd-next:hover{background:#ffe08a}
-.fd-all{margin-left:auto;font-size:12.5px;font-weight:700;color:#8fd0c8;text-decoration:none}
-.fd-all:hover{color:var(--noodle-y)}
+.fd-next:hover{background:#7dffff}
+.fd-all{margin-left:auto;font-size:12px;font-weight:500;color:var(--cyan-dim);text-decoration:none}
+.fd-all:hover{color:var(--cyan)}
 .fd-close{
-  position:absolute;top:6px;right:11px;background:none;border:none;color:var(--cream);
-  font-size:22px;line-height:1;cursor:pointer;opacity:.6;font-family:inherit;
+  position:absolute;top:7px;right:11px;background:none;border:none;color:var(--dim);
+  font-size:19px;line-height:1;cursor:pointer;font-family:inherit;
 }
-.fd-close:hover{opacity:1}
-.fd-count{font-size:11px;font-weight:700;color:#6a7093;letter-spacing:.06em}
+.fd-close:hover{color:var(--text)}
+.fd-count{font-size:10.5px;font-weight:500;color:var(--dim);letter-spacing:.04em;font-variant-numeric:tabular-nums}
 
 /* ---------- title ---------- */
 .title-block{text-align:center;margin-top:6px}
 h1{
-  font-weight:800;font-size:clamp(56px,13vw,124px);line-height:1;
-  color:var(--cream-bright);letter-spacing:.015em;
-  text-shadow:
-    4px 0 0 var(--outline),-4px 0 0 var(--outline),0 4px 0 var(--outline),0 -4px 0 var(--outline),
-    3px 3px 0 var(--outline),-3px 3px 0 var(--outline),3px -3px 0 var(--outline),-3px -3px 0 var(--outline),
-    0 9px 0 rgba(0,0,0,.28);
+  font-weight:800;font-size:clamp(52px,12vw,112px);line-height:.95;
+  color:var(--text);letter-spacing:.02em;
 }
 .subtitle{
-  font-weight:800;font-size:clamp(17px,3.4vw,27px);letter-spacing:.42em;
-  color:#f5a83c;margin-top:8px;text-indent:.42em;
+  font-weight:600;font-size:clamp(13px,2.6vw,19px);letter-spacing:.46em;
+  color:var(--cyan);margin-top:10px;text-indent:.46em;
 }
-.tagline{color:var(--text-dim);font-weight:600;font-size:clamp(13px,2.4vw,16px);margin-top:12px;letter-spacing:.05em}
+.tagline{color:var(--text-2);font-weight:400;font-size:clamp(12.5px,2.2vw,15px);margin-top:14px;letter-spacing:.02em}
 
 /* ---------- mission tracker ---------- */
 .mission{width:min(720px,92vw);margin:34px auto 0}
 .mission-head{
-  text-align:center;font-weight:800;font-size:14px;letter-spacing:.34em;text-indent:.34em;
-  color:var(--dim);margin-bottom:22px;
+  text-align:center;font-weight:600;font-size:11px;letter-spacing:.24em;text-indent:.24em;
+  color:var(--dim);margin-bottom:20px;text-transform:uppercase;
 }
-.track{position:relative;height:74px;margin:0 26px}
-.track-line{position:absolute;left:0;right:0;top:12px;height:8px;border-radius:99px;background:#272d52;overflow:hidden}
-#trackFill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--noodle-deep),var(--noodle-y));box-shadow:0 0 12px rgba(252,209,79,.55);transition:width 1.4s cubic-bezier(.22,1,.36,1)}
-.chip{position:absolute;top:6px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;white-space:nowrap}
-.chip .dot{width:15px;height:15px;border-radius:50%;background:#333a63;border:2.5px solid #565d85;transition:all .5s}
-.chip.lit .dot{background:var(--noodle-y);border-color:#fff3c4;box-shadow:0 0 12px rgba(252,209,79,.75)}
-.chip b{font-size:15px;font-weight:800;color:var(--dim);transition:color .5s;line-height:1.1}
-.chip span{font-size:9.5px;font-weight:700;letter-spacing:.14em;color:var(--dim);opacity:.8}
-.chip.lit b{color:#ffe9a3}
-.chip.lit span{color:#d8b45e}
+.track{position:relative;height:70px;margin:0 26px}
+.track-line{position:absolute;left:0;right:0;top:13px;height:6px;border-radius:2px;background:var(--line);overflow:hidden}
+#trackFill{height:100%;width:0%;border-radius:2px;background:var(--cyan);transition:width 1.4s cubic-bezier(.22,1,.36,1)}
+.chip{position:absolute;top:8px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;white-space:nowrap}
+.chip .dot{width:11px;height:11px;border-radius:50%;background:var(--bg);border:2px solid #3f3f46;transition:all .4s}
+.chip.lit .dot{background:var(--cyan);border-color:var(--cyan)}
+.chip b{font-size:13px;font-weight:600;color:var(--dim);transition:color .4s;line-height:1.1;font-variant-numeric:tabular-nums}
+.chip span{font-size:9px;font-weight:500;letter-spacing:.1em;color:var(--dim);opacity:.75}
+.chip.lit b{color:var(--cyan)}
+.chip.lit span{color:var(--text-2)}
 
 .live-line{
-  text-align:center;margin-top:10px;font-weight:600;font-size:14px;color:var(--text-dim);
-  letter-spacing:.03em;min-height:22px;
+  text-align:center;margin-top:12px;font-weight:500;font-size:13px;color:var(--text-2);
+  letter-spacing:.02em;min-height:22px;font-variant-numeric:tabular-nums;
 }
-.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#39d98a;margin-right:7px;vertical-align:1px;animation:blip 2s ease-in-out infinite}
-.live-dot.off{background:#7b81a3;animation:none}
-@keyframes blip{0%,100%{box-shadow:0 0 0 0 rgba(57,217,138,.55)}50%{box-shadow:0 0 0 5px rgba(57,217,138,0)}}
-.next-line{text-align:center;margin-top:4px;font-size:13px;color:var(--dim);font-weight:600}
+.live-line b{font-weight:600}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--up);margin-right:8px;vertical-align:1px;animation:blip 2s ease-in-out infinite}
+.live-dot.off{background:var(--dim);animation:none}
+@keyframes blip{0%,100%{box-shadow:0 0 0 0 rgba(0,163,41,.5)}50%{box-shadow:0 0 0 5px rgba(0,163,41,0)}}
+.next-line{text-align:center;margin-top:6px;font-size:12px;color:var(--dim);font-weight:400;font-variant-numeric:tabular-nums}
 
 /* ---------- footer ---------- */
 footer{
-  position:relative;z-index:1;text-align:center;color:#585f86;font-weight:600;
-  font-size:12.5px;padding:44px 20px 26px;letter-spacing:.04em;line-height:1.8;
+  position:relative;z-index:1;text-align:center;color:var(--dim);font-weight:400;
+  font-size:12px;padding:40px 20px 26px;letter-spacing:.01em;line-height:1.9;
+  border-top:1px solid var(--line-soft);margin-top:36px;
 }
-footer a{color:#7d84ad;text-decoration:none}
-footer a:hover{color:var(--noodle-y)}
+footer a{color:var(--text-2);text-decoration:none}
+footer a:hover{color:var(--cyan)}
 
 /* ---------- card overlay ---------- */
 #overlay{
@@ -241,29 +257,29 @@ footer a:hover{color:var(--noodle-y)}
 }
 #overlay.open{opacity:1;pointer-events:auto;touch-action:none;overscroll-behavior:contain}
 .card{
-  background:var(--card-bg);border:3px solid var(--cream);border-radius:26px;
-  max-width:470px;width:100%;padding:32px 32px 28px;position:relative;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  max-width:460px;width:100%;padding:26px 26px 22px;position:relative;
   max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow:auto;
-  box-shadow:0 24px 80px rgba(0,0,0,.55);
-  transform:scale(.94) translateY(10px);transition:transform .25s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 24px 80px rgba(0,0,0,.7);
+  transform:scale(.97) translateY(8px);transition:transform .2s cubic-bezier(.22,1,.36,1);
 }
 #overlay.open .card{transform:none}
 .card-top{display:flex;align-items:center;gap:14px;margin-bottom:6px}
 .card-dot{width:26px;height:26px;border-radius:50%;border:4px solid #fff;flex:none}
 .card-icon{font-size:34px;line-height:1}
-.card h3{font-size:25px;font-weight:800;color:var(--cream-bright);letter-spacing:.02em;line-height:1.2}
-.card p{color:#c3c9ea;line-height:1.7;margin:12px 0 22px;font-size:15.5px;font-weight:600}
+.card h3{font-size:21px;font-weight:700;color:var(--text);letter-spacing:.01em;line-height:1.25}
+.card p{color:var(--text-2);line-height:1.7;margin:12px 0 20px;font-size:14px;font-weight:400}
 .cta{
-  display:inline-block;background:var(--noodle-y);color:#1c2246;font-weight:800;
-  padding:11px 24px;border-radius:999px;text-decoration:none;font-size:15px;
-  transition:background .2s,transform .2s;
+  display:inline-block;background:var(--cyan);color:#06060a;font-weight:600;
+  padding:9px 18px;border-radius:6px;text-decoration:none;font-size:13.5px;letter-spacing:.02em;
+  transition:background .15s;
 }
-.cta:hover{background:#ffe08a;transform:translateY(-1px)}
+.cta:hover{background:#7dffff}
 .close{
-  position:absolute;top:10px;right:16px;background:none;border:none;color:var(--cream);
-  font-size:32px;cursor:pointer;line-height:1;opacity:.7;font-family:inherit;
+  position:absolute;top:9px;right:14px;background:none;border:none;color:var(--dim);
+  font-size:26px;cursor:pointer;line-height:1;font-family:inherit;
 }
-.close:hover{opacity:1}
+.close:hover{color:var(--text)}
 
 @media (max-width:600px){
   .toplinks a{display:none}
@@ -300,11 +316,11 @@ footer a:hover{color:var(--noodle-y)}
       <!-- static layer: bowl, rim, sparkles, escaped noodle -->
       <!-- not aria-hidden: the chopsticks inside are focusable. Bare shapes carry no accessible name. -->
       <svg id="bowlSvg" viewBox="0 0 1000 1000">
-        <circle cx="500" cy="505" r="374" fill="#ffffff"/>
-        <circle cx="500" cy="505" r="356" fill="#f4ead0"/>
-        <circle cx="500" cy="505" r="352" fill="none" stroke="#e6d9b8" stroke-width="10" stroke-dasharray="420 1000" stroke-dashoffset="-880" stroke-linecap="round" opacity=".8"/>
-        <circle cx="500" cy="505" r="290" fill="#3b4270"/>
-        <circle cx="500" cy="505" r="287" fill="none" stroke="#2c3157" stroke-width="7" opacity=".55"/>
+        <circle cx="500" cy="505" r="374" fill="#2e2e38"/>
+        <circle cx="500" cy="505" r="356" fill="#22222b"/>
+        <circle cx="500" cy="505" r="352" fill="none" stroke="#3a3a46" stroke-width="10" stroke-dasharray="420 1000" stroke-dashoffset="-880" stroke-linecap="round" opacity=".9"/>
+        <circle cx="500" cy="505" r="290" fill="#16161d"/>
+        <circle cx="500" cy="505" r="287" fill="none" stroke="#00ffff" stroke-width="2" opacity=".22"/>
         <!-- chopsticks: click to pull up #NOODL posts. Tips dip into the bowl, grips point out. -->
         <g id="chopsticks" transform="translate(247,252) rotate(-135)" tabindex="0" role="button" aria-expanded="false" aria-controls="feed">
           <!-- generous invisible hit area -->
@@ -336,8 +352,9 @@ footer a:hover{color:var(--noodle-y)}
           <path id="nGlow2" fill="none" stroke="#ffe08a" stroke-width="38" stroke-linecap="round" opacity=".18"/>
           <path id="nEdge"  fill="none" stroke="#ef9530" stroke-width="30" stroke-linecap="round"/>
           <path id="nFill"  fill="none" stroke="#fcd14f" stroke-width="21" stroke-linecap="round"/>
-          <path id="nHatch" fill="none" stroke="#e0762b" stroke-width="26" stroke-linecap="butt" stroke-dasharray="2.5 30" opacity=".5"/>
-          <path id="nDim"   fill="none" stroke="#3b4270" stroke-width="34" stroke-linecap="butt" opacity=".55"/>
+          <path id="nDim"     fill="none" stroke="#1d1d25" stroke-width="34" stroke-linecap="butt" opacity=".94"/>
+          <path id="nDimEdge" fill="none" stroke="#34343f" stroke-width="21" stroke-linecap="butt"/>
+          <path id="nHatch"   fill="none" stroke="#0d0d12" stroke-width="26" stroke-linecap="butt" stroke-dasharray="2.5 30" opacity=".45"/>
           <path id="nBlink" fill="none" stroke="#fff6dc" stroke-width="23" stroke-linecap="butt"/>
         </g>
         <g id="milestones"></g>
@@ -540,7 +557,7 @@ function spiralPt(t){
   // Drawn from the OUTER end inward, so path length 0 = launch (rim) and TOTAL = NOVA (core).
   const N=280;let d='';
   for(let i=N;i>=0;i--){const p=spiralPt(i/N);d+=(i===N?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1);}
-  ['nGlow1','nGlow2','nEdge','nFill','nHatch','nDim','nBlink'].forEach(id=>document.getElementById(id).setAttribute('d',d));
+  ['nGlow1','nGlow2','nEdge','nFill','nHatch','nDim','nDimEdge','nBlink'].forEach(id=>document.getElementById(id).setAttribute('d',d));
 })();
 const measure=$('#nFill');
 const TOTAL=measure.getTotalLength();
@@ -704,6 +721,7 @@ function applyFrac(f){
   // differently across engines (Safari drops the zero-length entries, which
   // inverts lit/dim), so never emit a zero-length dash or gap — hide instead.
   setRun($('#nDim'),lit,TOTAL);                 // the not-yet-reached remainder
+  setRun($('#nDimEdge'),lit,TOTAL);             // neutral grey rail over it, so it reads cool not gold
   setRun($('#nBlink'),Math.max(lit-30,0),lit);  // the leading square (hatch pitch 32.5)
   const [hx,hy]=ptAt(f);
   headEl.setAttribute('cx',hx);headEl.setAttribute('cy',hy);
@@ -811,7 +829,7 @@ function render(){
   }else{
     const usd=fmtUsd(state.mc*state.btcUsd);
     html='<span class="live-dot'+(state.live?'':' off')+'"></span>'+
-      (state.live?ui.live:ui.cached)+' · '+ui.mcap+' <b style="color:#ffe9a3">'+fmtBtc(state.mc)+' BTC</b> ('+usd+') · '+
+      (state.live?ui.live:ui.cached)+' · '+ui.mcap+' <b style="color:var(--cyan)">'+fmtBtc(state.mc)+' BTC</b> ('+usd+') · '+
       state.holders+' '+ui.holders;
   }
   if(html!==lastLiveHtml){lastLiveHtml=html;$('#liveLine').innerHTML=html;}
