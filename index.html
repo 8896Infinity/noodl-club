@@ -348,13 +348,17 @@ footer a:hover{color:var(--cyan)}
       <!-- rotating layer: noodle spiral, milestones, planets, progress head -->
       <svg id="galaxySvg" viewBox="0 0 1000 1000">
         <g id="noodle">
+          <!-- The grey rail is ALWAYS drawn full length with no dash at all; the gold
+               is drawn only over the reached part. Reversing this (gold everywhere +
+               a dim overlay) makes a dash bug light the WHOLE spiral — the worst
+               possible failure. This way a dash bug can only fail to light it. -->
           <path id="nGlow1" fill="none" stroke="#fcd14f" stroke-width="46" stroke-linecap="round" opacity=".14"/>
           <path id="nGlow2" fill="none" stroke="#ffe08a" stroke-width="38" stroke-linecap="round" opacity=".18"/>
+          <path id="nRail"   fill="none" stroke="#34343f" stroke-width="30" stroke-linecap="round"/>
+          <path id="nRailIn" fill="none" stroke="#22222b" stroke-width="21" stroke-linecap="round"/>
           <path id="nEdge"  fill="none" stroke="#ef9530" stroke-width="30" stroke-linecap="round"/>
           <path id="nFill"  fill="none" stroke="#fcd14f" stroke-width="21" stroke-linecap="round"/>
-          <path id="nDim"     fill="none" stroke="#1d1d25" stroke-width="34" stroke-linecap="butt" opacity=".94"/>
-          <path id="nDimEdge" fill="none" stroke="#34343f" stroke-width="21" stroke-linecap="butt"/>
-          <path id="nHatch"   fill="none" stroke="#0d0d12" stroke-width="26" stroke-linecap="butt" stroke-dasharray="2.5 30" opacity=".45"/>
+          <path id="nHatch" fill="none" stroke="#0d0d12" stroke-width="26" stroke-linecap="butt" stroke-dasharray="2.5 30" opacity=".45"/>
           <path id="nBlink" fill="none" stroke="#fff6dc" stroke-width="23" stroke-linecap="butt"/>
         </g>
         <g id="milestones"></g>
@@ -557,9 +561,11 @@ function spiralPt(t){
   // Drawn from the OUTER end inward, so path length 0 = launch (rim) and TOTAL = NOVA (core).
   const N=280;let d='';
   for(let i=N;i>=0;i--){const p=spiralPt(i/N);d+=(i===N?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1);}
-  ['nGlow1','nGlow2','nEdge','nFill','nHatch','nDim','nDimEdge','nBlink'].forEach(id=>document.getElementById(id).setAttribute('d',d));
+  ['nGlow1','nGlow2','nRail','nRailIn','nEdge','nFill','nHatch','nBlink'].forEach(id=>document.getElementById(id).setAttribute('d',d));
 })();
-const measure=$('#nFill');
+// Measure off the rail, not #nFill: the rail is never dashed or hidden, so
+// geometry can never be coupled to how the lit run happens to be painted.
+const measure=$('#nRail');
 const TOTAL=measure.getTotalLength();
 const ptAt=f=>{const p=measure.getPointAtLength(TOTAL*clamp(f,0,1));return [p.x,p.y];};
 function radialOffset(p,d){
@@ -703,25 +709,28 @@ if(!reduceMotion)requestAnimationFrame(tick);
 
 /* ================= progress ================= */
 // Paint exactly one run of the spiral, [from -> to] in path units, on `el`.
-// A run shorter than a hair is hidden rather than expressed as a 0-length dash.
+//
+// Two things every engine agrees on, learned the hard way on iOS Safari:
+//   * never emit a zero-length dash or gap  — Safari drops them and the pattern inverts
+//   * never emit a NEGATIVE stroke-dashoffset — same story
+// The pattern period is len+gap, and offset is taken mod that period, so
+// (len+gap-from) puts the dash at `from` using only positive numbers.
 function setRun(el,from,to){
   const len=to-from;
   if(len<=0.5){el.setAttribute('visibility','hidden');return;}
   el.setAttribute('visibility','visible');
-  el.setAttribute('stroke-dasharray',len+' '+(TOTAL+80));
-  el.setAttribute('stroke-dashoffset',-from);
+  const gap=TOTAL+80;
+  el.setAttribute('stroke-dasharray',len+' '+gap);
+  el.setAttribute('stroke-dashoffset',len+gap-from);
 }
 let shownFrac=0;
 function applyFrac(f){
   shownFrac=f;
   const lit=TOTAL*f;
-  $('#nGlow1').setAttribute('stroke-dasharray',lit+' '+(TOTAL+80));
-  $('#nGlow2').setAttribute('stroke-dasharray',lit+' '+(TOTAL+80));
-  // Draw each run as ONE dash placed by dashoffset. A "0 a b 0" pattern reads
-  // differently across engines (Safari drops the zero-length entries, which
-  // inverts lit/dim), so never emit a zero-length dash or gap — hide instead.
-  setRun($('#nDim'),lit,TOTAL);                 // the not-yet-reached remainder
-  setRun($('#nDimEdge'),lit,TOTAL);             // neutral grey rail over it, so it reads cool not gold
+  // Everything reached runs [0 -> lit], i.e. dash-from-the-start: no offset needed
+  // at all, which is the one dash form every engine gets right. #nRail/#nRailIn
+  // stay undashed underneath, so the unreached part needs no maths whatsoever.
+  ['#nGlow1','#nGlow2','#nEdge','#nFill'].forEach(s=>setRun($(s),0,lit));
   setRun($('#nBlink'),Math.max(lit-30,0),lit);  // the leading square (hatch pitch 32.5)
   const [hx,hy]=ptAt(f);
   headEl.setAttribute('cx',hx);headEl.setAttribute('cy',hy);
