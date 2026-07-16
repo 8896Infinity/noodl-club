@@ -559,15 +559,28 @@ function spiralPt(t){
 }
 (function(){
   // Drawn from the OUTER end inward, so path length 0 = launch (rim) and TOTAL = NOVA (core).
+  // Only the always-full elements get the whole spiral 'd'; the gold run is rebuilt
+  // point-by-point each frame (see subPathD) — NO dashes anywhere on the gold, which
+  // is the only way to be certain no engine repeats or inverts the lit segment.
   const N=280;let d='';
   for(let i=N;i>=0;i--){const p=spiralPt(i/N);d+=(i===N?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1);}
-  ['nGlow1','nGlow2','nRail','nRailIn','nEdge','nFill','nHatch','nBlink'].forEach(id=>document.getElementById(id).setAttribute('d',d));
+  ['nRail','nRailIn','nHatch'].forEach(id=>document.getElementById(id).setAttribute('d',d));
 })();
-// Measure off the rail, not #nFill: the rail is never dashed or hidden, so
-// geometry can never be coupled to how the lit run happens to be painted.
+// Measure off the rail (never dashed/hidden) so geometry never couples to painting.
 const measure=$('#nRail');
 const TOTAL=measure.getTotalLength();
 const ptAt=f=>{const p=measure.getPointAtLength(TOTAL*clamp(f,0,1));return [p.x,p.y];};
+// Length-sampled points along the rail, precomputed once. Building the gold path
+// from a slice of these is pure geometry — no stroke-dasharray, no dashoffset.
+const STEP=5, SAMP=[];
+for(let L=0;L<=TOTAL;L+=STEP){const p=measure.getPointAtLength(L);SAMP.push(p.x.toFixed(1)+' '+p.y.toFixed(1));}
+function subPathD(fromLen,toLen){
+  if(toLen-fromLen<=0.5)return '';
+  let p=measure.getPointAtLength(fromLen),d='M'+p.x.toFixed(1)+' '+p.y.toFixed(1);
+  for(let i=Math.ceil(fromLen/STEP);i<=Math.floor(toLen/STEP);i++)d+='L'+SAMP[i];
+  p=measure.getPointAtLength(toLen);d+='L'+p.x.toFixed(1)+' '+p.y.toFixed(1);
+  return d;
+}
 function radialOffset(p,d){
   const vx=p[0]-CX,vy=p[1]-CY,L=Math.hypot(vx,vy)||1;
   return [p[0]+vx/L*d,p[1]+vy/L*d];
@@ -708,30 +721,21 @@ function tick(now){
 if(!reduceMotion)requestAnimationFrame(tick);
 
 /* ================= progress ================= */
-// Paint exactly one run of the spiral, [from -> to] in path units, on `el`.
-//
-// Two things every engine agrees on, learned the hard way on iOS Safari:
-//   * never emit a zero-length dash or gap  — Safari drops them and the pattern inverts
-//   * never emit a NEGATIVE stroke-dashoffset — same story
-// The pattern period is len+gap, and offset is taken mod that period, so
-// (len+gap-from) puts the dash at `from` using only positive numbers.
-function setRun(el,from,to){
-  const len=to-from;
-  if(len<=0.5){el.setAttribute('visibility','hidden');return;}
-  el.setAttribute('visibility','visible');
-  const gap=TOTAL+80;
-  el.setAttribute('stroke-dasharray',len+' '+gap);
-  el.setAttribute('stroke-dashoffset',len+gap-from);
+// Give `el` a path that is ONLY the run [fromLen -> toLen], or hide it if empty.
+function paintRun(el,fromLen,toLen){
+  const d=subPathD(fromLen,toLen);
+  if(d){el.setAttribute('d',d);el.removeAttribute('visibility');}
+  else el.setAttribute('visibility','hidden');
 }
 let shownFrac=0;
 function applyFrac(f){
   shownFrac=f;
   const lit=TOTAL*f;
-  // Everything reached runs [0 -> lit], i.e. dash-from-the-start: no offset needed
-  // at all, which is the one dash form every engine gets right. #nRail/#nRailIn
-  // stay undashed underneath, so the unreached part needs no maths whatsoever.
-  ['#nGlow1','#nGlow2','#nEdge','#nFill'].forEach(s=>setRun($(s),0,lit));
-  setRun($('#nBlink'),Math.max(lit-30,0),lit);  // the leading square (hatch pitch 32.5)
+  // The gold + its glow/edge are literally only the reached arc [0 -> lit]. The grey
+  // rail underneath is the full static spiral, so the unreached part is just "rail
+  // showing through" — impossible to accidentally light up.
+  ['#nGlow1','#nGlow2','#nEdge','#nFill'].forEach(s=>paintRun($(s),0,lit));
+  paintRun($('#nBlink'),Math.max(lit-30,0),lit);  // the leading square (hatch pitch 32.5)
   const [hx,hy]=ptAt(f);
   headEl.setAttribute('cx',hx);headEl.setAttribute('cy',hy);
   headLabelBase=radialOffset([hx,hy],34);
