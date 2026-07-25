@@ -85,6 +85,86 @@ a{color:inherit}
 .toplinks a:hover,#langBtn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
 #langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
 
+/* ---------- section nav ---------- */
+.secnav{
+  position:sticky;top:0;z-index:6;
+  display:flex;justify-content:center;gap:6px;flex-wrap:wrap;
+  padding:9px 14px;border-bottom:1px solid var(--line);
+  background:rgba(17,17,23,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.secnav a{
+  font-weight:500;font-size:12.5px;letter-spacing:.02em;color:var(--text-2);
+  text-decoration:none;padding:6px 13px;border:1px solid var(--line);border-radius:6px;
+  transition:border-color .15s,color .15s,background .15s;white-space:nowrap;
+}
+.secnav a:hover,.secnav a:focus-visible{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+
+/* ---------- long-form sections ---------- */
+/* Full-width opaque band over the fixed starfield: stars belong to the hero,
+   not behind body copy, where they read as dirt on the text. */
+.sec-wrap{position:relative;z-index:2;background:var(--bg);border-top:1px solid var(--line-soft)}
+.sections{max-width:760px;margin:0 auto;padding:8px 20px 0}
+.sec{scroll-margin-top:64px;padding:44px 0 8px;border-top:1px solid var(--line-soft)}
+.sec:first-child{border-top:none}
+.sec-k{font-size:10.5px;font-weight:600;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase;margin-bottom:10px}
+.sec h2{font-size:clamp(24px,5vw,34px);font-weight:700;color:var(--text);line-height:1.2;letter-spacing:.01em}
+.sec h3{font-size:16px;font-weight:600;color:var(--text);margin:26px 0 8px;letter-spacing:.01em}
+.sec p{color:var(--text-2);font-size:14.5px;line-height:1.85;margin:12px 0}
+.sec p b,.sec p strong{color:var(--text);font-weight:600}
+.sec .lead{font-size:16px;color:var(--text);line-height:1.8}
+.sec figure{margin:22px 0}
+.sec figure img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.sec figure.sq img{max-width:190px;margin:0 auto}
+.sec figcaption{font-size:11.5px;color:var(--dim);text-align:center;margin-top:9px;line-height:1.5}
+.pill{
+  display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;
+  color:var(--cyan);border:1px solid rgba(0,255,255,.35);border-radius:999px;
+  padding:3px 10px;margin:0 6px 6px 0;
+}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0}
+.fact{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
+.fact b{display:block;font-size:19px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums;line-height:1.2}
+.fact span{display:block;font-size:11.5px;color:var(--dim);margin-top:4px;line-height:1.45}
+.quote{
+  border-left:2px solid var(--cyan);padding:2px 0 2px 16px;margin:22px 0;
+  color:var(--text);font-size:15px;line-height:1.75;font-style:italic;
+}
+
+/* ---------- roadmap ---------- */
+.road{display:flex;flex-direction:column;gap:11px;margin:22px 0 8px}
+.step{
+  position:relative;display:flex;gap:14px;align-items:flex-start;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px 16px;
+}
+.step-i{
+  flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;
+  background:var(--line);color:var(--dim);
+}
+.step.done{border-color:rgba(0,255,255,.4)}
+.step.done .step-i{background:var(--cyan);color:#06060a}
+.step.now{border-color:rgba(0,255,255,.75);box-shadow:0 0 0 1px rgba(0,255,255,.18)}
+.step.now .step-i{background:var(--cyan);color:#06060a;animation:stepPulse 1.8s ease-in-out infinite}
+@keyframes stepPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,255,.5)}50%{box-shadow:0 0 0 6px rgba(0,255,255,0)}}
+.step-b{min-width:0;flex:1}
+.step-t{font-size:14.5px;font-weight:600;color:var(--text);line-height:1.35}
+.step-d{font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:5px}
+.step-s{font-size:10.5px;font-weight:600;letter-spacing:.08em;color:var(--cyan);margin-top:7px;text-transform:uppercase}
+.step.locked .step-t,.step.locked .step-d{filter:blur(4px);user-select:none}
+.step.locked .step-s{color:var(--dim)}
+.step.locked{background:repeating-linear-gradient(135deg,var(--panel),var(--panel) 9px,#15151b 9px,#15151b 18px)}
+.lockbar{
+  display:flex;align-items:center;gap:8px;margin-top:10px;
+  font-size:11.5px;font-weight:600;color:var(--dim);letter-spacing:.03em;
+}
+.lockbar .goal{color:var(--text-2);font-variant-numeric:tabular-nums}
+.lockbar .bar{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden;min-width:50px}
+.lockbar .bar i{display:block;height:100%;background:var(--cyan);border-radius:2px;transition:width 1s cubic-bezier(.22,1,.36,1)}
+.step.unlocked{filter:none}
+.step.unlocked .step-t,.step.unlocked .step-d{filter:none}
+.step.unlocked{border-color:rgba(0,255,255,.4)}
+.step.unlocked .step-i{background:var(--cyan);color:#06060a}
+
 /* ---------- hero / scene ---------- */
 main{position:relative;z-index:1}
 .hero{display:flex;flex-direction:column;align-items:center;padding:4px 16px 30px}
@@ -310,6 +390,13 @@ footer a:hover{color:var(--cyan)}
   </nav>
 </header>
 
+<nav class="secnav" aria-label="Sections">
+  <a href="#what" data-i="navWhat">What is NOODL?</a>
+  <a href="#culture" data-i="navCulture">Culture</a>
+  <a href="#community" data-i="navCommunity">Community</a>
+  <a href="#roadmap" data-i="navRoadmap">Roadmap</a>
+</nav>
+
 <main>
   <section class="hero">
     <div class="scene" id="scene">
@@ -389,6 +476,115 @@ footer a:hover{color:var(--cyan)}
       <div class="next-line" id="nextLine"></div>
     </section>
   </section>
+
+  <div class="sec-wrap"><div class="sections">
+
+    <!-- ============ WHAT IS NOODL ============ -->
+    <section class="sec" id="what">
+      <div class="sec-k" data-i="kWhat">01 — What is NOODL?</div>
+      <h2 data-i="whatH">The first token of the new Odin</h2>
+      <p class="lead" data-i="whatLead">NOODL (Noodle Nova) is the first token ever launched on ODIN·FUN v2 — the Bitcoin-native launchpad that came back online in July 2026 after nearly a year offline. On 13 July it graduated from its bonding curve into the AMM pool.</p>
+
+      <figure class="sq">
+        <img src="img/noodl-odin.png" alt="NOODL — a bowl of noodle galaxy" loading="lazy" width="1000" height="1000">
+        <figcaption data-i="capNoodl">NOODL — a bowl of noodle galaxy</figcaption>
+      </figure>
+
+      <h3 data-i="whatWhyH">Why Bitcoin needed a launchpad like this</h3>
+      <p data-i="whatWhyP">Bitcoin traded the third leg of the blockchain trilemma for decentralisation and security: ten-minute blocks, no smart contracts, no pools. However lively inscriptions and runes became, trading still meant order books — you eat whatever someone happened to list, one large ask crushes the tape, and a sell order may simply never find a buyer. ODIN·FUN keeps assets and settlement on Bitcoin while matching moves to a two-second-finality, zero-gas fast layer, with pools instead of order books.</p>
+
+      <h3 data-i="whatV1H">What happened to v1 — and what changed</h3>
+      <p data-i="whatV1P">v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was security infrastructure that failed to keep pace: on 13 August 2025 an attacker exploited an unaudited liquidity-mechanism update and drained 58.2 BTC in two hours; a second theft of 41.96 BTC followed on 31 March 2026 while the platform was still dark.</p>
+      <p data-i="whatV2P">v2 rebuilt the answer to each of those, item by item: deposits sit under <b>threshold-signature (TSS) custody</b> — the vault key is split across independent parties, and no single party, the team included, can move funds. Contract upgrades now pass a <b>4-of-7 multisig DAO</b> in which the team holds only two seats; platform revenue flows to a <b>3-of-5 treasury DAO</b> where the team holds none. Individual accounts add 2FA and an instant session padlock. Withdrawals to Bitcoin mainnet are batched, ten minutes at most.</p>
+
+      <div class="facts">
+        <div class="fact"><b>58.2 + 41.96</b><span data-i="factBtc">BTC lost across the two v1 exploits</span></div>
+        <div class="fact"><b>4 / 7</b><span data-i="factDao">Multisig DAO required to change v2 code (team holds 2)</span></div>
+        <div class="fact"><b>~2s</b><span data-i="factSpeed">Trade finality, zero gas, pools not order books</span></div>
+        <div class="fact"><b>#1</b><span data-i="factFirst">NOODL's launch position on v2 — permanently</span></div>
+      </div>
+
+      <h3 data-i="whatFirstH">Why "first" is the whole point</h3>
+      <p data-i="whatFirstP">No ecosystem takes <b>first-is-first</b> more seriously than Bitcoin's. Bitcoin is the origin of the industry; CryptoPunks of NFT culture; ORDI of the inscriptions era. Each ecosystem's first became that ecosystem's totem — not because of the words "the first", but because it carries the earliest cultural memory of an era, and rises as high as the ecosystem itself grows. NOODL is v2-original: no history on v1, no replica to argue with. When v1's runes and communities migrate across, originals and copies will coexist under the same names — a war of legitimacy NOODL never has to fight.</p>
+      <p class="quote" data-i="whatQuote">"The first is the first, forever: the only moat in this world that needs no maintenance."</p>
+    </section>
+
+    <!-- ============ CULTURE ============ -->
+    <section class="sec" id="culture">
+      <div class="sec-k" data-i="kCulture">02 — Culture</div>
+      <h2 data-i="cultH">The culture in a bowl of noodles</h2>
+      <p class="lead" data-i="cultLead">NOODL reads as <b>New Odin HODL</b> — the new Odin; hold, don't sell. Probably an accident of the deployer, and that is exactly where the magic sits.</p>
+
+      <div>
+        <span class="pill">NEW</span><span class="pill">ODIN</span><span class="pill">HODL</span>
+      </div>
+
+      <h3 data-i="cultBridgeH">One word, two cultures</h3>
+      <p data-i="cultBridgeP">NOODLE literally means noodles. In Chinese culture noodles stand for what lasts — longevity noodles on birthdays. The West has pasta in endless shapes, yet nobody there ever connected noodles with <i>lasting long</i>. Until Bitcoin handed them the word HODL. NOODL splices the two worlds together: a Westerner reads New Odin HODL instantly, and following that one strand of noodle, understands for the first time that noodles can mean forever.</p>
+      <p data-i="cultMianP">The wordplay runs deeper in Chinese, where 面 (mián) means both noodles and face: <b>体面</b> ti-mian, dignity · <b>长面</b> chang-mian, presence · <b>情面</b> qing-mian, mutual regard. Three bowls of mian in a life.</p>
+
+      <h3 data-i="cultHodlH">HODL as long-termism</h3>
+      <p data-i="cultHodlP">HODL is one of crypto's most important pieces of heritage — a word misspelled in the 2013 bear market that became a generation's creed. Most people arrive to get rich fast; after every cycle rinses through, the communities that remain are the ones willing to build for the long haul. NOODL welded that word into its own name, which gives it a shot at being v2's cultural core: hold on, and accompany the rebirth.</p>
+      <p class="quote" data-i="cultQuote">"The cultural density of this coin runs far higher than its market cap."</p>
+
+      <h3 data-i="cultRealH">1 NOODL = 1 noodle</h3>
+      <p data-i="cultRealP">The culture is not only symbolic. One NOODL corresponds to one bowl of ramen — roughly £15 — at Noodle Nova in central London: a token anchored, however playfully, to something you can actually eat.</p>
+    </section>
+
+    <!-- ============ COMMUNITY ============ -->
+    <section class="sec" id="community">
+      <div class="sec-k" data-i="kCommunity">03 — Community</div>
+      <h2 data-i="commH">One coordinate, one consensus</h2>
+      <p class="lead" data-i="commLead">v2's biggest opportunity is not the technical upgrade — it is the chance to re-gather communities that used to be scattered.</p>
+
+      <h3 data-i="commSplitH">The lesson of a divided house</h3>
+      <p data-i="commSplitP">The v1 era had a real problem: on-chain players held on-chain consensus, off-chain communities held their own, and different camps backed different assets. Original ODINDOG versus FORSETISCN — the dog and the scales — is the clearest example: both sides were Odin believers, yet the strength never pulled in one direction. Before the ecosystem had grown up, the household had divided.</p>
+
+      <h3 data-i="commTurnH">A healthy rotation of chips</h3>
+      <p data-i="commTurnP">NOODL's community took one full rotation to form. The earliest few dozen came only to farm the launch, flip it for a few hundred dollars and leave; when the bonding curve graduated, that crowd took the money and dissolved. The chips rotated into genuinely convicted hands — and what gathered afterwards reads like a roll call of v1: the old A9 hands of Libra, the ODINDOG old guard, the WETH community, the Little Fist community. Veterans who each fought alone in the v1 era, converging on one coordinate.</p>
+      <p data-i="commValP">A project's greatest value was never just its code, but how many people's convictions are willing to gather in one place. Backgrounds and styles differ sharply — some believe in the technology, some in the ecosystem, some in the first narrative, some simply in long-term holding — yet everyone sat down at the same table for the same faith. A strong community is never everyone thinking identically; it is a direction commonly believed, grown among entirely different people.</p>
+
+      <figure class="sq">
+        <img src="img/odindog.jpg" alt="ODINDOG — the first token of the v1 era" loading="lazy" width="520" height="520">
+        <figcaption data-i="capOdindog">ODINDOG — the first of the v1 era, and the community NOODL now shares a table with</figcaption>
+      </figure>
+
+      <h3 data-i="commTeamH">The team that never ran</h3>
+      <p data-i="commTeamP">The first cornerstone of rebuilt trust is people. Through eight months offline the team never went dark: founder Bob Bodily said plainly on the day of the incident that the company treasury could not cover the losses, then worked with OKX and Binance to freeze stolen funds, cooperated with law enforcement on both sides of the Pacific, commissioned an external audit, and honoured deposits 1:1 at relaunch. The plan after two thefts was not to dump the hole onto users, but to restart, raise fees, and repay v1's losses out of the platform's own earnings. The community's nickname for him — <i>the Legendary Theft-Proof King</i> — is affectionate and exhausted in equal measure.</p>
+      <p class="quote" data-i="commQuote">"In an industry where running away costs nothing, a team that doesn't run is itself the scarcest asset."</p>
+    </section>
+
+    <!-- ============ ROADMAP ============ -->
+    <section class="sec" id="roadmap">
+      <div class="sec-k" data-i="kRoadmap">04 — Roadmap</div>
+      <h2 data-i="roadH">The road to Nova</h2>
+      <p class="lead" data-i="roadLead">Everything below unlocks by market cap. Later stages stay sealed until the milestone is actually reached — no promises made in advance.</p>
+
+      <div class="road" id="roadList"></div>
+
+      <p data-i="roadNote" style="font-size:12.5px;color:var(--dim);margin-top:18px">Locked stages reveal themselves automatically as NOODL's live market cap crosses each milestone. Nothing here is a commitment or a forecast.</p>
+    </section>
+
+    <!-- ============ CONTEXT / SOURCE ============ -->
+    <section class="sec" id="context">
+      <div class="sec-k" data-i="kContext">05 — Context</div>
+      <h2 data-i="ctxH">Timing, and the honest part</h2>
+      <p data-i="ctxPendulumP">The pendulum of flow has swung this way before. In January 2025 the TRUMP coin marked the climax of the pump.fun era, and one week after it topped, Odin v1 was announced — receiving the capital that went looking for somewhere to build. In July 2026 Robinhood's own chain went live and was promptly occupied by memes, until noxa — the launchpad behind three quarters of its deployments — went dark for two days and the community erupted in soft-rug accusations. Same pendulum, same position, and Odin v2 restarted at precisely that moment.</p>
+
+      <figure>
+        <img src="img/falcon-heavy.jpg" alt="Falcon Heavy boosters landing" loading="lazy" width="900" height="600">
+        <figcaption data-i="capFalcon">Comebacks are rare, which is why they are the favourite plot — the company that kept exploding later taught its rockets to come home</figcaption>
+      </figure>
+
+      <p data-i="ctxRiskP"><b>The honest part.</b> NOODL graduated into the AMM in mid-July 2026. Its market cap is measured in single-digit BTC and its holders number in the low hundreds. This is not an "it has made it" story — it is an "it has just begun" story. Early is the biggest opportunity and the biggest risk; both sentences are always true at once. Nothing on this page is financial advice.</p>
+
+      <p style="font-size:12.5px;color:var(--dim);border-top:1px solid var(--line-soft);padding-top:16px;margin-top:26px">
+        <span data-i="ctxSrcP">Background on the v1 exploits, the v2 security rebuild and the community history above is drawn from independent reporting by SuZhe — </span>
+        <a href="https://www.suzhe.com/post.html?id=post_202607152112" target="_blank" rel="noopener" style="color:var(--cyan-dim)">ODIN.FUN: The Lesson, the Change, and the Future ↗</a>
+      </p>
+    </section>
+
+  </div></div>
 </main>
 
 <footer>
@@ -477,6 +673,65 @@ en:{
     tipTarget:(btc,hit)=>'Target market cap <b>'+btc+' BTC</b> <span class="'+(hit?'yes':'no')+'">('+(hit?'reached':'not reached')+')</span>',
     tipNova:(hit)=>'<b>NOVA</b> · final target <b>5000 BTC</b> <span class="'+(hit?'yes':'no')+'">('+(hit?'reached':'not reached')+')</span>',
     reached:'🌟 NOVA REACHED — the noodle has left the bowl',
+    kWhat:'01 — What is NOODL?',
+    whatH:'The first token of the new Odin',
+    whatLead:'NOODL (Noodle Nova) is the first token ever launched on ODIN·FUN v2 — the Bitcoin-native launchpad that came back online in July 2026 after nearly a year offline. On 13 July it graduated from its bonding curve into the AMM pool.',
+    capNoodl:'NOODL — a bowl of noodle galaxy',
+    whatWhyH:'Why Bitcoin needed a launchpad like this',
+    whatWhyP:'Bitcoin traded the third leg of the blockchain trilemma for decentralisation and security: ten-minute blocks, no smart contracts, no pools. However lively inscriptions and runes became, trading still meant order books — you eat whatever someone happened to list, one large ask crushes the tape, and a sell order may simply never find a buyer. ODIN·FUN keeps assets and settlement on Bitcoin while matching moves to a two-second-finality, zero-gas fast layer, with pools instead of order books.',
+    whatV1H:'What happened to v1 — and what changed',
+    whatV1P:'v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was security infrastructure that failed to keep pace: on 13 August 2025 an attacker exploited an unaudited liquidity-mechanism update and drained 58.2 BTC in two hours; a second theft of 41.96 BTC followed on 31 March 2026 while the platform was still dark.',
+    whatV2P:'v2 rebuilt the answer to each of those, item by item: deposits sit under <b>threshold-signature (TSS) custody</b> — the vault key is split across independent parties, and no single party, the team included, can move funds. Contract upgrades now pass a <b>4-of-7 multisig DAO</b> in which the team holds only two seats; platform revenue flows to a <b>3-of-5 treasury DAO</b> where the team holds none. Individual accounts add 2FA and an instant session padlock. Withdrawals to Bitcoin mainnet are batched, ten minutes at most.',
+    factBtc:'BTC lost across the two v1 exploits',
+    factDao:'Multisig DAO required to change v2 code (team holds 2)',
+    factSpeed:'Trade finality, zero gas, pools not order books',
+    factFirst:"NOODL's launch position on v2 — permanently",
+    whatFirstH:'Why "first" is the whole point',
+    whatFirstP:'No ecosystem takes <b>first-is-first</b> more seriously than Bitcoin\'s. Bitcoin is the origin of the industry; CryptoPunks of NFT culture; ORDI of the inscriptions era. Each ecosystem\'s first became that ecosystem\'s totem — not because of the words "the first", but because it carries the earliest cultural memory of an era, and rises as high as the ecosystem itself grows. NOODL is v2-original: no history on v1, no replica to argue with. When v1\'s runes and communities migrate across, originals and copies will coexist under the same names — a war of legitimacy NOODL never has to fight.',
+    whatQuote:'"The first is the first, forever: the only moat in this world that needs no maintenance."',
+    kCulture:'02 — Culture',
+    cultH:'The culture in a bowl of noodles',
+    cultLead:'NOODL reads as <b>New Odin HODL</b> — the new Odin; hold, don\'t sell. Probably an accident of the deployer, and that is exactly where the magic sits.',
+    cultBridgeH:'One word, two cultures',
+    cultBridgeP:'NOODLE literally means noodles. In Chinese culture noodles stand for what lasts — longevity noodles on birthdays. The West has pasta in endless shapes, yet nobody there ever connected noodles with <i>lasting long</i>. Until Bitcoin handed them the word HODL. NOODL splices the two worlds together: a Westerner reads New Odin HODL instantly, and following that one strand of noodle, understands for the first time that noodles can mean forever.',
+    cultMianP:'The wordplay runs deeper in Chinese, where 面 (mián) means both noodles and face: <b>体面</b> ti-mian, dignity · <b>长面</b> chang-mian, presence · <b>情面</b> qing-mian, mutual regard. Three bowls of mian in a life.',
+    cultHodlH:'HODL as long-termism',
+    cultHodlP:"HODL is one of crypto's most important pieces of heritage — a word misspelled in the 2013 bear market that became a generation's creed. Most people arrive to get rich fast; after every cycle rinses through, the communities that remain are the ones willing to build for the long haul. NOODL welded that word into its own name, which gives it a shot at being v2's cultural core: hold on, and accompany the rebirth.",
+    cultQuote:'"The cultural density of this coin runs far higher than its market cap."',
+    cultRealH:'1 NOODL = 1 noodle',
+    cultRealP:'The culture is not only symbolic. One NOODL corresponds to one bowl of ramen — roughly £15 — at Noodle Nova in central London: a token anchored, however playfully, to something you can actually eat.',
+    kCommunity:'03 — Community',
+    commH:'One coordinate, one consensus',
+    commLead:"v2's biggest opportunity is not the technical upgrade — it is the chance to re-gather communities that used to be scattered.",
+    commSplitH:'The lesson of a divided house',
+    commSplitP:'The v1 era had a real problem: on-chain players held on-chain consensus, off-chain communities held their own, and different camps backed different assets. Original ODINDOG versus FORSETISCN — the dog and the scales — is the clearest example: both sides were Odin believers, yet the strength never pulled in one direction. Before the ecosystem had grown up, the household had divided.',
+    commTurnH:'A healthy rotation of chips',
+    commTurnP:"NOODL's community took one full rotation to form. The earliest few dozen came only to farm the launch, flip it for a few hundred dollars and leave; when the bonding curve graduated, that crowd took the money and dissolved. The chips rotated into genuinely convicted hands — and what gathered afterwards reads like a roll call of v1: the old A9 hands of Libra, the ODINDOG old guard, the WETH community, the Little Fist community. Veterans who each fought alone in the v1 era, converging on one coordinate.",
+    commValP:"A project's greatest value was never just its code, but how many people's convictions are willing to gather in one place. Backgrounds and styles differ sharply — some believe in the technology, some in the ecosystem, some in the first narrative, some simply in long-term holding — yet everyone sat down at the same table for the same faith. A strong community is never everyone thinking identically; it is a direction commonly believed, grown among entirely different people.",
+    capOdindog:'ODINDOG — the first of the v1 era, and the community NOODL now shares a table with',
+    commTeamH:'The team that never ran',
+    commTeamP:'The first cornerstone of rebuilt trust is people. Through eight months offline the team never went dark: founder Bob Bodily said plainly on the day of the incident that the company treasury could not cover the losses, then worked with OKX and Binance to freeze stolen funds, cooperated with law enforcement on both sides of the Pacific, commissioned an external audit, and honoured deposits 1:1 at relaunch. The plan after two thefts was not to dump the hole onto users, but to restart, raise fees, and repay v1\'s losses out of the platform\'s own earnings. The community\'s nickname for him — <i>the Legendary Theft-Proof King</i> — is affectionate and exhausted in equal measure.',
+    commQuote:'"In an industry where running away costs nothing, a team that doesn\'t run is itself the scarcest asset."',
+    kRoadmap:'04 — Roadmap',
+    roadH:'The road to Nova',
+    roadLead:'Everything below unlocks by market cap. Later stages stay sealed until the milestone is actually reached — no promises made in advance.',
+    roadNote:"Locked stages reveal themselves automatically as NOODL's live market cap crosses each milestone. Nothing here is a commitment or a forecast.",
+    kContext:'05 — Context',
+    ctxH:'Timing, and the honest part',
+    ctxPendulumP:"The pendulum of flow has swung this way before. In January 2025 the TRUMP coin marked the climax of the pump.fun era, and one week after it topped, Odin v1 was announced — receiving the capital that went looking for somewhere to build. In July 2026 Robinhood's own chain went live and was promptly occupied by memes, until noxa — the launchpad behind three quarters of its deployments — went dark for two days and the community erupted in soft-rug accusations. Same pendulum, same position, and Odin v2 restarted at precisely that moment.",
+    capFalcon:'Comebacks are rare, which is why they are the favourite plot — the company that kept exploding later taught its rockets to come home',
+    ctxRiskP:'<b>The honest part.</b> NOODL graduated into the AMM in mid-July 2026. Its market cap is measured in single-digit BTC and its holders number in the low hundreds. This is not an "it has made it" story — it is an "it has just begun" story. Early is the biggest opportunity and the biggest risk; both sentences are always true at once. Nothing on this page is financial advice.',
+    ctxSrcP:'Background on the v1 exploits, the v2 security rebuild and the community history above is drawn from independent reporting by SuZhe — ',
+    navWhat:'What is NOODL?',navCulture:'Culture',navCommunity:'Community',navRoadmap:'Roadmap',
+    roadDone:'Completed',roadNow:'In progress',roadUnlocked:'Unlocked',
+    road:[
+      {t:'ODIN·FUN v1 → v2 migration',d:"v1's runes and communities migrate to the official v2 platform, bringing the original funds, chips and holders across."},
+      {t:'Staking goes live',d:'Staking arrives on the platform, giving holders a reason to hold rather than rotate.'},
+      {t:'Stage unlocks at 5 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 5 BTC.'},
+      {t:'Stage unlocks at 50 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 50 BTC.'},
+      {t:'Stage unlocks at 500 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 500 BTC.'},
+      {t:'NOVA — 5000 BTC',d:'The final milestone. Sealed until the noodle leaves the bowl.'}
+    ],
     chopHint:'PICK UP A #NOODL POST',
     fdNext:'Next post →',
     fdAll:'All #NOODL posts →',
@@ -505,6 +760,65 @@ zh:{
     tipTarget:(btc,hit)=>'目标市值 <b>'+btc+' BTC</b><span class="'+(hit?'yes':'no')+'">（'+(hit?'已达成':'尚未达成')+'）</span>',
     tipNova:(hit)=>'<b>NOVA · 超新星</b> 终点市值 <b>5000 BTC</b><span class="'+(hit?'yes':'no')+'">（'+(hit?'已达成':'尚未达成')+'）</span>',
     reached:'🌟 超新星达成 —— 面条已冲出碗外',
+    kWhat:'01 — 什么是 NOODL',
+    whatH:'新 Odin 的第一枚代币',
+    whatLead:'NOODL（Noodle Nova）是 ODIN·FUN v2 平台上发射的第一枚代币。ODIN·FUN 是比特币生态的原生发射台，在停摆近一年后于 2026 年 7 月重新上线；7 月 13 日，NOODL 从绑定曲线毕业进入 AMM 池。',
+    capNoodl:'NOODL —— 一碗面条星系',
+    whatWhyH:'比特币生态为什么需要这样一个发射台',
+    whatWhyP:'比特币用区块链不可能三角的第三条腿，换取了去中心化与安全：十分钟一个块、没有智能合约、没有池子。所以无论铭文和符文多热闹，交易仍然只能靠订单簿 —— 买入只能吃别人挂的量，一张大卖单就砸穿盘口；卖出更难受，没有池子接盘，挂单可能永远等不到买家。ODIN·FUN 的解法是：资产与结算留在比特币，撮合搬到两秒终局、零 gas 的快速层，用池子取代订单簿。',
+    whatV1H:'v1 发生了什么 —— 以及 v2 改了什么',
+    whatV1P:'v1 不是死于没有市场。上线首月成交超过 1,000 BTC、覆盖三万七千个地址，首枚代币 ODINDOG 从几千美元市值一路走到 3,500 万美元。真正击穿它的，是没能跟上生态增速的安全基建：2025 年 8 月 13 日，攻击者利用一次未经审计的流动性机制更新，两小时内卷走 58.2 BTC；2026 年 3 月 31 日，平台仍在停摆期间又被盗 41.96 BTC。',
+    whatV2P:'v2 针对每一条逐项重建：存入资金由<b>门限签名（TSS）托管</b>——金库密钥被拆分给多个独立方持有，包括团队自己在内，没有任何单方能动用资金。合约升级须经<b>4/7 多签 DAO</b>，其中团队只占两席；平台收入进入<b>3/5 多签国库 DAO</b>，团队一席不占。个人账户层面则加了两步验证与即时会话锁。提现到比特币主网按批处理，最多十分钟。',
+    factBtc:'两次 v1 攻击共损失 BTC',
+    factDao:'修改 v2 代码所需多签（团队仅占 2 席）',
+    factSpeed:'交易终局时间，零 gas，池子而非订单簿',
+    factFirst:'NOODL 在 v2 的发射序位 —— 永久',
+    whatFirstH:'为什么「第一」就是全部',
+    whatFirstP:'没有哪个生态比比特币更看重<b>first is first</b>。比特币是整个行业的起点，CryptoPunks 是 NFT 文化的起点，ORDI 是铭文生态的起点 —— 每个生态的第一，最后都成了那个生态的图腾。原因不在「第一」这两个字，而在于它承载了一个时代最早的文化记忆，并随着生态本身长多高就被抬多高。NOODL 是 v2 原生：在 v1 没有历史，也就没有复制品要争。等 v1 的符文与社区迁移过来，同名的原版与复制版将在同一平台共存 —— 而这场正统性之战，NOODL 从不需要打。',
+    whatQuote:'「第一就是第一，永远如此：这是世上唯一不需要维护的护城河。」',
+    kCulture:'02 — 文化',
+    cultH:'一碗面里的文化',
+    cultLead:'NOODL 读作 <b>New Odin HODL</b> —— 新的 Odin；拿住，别卖。这大概是部署者的一次偶然，而魔力恰恰在此。',
+    cultBridgeH:'一个词，两种文化',
+    cultBridgeP:'NOODLE 的字面意思是面条。在中国文化里，面条代表长久 —— 生日要吃长寿面。西方有形态万千的意面，却从没有人把面条和「长久」联系起来，直到比特币给了他们 HODL 这个词。NOODL 把两个世界接在了一起：西方人一眼读出 New Odin HODL，并顺着这根面条第一次理解到 —— 面，可以意味着永远。',
+    cultMianP:'这层双关在中文里更深，因为「面」既是面条也是脸面：<b>体面</b>、<b>长面</b>、<b>情面</b> —— 人生三碗面。',
+    cultHodlH:'HODL 即长期主义',
+    cultHodlP:'HODL 是加密文化最重要的遗产之一 —— 一个在 2013 年熊市里拼错的单词，成了一代人的信条。多数人为暴富而来；每轮周期冲刷之后，留下的都是愿意长期建设、相信平台能再度伟大的社区。NOODL 把这个词焊进了自己的名字，因而有机会成为 v2 的文化内核：拿住，陪它重生。',
+    cultQuote:'「这枚币的文化密度，远高于它的市值。」',
+    cultRealH:'1 NOODL = 1 碗面',
+    cultRealP:'这份文化不只是符号。一枚 NOODL 对应伦敦市中心 Noodle Nova 的一碗拉面（约 £15）—— 一枚真的能「吃」的代币，哪怕这份锚定带着玩心。',
+    kCommunity:'03 — 社区',
+    commH:'一个坐标，一个共识',
+    commLead:'v2 最大的机会其实不是技术升级，而是把过去散落各处的社区重新聚拢的机会。',
+    commSplitH:'分家的教训',
+    commSplitP:'v1 时代有个真问题：链上玩家有链上的共识，链下社区有链下的共识，不同阵营各自押注不同资产。最典型的就是原版 ODINDOG 与 FORSETISCN（天平）之争 —— 两边都是 Odin 的信仰者，力气却始终没往一处使。生态还没长大，家先分了。',
+    commTurnH:'一次健康的筹码换手',
+    commTurnP:'NOODL 的社区是经过一整轮换手才成形的。最早来的几十个人只想打新，赚几百美元就走；绑定曲线真正毕业时，这批人拿钱离场、群也散了。筹码轮到了真正有信念的手里 —— 之后聚起来的名单几乎就是 v1 的点名册：Libra 的 A9 老玩家、ODINDOG 老兵、WETH 社区、小拳头社区。v1 时代各自为战的老兵，正在向同一个坐标汇合。',
+    commValP:'一个项目最大的价值从来不只是代码，而是有多少人的信念愿意聚在同一个地方。这些人的背景与风格差异极大 —— 有人信技术，有人信生态，有人信第一叙事，有人只信长期持有 —— 但最终都为同一个信念坐到了同一张桌前。真正强的社区从来不是所有人想法一致，而是一个被共同相信的方向，长在完全不同的人身上。',
+    capOdindog:'ODINDOG —— v1 时代的第一枚，如今与 NOODL 同桌的社区',
+    commTeamH:'没有跑路的团队',
+    commTeamP:'重建信任的第一块基石是人。停摆八个月，团队一天都没有失联：创始人 Bob Bodily 在事发当天直言公司金库不足以覆盖损失，随后与 OKX、币安协作冻结被盗资金、配合太平洋两岸执法机构、委托外部安全审计，并承诺重启时按 1:1 兑付存款。两次被盗之后，他给出的方案不是把窟窿甩给用户，而是重启 v2、提高费率，用平台自身收入偿还 v1 的损失。社区给他起的外号 ——「传奇防盗王」—— 一半是亲切，一半是心累。',
+    commQuote:'「在一个跑路零成本的行业里，一支不跑的团队本身就是最稀缺的资产。」',
+    kRoadmap:'04 — 规划',
+    roadH:'通往超新星之路',
+    roadLead:'以下所有阶段按市值解锁。后续阶段在里程碑真正达成前保持封存 —— 不提前承诺任何事。',
+    roadNote:'被锁阶段会随 NOODL 实时市值越过各里程碑自动揭晓。此处内容不构成任何承诺或预测。',
+    kContext:'05 — 背景',
+    ctxH:'时机，以及必须说清的部分',
+    ctxPendulumP:'流量的钟摆此前就这样摆过一次。2025 年 1 月，TRUMP 币标志着 pump.fun 时代的高潮；它见顶一周后，Odin v1 官宣 —— 承接了那批四处寻找建设之地的资金。2026 年 7 月，Robinhood 自己的链上线，随即被 meme 占领，直到承接了该链四分之三部署量的发射台 noxa 网站连续两天打不开、社区爆发软跑路指控。同一个钟摆，同一个位置 —— 而 Odin v2 恰好在这一刻重启。',
+    capFalcon:'王者归来之所以是最受欢迎的剧本，正因为它罕见 —— 那家不断炸火箭的公司，后来教会了火箭这样回家',
+    ctxRiskP:'<b>必须说清的部分。</b>NOODL 于 2026 年 7 月中旬毕业进入 AMM，市值以个位数 BTC 计，持有地址数在数百之内。这不是一篇「它已经成了」的介绍，而是一篇「它才刚开始」的介绍。早期既是最大的机会也是最大的风险 —— 这两句话永远同时成立。本页不构成任何投资建议。',
+    ctxSrcP:'以上关于 v1 攻击事件、v2 安全重建与社区历史的背景，取自 SuZhe 的独立报道 —— ',
+    navWhat:'什么是 NOODL',navCulture:'文化',navCommunity:'社区',navRoadmap:'规划',
+    roadDone:'已完成',roadNow:'进行中',roadUnlocked:'已解锁',
+    road:[
+      {t:'ODIN·FUN v1 → v2 迁移',d:'v1 的符文与社区迁移至官方 v2 平台，原始资金、筹码与持有者一并带入。'},
+      {t:'质押功能上线',d:'平台质押功能上线，让持有者有理由长期持有而非轮动。'},
+      {t:'达到 5 BTC 解锁',d:'该阶段在 NOODL 市值达到 5 BTC 前保持封存。'},
+      {t:'达到 50 BTC 解锁',d:'该阶段在 NOODL 市值达到 50 BTC 前保持封存。'},
+      {t:'达到 500 BTC 解锁',d:'该阶段在 NOODL 市值达到 500 BTC 前保持封存。'},
+      {t:'超新星 — 5000 BTC',d:'最终里程碑。在面条冲出碗外之前保持封存。'}
+    ],
     chopHint:'夹一条 #NOODL 帖子',
     fdNext:'下一条 →',
     fdAll:'全部 #NOODL 帖子 →',
@@ -846,6 +1160,7 @@ function render(){
       state.holders+' '+ui.holders;
   }
   if(html!==lastLiveHtml){lastLiveHtml=html;$('#liveLine').innerHTML=html;}
+  buildRoad();   // roadmap stages unlock as the live cap crosses each milestone
   const next=MILESTONES.find(m=>state.mc<m);
   $('#nextLine').textContent=(!state.live&&seeded)?'':(next?ui.toNext((100*state.mc/next).toFixed(1),next):ui.reached);
 }
@@ -854,7 +1169,14 @@ function render(){
 function applyLang(){
   document.documentElement.lang=lang==='zh'?'zh-CN':'en';
   const ui=I18N[lang].ui;
-  document.querySelectorAll('[data-i]').forEach(el=>{const k=el.dataset.i;if(typeof ui[k]==='string')el.textContent=ui[k];});
+  // Section copy carries inline <b>/<i> emphasis, so those keys go in as HTML.
+  // The strings are authored here in this file — never user or API data.
+  const RICH=/^(whatV2P|whatFirstP|cultLead|cultMianP|ctxRiskP)$/;
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const k=el.dataset.i,v=ui[k];
+    if(typeof v!=='string')return;
+    if(RICH.test(k))el.innerHTML=v;else el.textContent=v;
+  });
   $('#langBtn').textContent=lang==='en'?'中文':'EN';
   chopEl.setAttribute('aria-label',ui.chopHint);
   chopHint.textContent=ui.chopHint;
@@ -866,6 +1188,40 @@ $('#langBtn').addEventListener('click',()=>{
   try{localStorage.setItem('noodl_lang',lang);}catch(e){}
   applyLang();
 });
+
+/* ================= roadmap ================= */
+// Stages gated on live market cap. `at:null` = already happening, not gated.
+// Locked copy stays deliberately vague: it is blurred out until the milestone
+// lands, so it must never read as a promise.
+const ROAD=[
+  {at:null,state:'done'},
+  {at:null,state:'now'},
+  {at:5},{at:50},{at:500},{at:5000}
+];
+const roadEl=$('#roadList');
+function buildRoad(){
+  const ui=I18N[lang].ui,R=ui.road;
+  roadEl.innerHTML=ROAD.map((s,i)=>{
+    const r=R[i];
+    const unlocked=s.at===null||state.mc>=s.at;
+    const cls=s.at===null?(s.state==='done'?'done':'now'):(unlocked?'unlocked':'locked');
+    const pct=s.at===null?100:clamp(state.mc/s.at*100,0,100);
+    const badge=s.at===null
+      ? '<div class="step-s">'+(s.state==='done'?ui.roadDone:ui.roadNow)+'</div>'
+      : (unlocked
+          ? '<div class="step-s">'+ui.roadUnlocked+'</div>'
+          : '<div class="lockbar">🔒 <span class="goal">'+s.at+' BTC</span>'
+            +'<span class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></span>'
+            +'<span>'+pct.toFixed(0)+'%</span></div>');
+    return '<div class="step '+cls+'">'
+      +'<span class="step-i">'+(s.at===null?(i+1):'🔒')+'</span>'
+      +'<div class="step-b">'
+        +'<div class="step-t">'+TW.esc(r.t)+'</div>'
+        +'<div class="step-d">'+TW.esc(r.d)+'</div>'
+        +badge
+      +'</div></div>';
+  }).join('');
+}
 
 /* ================= #NOODL post dropdown (chopsticks) ================= */
 const feedEl=$('#feed'),chopEl=$('#chopsticks');
