@@ -494,11 +494,11 @@ footer a:hover{color:var(--cyan)}
       <p data-i="whatWhyP">Bitcoin traded the third leg of the blockchain trilemma for decentralisation and security: ten-minute blocks, no smart contracts, no pools. However lively inscriptions and runes became, trading still meant order books — you eat whatever someone happened to list, one large ask crushes the tape, and a sell order may simply never find a buyer. ODIN·FUN keeps assets and settlement on Bitcoin while matching moves to a two-second-finality, zero-gas fast layer, with pools instead of order books.</p>
 
       <h3 data-i="whatV1H">What happened to v1 — and what changed</h3>
-      <p data-i="whatV1P">v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was security infrastructure that failed to keep pace: on 13 August 2025 an attacker exploited an unaudited liquidity-mechanism update and drained 58.2 BTC in two hours; a second theft of 41.96 BTC followed on 31 March 2026 while the platform was still dark.</p>
+      <p data-i="whatV1P">v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was pace: the ecosystem grew faster than its security infrastructure, a mechanism upgrade shipped with a flaw in it, attackers found the gap, and a security incident followed. The car was fine and the road was fine — the brakes simply had not caught up with the horsepower.</p>
       <p data-i="whatV2P">v2 rebuilt the answer to each of those, item by item: deposits sit under <b>threshold-signature (TSS) custody</b> — the vault key is split across independent parties, and no single party, the team included, can move funds. Contract upgrades now pass a <b>4-of-7 multisig DAO</b> in which the team holds only two seats; platform revenue flows to a <b>3-of-5 treasury DAO</b> where the team holds none. Individual accounts add 2FA and an instant session padlock. Withdrawals to Bitcoin mainnet are batched, ten minutes at most.</p>
 
       <div class="facts">
-        <div class="fact"><b>58.2 + 41.96</b><span data-i="factBtc">BTC lost across the two v1 exploits</span></div>
+        <div class="fact"><b>1,000+</b><span data-i="factBtc">BTC of volume in v1's first month — the demand was always real</span></div>
         <div class="fact"><b>4 / 7</b><span data-i="factDao">Multisig DAO required to change v2 code (team holds 2)</span></div>
         <div class="fact"><b>~2s</b><span data-i="factSpeed">Trade finality, zero gas, pools not order books</span></div>
         <div class="fact"><b>#1</b><span data-i="factFirst">NOODL's launch position on v2 — permanently</span></div>
@@ -543,11 +543,6 @@ footer a:hover{color:var(--cyan)}
       <h3 data-i="commTurnH">A healthy rotation of chips</h3>
       <p data-i="commTurnP">NOODL's community took one full rotation to form. The earliest few dozen came only to farm the launch, flip it for a few hundred dollars and leave; when the bonding curve graduated, that crowd took the money and dissolved. The chips rotated into genuinely convicted hands — and what gathered afterwards reads like a roll call of v1: the old A9 hands of Libra, the ODINDOG old guard, the WETH community, the Little Fist community. Veterans who each fought alone in the v1 era, converging on one coordinate.</p>
       <p data-i="commValP">A project's greatest value was never just its code, but how many people's convictions are willing to gather in one place. Backgrounds and styles differ sharply — some believe in the technology, some in the ecosystem, some in the first narrative, some simply in long-term holding — yet everyone sat down at the same table for the same faith. A strong community is never everyone thinking identically; it is a direction commonly believed, grown among entirely different people.</p>
-
-      <figure class="sq">
-        <img src="img/odindog.jpg" alt="ODINDOG — the first token of the v1 era" loading="lazy" width="520" height="520">
-        <figcaption data-i="capOdindog">ODINDOG — the first of the v1 era, and the community NOODL now shares a table with</figcaption>
-      </figure>
 
       <h3 data-i="commTeamH">The team that never ran</h3>
       <p data-i="commTeamP">The first cornerstone of rebuilt trust is people. Through eight months offline the team never went dark: founder Bob Bodily said plainly on the day of the incident that the company treasury could not cover the losses, then worked with OKX and Binance to freeze stolen funds, cooperated with law enforcement on both sides of the Pacific, commissioned an external audit, and honoured deposits 1:1 at relaunch. The plan after two thefts was not to dump the hole onto users, but to restart, raise fees, and repay v1's losses out of the platform's own earnings. The community's nickname for him — <i>the Legendary Theft-Proof King</i> — is affectionate and exhausted in equal measure.</p>
@@ -680,9 +675,9 @@ en:{
     whatWhyH:'Why Bitcoin needed a launchpad like this',
     whatWhyP:'Bitcoin traded the third leg of the blockchain trilemma for decentralisation and security: ten-minute blocks, no smart contracts, no pools. However lively inscriptions and runes became, trading still meant order books — you eat whatever someone happened to list, one large ask crushes the tape, and a sell order may simply never find a buyer. ODIN·FUN keeps assets and settlement on Bitcoin while matching moves to a two-second-finality, zero-gas fast layer, with pools instead of order books.',
     whatV1H:'What happened to v1 — and what changed',
-    whatV1P:'v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was security infrastructure that failed to keep pace: on 13 August 2025 an attacker exploited an unaudited liquidity-mechanism update and drained 58.2 BTC in two hours; a second theft of 41.96 BTC followed on 31 March 2026 while the platform was still dark.',
+    whatV1P:'v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was pace: the ecosystem grew faster than its security infrastructure, a mechanism upgrade shipped with a flaw in it, attackers found the gap, and a security incident followed. The car was fine and the road was fine — the brakes simply had not caught up with the horsepower.',
     whatV2P:'v2 rebuilt the answer to each of those, item by item: deposits sit under <b>threshold-signature (TSS) custody</b> — the vault key is split across independent parties, and no single party, the team included, can move funds. Contract upgrades now pass a <b>4-of-7 multisig DAO</b> in which the team holds only two seats; platform revenue flows to a <b>3-of-5 treasury DAO</b> where the team holds none. Individual accounts add 2FA and an instant session padlock. Withdrawals to Bitcoin mainnet are batched, ten minutes at most.',
-    factBtc:'BTC lost across the two v1 exploits',
+    factBtc:"BTC of volume in v1's first month — the demand was always real",
     factDao:'Multisig DAO required to change v2 code (team holds 2)',
     factSpeed:'Trade finality, zero gas, pools not order books',
     factFirst:"NOODL's launch position on v2 — permanently",
@@ -708,7 +703,6 @@ en:{
     commTurnH:'A healthy rotation of chips',
     commTurnP:"NOODL's community took one full rotation to form. The earliest few dozen came only to farm the launch, flip it for a few hundred dollars and leave; when the bonding curve graduated, that crowd took the money and dissolved. The chips rotated into genuinely convicted hands — and what gathered afterwards reads like a roll call of v1: the old A9 hands of Libra, the ODINDOG old guard, the WETH community, the Little Fist community. Veterans who each fought alone in the v1 era, converging on one coordinate.",
     commValP:"A project's greatest value was never just its code, but how many people's convictions are willing to gather in one place. Backgrounds and styles differ sharply — some believe in the technology, some in the ecosystem, some in the first narrative, some simply in long-term holding — yet everyone sat down at the same table for the same faith. A strong community is never everyone thinking identically; it is a direction commonly believed, grown among entirely different people.",
-    capOdindog:'ODINDOG — the first of the v1 era, and the community NOODL now shares a table with',
     commTeamH:'The team that never ran',
     commTeamP:'The first cornerstone of rebuilt trust is people. Through eight months offline the team never went dark: founder Bob Bodily said plainly on the day of the incident that the company treasury could not cover the losses, then worked with OKX and Binance to freeze stolen funds, cooperated with law enforcement on both sides of the Pacific, commissioned an external audit, and honoured deposits 1:1 at relaunch. The plan after two thefts was not to dump the hole onto users, but to restart, raise fees, and repay v1\'s losses out of the platform\'s own earnings. The community\'s nickname for him — <i>the Legendary Theft-Proof King</i> — is affectionate and exhausted in equal measure.',
     commQuote:'"In an industry where running away costs nothing, a team that doesn\'t run is itself the scarcest asset."',
@@ -723,10 +717,10 @@ en:{
     ctxRiskP:'<b>The honest part.</b> NOODL graduated into the AMM in mid-July 2026. Its market cap is measured in single-digit BTC and its holders number in the low hundreds. This is not an "it has made it" story — it is an "it has just begun" story. Early is the biggest opportunity and the biggest risk; both sentences are always true at once. Nothing on this page is financial advice.',
     ctxSrcP:'Background on the v1 exploits, the v2 security rebuild and the community history above is drawn from independent reporting by SuZhe — ',
     navWhat:'What is NOODL?',navCulture:'Culture',navCommunity:'Community',navRoadmap:'Roadmap',
-    roadDone:'Completed',roadNow:'In progress',roadUnlocked:'Unlocked',
+    roadDone:'In testing',roadNow:'In testing',roadUnlocked:'Unlocked',
     road:[
       {t:'ODIN·FUN v1 → v2 migration',d:"v1's runes and communities migrate to the official v2 platform, bringing the original funds, chips and holders across."},
-      {t:'Staking goes live',d:'Staking arrives on the platform, giving holders a reason to hold rather than rotate.'},
+      {t:'Staking & unlocking',d:'Staking and unlocking arrive on the platform, giving holders a reason to hold rather than rotate.'},
       {t:'Stage unlocks at 5 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 5 BTC.'},
       {t:'Stage unlocks at 50 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 50 BTC.'},
       {t:'Stage unlocks at 500 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 500 BTC.'},
@@ -767,9 +761,9 @@ zh:{
     whatWhyH:'比特币生态为什么需要这样一个发射台',
     whatWhyP:'比特币用区块链不可能三角的第三条腿，换取了去中心化与安全：十分钟一个块、没有智能合约、没有池子。所以无论铭文和符文多热闹，交易仍然只能靠订单簿 —— 买入只能吃别人挂的量，一张大卖单就砸穿盘口；卖出更难受，没有池子接盘，挂单可能永远等不到买家。ODIN·FUN 的解法是：资产与结算留在比特币，撮合搬到两秒终局、零 gas 的快速层，用池子取代订单簿。',
     whatV1H:'v1 发生了什么 —— 以及 v2 改了什么',
-    whatV1P:'v1 不是死于没有市场。上线首月成交超过 1,000 BTC、覆盖三万七千个地址，首枚代币 ODINDOG 从几千美元市值一路走到 3,500 万美元。真正击穿它的，是没能跟上生态增速的安全基建：2025 年 8 月 13 日，攻击者利用一次未经审计的流动性机制更新，两小时内卷走 58.2 BTC；2026 年 3 月 31 日，平台仍在停摆期间又被盗 41.96 BTC。',
+    whatV1P:'v1 不是死于没有市场。上线首月成交超过 1,000 BTC、覆盖三万七千个地址，首枚代币 ODINDOG 从几千美元市值一路走到 3,500 万美元。真正击穿它的是节奏：生态跑得比安全基建更快，一次机制升级带着漏洞上线，被黑客抓住，于是发生了安全事故。车没问题，路也没问题 —— 是刹车没跟上马力。',
     whatV2P:'v2 针对每一条逐项重建：存入资金由<b>门限签名（TSS）托管</b>——金库密钥被拆分给多个独立方持有，包括团队自己在内，没有任何单方能动用资金。合约升级须经<b>4/7 多签 DAO</b>，其中团队只占两席；平台收入进入<b>3/5 多签国库 DAO</b>，团队一席不占。个人账户层面则加了两步验证与即时会话锁。提现到比特币主网按批处理，最多十分钟。',
-    factBtc:'两次 v1 攻击共损失 BTC',
+    factBtc:'v1 上线首月成交 BTC —— 需求从来都是真的',
     factDao:'修改 v2 代码所需多签（团队仅占 2 席）',
     factSpeed:'交易终局时间，零 gas，池子而非订单簿',
     factFirst:'NOODL 在 v2 的发射序位 —— 永久',
@@ -795,7 +789,6 @@ zh:{
     commTurnH:'一次健康的筹码换手',
     commTurnP:'NOODL 的社区是经过一整轮换手才成形的。最早来的几十个人只想打新，赚几百美元就走；绑定曲线真正毕业时，这批人拿钱离场、群也散了。筹码轮到了真正有信念的手里 —— 之后聚起来的名单几乎就是 v1 的点名册：Libra 的 A9 老玩家、ODINDOG 老兵、WETH 社区、小拳头社区。v1 时代各自为战的老兵，正在向同一个坐标汇合。',
     commValP:'一个项目最大的价值从来不只是代码，而是有多少人的信念愿意聚在同一个地方。这些人的背景与风格差异极大 —— 有人信技术，有人信生态，有人信第一叙事，有人只信长期持有 —— 但最终都为同一个信念坐到了同一张桌前。真正强的社区从来不是所有人想法一致，而是一个被共同相信的方向，长在完全不同的人身上。',
-    capOdindog:'ODINDOG —— v1 时代的第一枚，如今与 NOODL 同桌的社区',
     commTeamH:'没有跑路的团队',
     commTeamP:'重建信任的第一块基石是人。停摆八个月，团队一天都没有失联：创始人 Bob Bodily 在事发当天直言公司金库不足以覆盖损失，随后与 OKX、币安协作冻结被盗资金、配合太平洋两岸执法机构、委托外部安全审计，并承诺重启时按 1:1 兑付存款。两次被盗之后，他给出的方案不是把窟窿甩给用户，而是重启 v2、提高费率，用平台自身收入偿还 v1 的损失。社区给他起的外号 ——「传奇防盗王」—— 一半是亲切，一半是心累。',
     commQuote:'「在一个跑路零成本的行业里，一支不跑的团队本身就是最稀缺的资产。」',
@@ -810,10 +803,10 @@ zh:{
     ctxRiskP:'<b>必须说清的部分。</b>NOODL 于 2026 年 7 月中旬毕业进入 AMM，市值以个位数 BTC 计，持有地址数在数百之内。这不是一篇「它已经成了」的介绍，而是一篇「它才刚开始」的介绍。早期既是最大的机会也是最大的风险 —— 这两句话永远同时成立。本页不构成任何投资建议。',
     ctxSrcP:'以上关于 v1 攻击事件、v2 安全重建与社区历史的背景，取自 SuZhe 的独立报道 —— ',
     navWhat:'什么是 NOODL',navCulture:'文化',navCommunity:'社区',navRoadmap:'规划',
-    roadDone:'已完成',roadNow:'进行中',roadUnlocked:'已解锁',
+    roadDone:'测试中',roadNow:'测试中',roadUnlocked:'已解锁',
     road:[
       {t:'ODIN·FUN v1 → v2 迁移',d:'v1 的符文与社区迁移至官方 v2 平台，原始资金、筹码与持有者一并带入。'},
-      {t:'质押功能上线',d:'平台质押功能上线，让持有者有理由长期持有而非轮动。'},
+      {t:'质押解锁功能',d:'平台质押与解锁功能上线，让持有者有理由长期持有而非轮动。'},
       {t:'达到 5 BTC 解锁',d:'该阶段在 NOODL 市值达到 5 BTC 前保持封存。'},
       {t:'达到 50 BTC 解锁',d:'该阶段在 NOODL 市值达到 50 BTC 前保持封存。'},
       {t:'达到 500 BTC 解锁',d:'该阶段在 NOODL 市值达到 500 BTC 前保持封存。'},
@@ -1194,7 +1187,7 @@ $('#langBtn').addEventListener('click',()=>{
 // Locked copy stays deliberately vague: it is blurred out until the milestone
 // lands, so it must never read as a promise.
 const ROAD=[
-  {at:null,state:'done'},
+  {at:null,state:'now'},
   {at:null,state:'now'},
   {at:5},{at:50},{at:500},{at:5000}
 ];
