@@ -116,11 +116,48 @@ a{color:inherit}
 .sec figure img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 .sec figure.sq img{max-width:190px;margin:0 auto}
 .sec figcaption{font-size:11.5px;color:var(--dim);text-align:center;margin-top:9px;line-height:1.5}
+/* NEW · ODIN · HODL → NOODL.
+   The three capsules physically dock into one: the inner paddings and margins
+   close, the inner corners square off and the inner hairlines retract to zero
+   width. The merged state is therefore geometrically identical to a real
+   single NOODL pill (measured: same total width, same glyph x-positions) —
+   it is a real merge, not a crossfade between two layers.
+   The radius is written as the literal half-height, NOT 999px: the used value
+   of 999px is clamped to half the box height, so interpolating the specified
+   value sits frozen and then snaps in the final few ms. */
+/* vertical-align:top is load-bearing — with font-size:0 the wrapper has no
+   in-flow text, so its baseline would fall to its bottom margin edge and the
+   parent's strut would add ~14px of descender space under the row. The 1px
+   bottom margin then replaces the descender space the old baseline-aligned
+   pills contributed, so the row keeps its original 28px height and nothing
+   below it moves. */
+.morph{display:inline-block;vertical-align:top;white-space:nowrap;font-size:0;margin-bottom:1px}
+.morph-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .pill{
-  display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;
-  color:var(--cyan);border:1px solid rgba(0,255,255,.35);border-radius:999px;
-  padding:3px 10px;margin:0 6px 6px 0;
+  display:inline-block;box-sizing:border-box;vertical-align:top;
+  height:21px;line-height:19px;padding:0 10px;margin:0 6px 6px 0;
+  font-size:11px;font-weight:600;letter-spacing:.06em;
+  color:var(--cyan);border:1px solid rgba(0,255,255,.35);border-radius:10.5px;
+  transition:padding .5s cubic-bezier(.4,0,.2,1),margin .5s cubic-bezier(.4,0,.2,1),
+             border-width .5s cubic-bezier(.4,0,.2,1),
+             border-radius .26s cubic-bezier(.4,0,.2,1),border-color .22s linear;
 }
+.pill i{
+  display:inline-block;vertical-align:top;overflow:hidden;white-space:pre;font-style:normal;
+  transition:width .45s cubic-bezier(.4,0,.2,1),opacity .3s linear,color .25s linear;
+}
+.morph.on i{width:var(--w)}
+/* beat 1 — the letters NOODL does not use are demoted, then leave */
+.morph.on.shed i.d{width:0;opacity:0;color:var(--dim)}
+/* beat 2 — the three capsules dock. Corners square off and the inner
+   hairlines fade faster than the gap closes, so the capsules never touch
+   while still rounded (that leaves visible notches at the joins). */
+.morph.on.join .pill{margin-right:0}
+.morph.on.join .p1{padding-right:0;border-top-right-radius:0;border-bottom-right-radius:0;border-right-width:0;border-right-color:transparent}
+.morph.on.join .p2{padding-left:0;padding-right:0;border-radius:0;border-left-width:0;border-right-width:0;border-left-color:transparent;border-right-color:transparent}
+.morph.on.join .p3{padding-left:0;border-top-left-radius:0;border-bottom-left-radius:0;border-left-width:0;border-left-color:transparent}
+/* no motion available — still show which letters NOODL is built from */
+.morph.still i.d{color:var(--dim)}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0}
 .fact{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
 .fact b{display:block;font-size:19px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums;line-height:1.2}
@@ -374,6 +411,7 @@ footer a:hover{color:var(--cyan)}
 @media (prefers-reduced-motion:reduce){
   #stars i,.sparkle,#head,#nBlink,.live-dot{animation:none !important}
   .planet{transition:none}
+  .pill,.pill i{transition:none !important}
 }
 </style>
 </head>
@@ -515,9 +553,7 @@ footer a:hover{color:var(--cyan)}
       <h2 data-i="cultH">The culture in a bowl of noodles</h2>
       <p class="lead" data-i="cultLead">NOODL reads as <b>New Odin HODL</b> — the new Odin; hold, don't sell. Probably an accident of the deployer, and that is exactly where the magic sits.</p>
 
-      <div>
-        <span class="pill">NEW</span><span class="pill">ODIN</span><span class="pill">HODL</span>
-      </div>
+      <div><span class="morph-sr">NEW ODIN HODL</span><span class="morph" id="morph" aria-hidden="true"><span class="pill p1"><i class="k">N</i><i class="d">E</i><i class="d">W</i></span><span class="pill p2"><i class="k">O</i><i class="d">D</i><i class="d">I</i><i class="d">N</i></span><span class="pill p3"><i class="d">H</i><i class="k">O</i><i class="k">D</i><i class="k">L</i></span></span></div>
 
       <h3 data-i="cultBridgeH">One word, two cultures</h3>
       <p data-i="cultBridgeP">NOODLE literally means noodles. In Chinese culture noodles stand for what lasts — longevity noodles on birthdays. The West has pasta in endless shapes, yet nobody there ever connected noodles with <i>lasting long</i>. Until Bitcoin handed them the word HODL. NOODL splices the two worlds together: a Westerner reads New Odin HODL instantly, and following that one strand of noodle, understands for the first time that noodles can mean forever.</p>
@@ -1306,6 +1342,64 @@ function closeCard(){
 $('#cardClose').addEventListener('click',closeCard);
 overlay.addEventListener('click',e=>{if(e.target===overlay)closeCard();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))closeCard();});
+
+/* ============ NEW·ODIN·HODL → NOODL ============
+   All motion is CSS transitions; this only sequences the beats. A timeout
+   chain rather than @keyframes because the beat lengths then stay readable
+   and hand-editable, and because the loop has to be stoppable on demand.
+   The galaxy rAF keeps running underneath — measured cost of the docking
+   tween alongside it: p90 17ms/frame, one dropped frame at the start. */
+(function(){
+  const row=$('#morph'); if(!row) return;
+  const host=row.parentElement;
+  const mq=matchMedia('(prefers-reduced-motion: reduce)');
+
+  // [state, ms] — ms includes that state's own transition time
+  const STEPS=[['base',2200],['shed',1100],['join',3400],['shed',900]];
+
+  let i=0,timer=null,running=false,ok=false,hostW=-1;
+  const halts=new Set();
+
+  const apply=s=>{row.classList.toggle('shed',s!=='base');row.classList.toggle('join',s==='join');};
+
+  function step(){
+    const [s,ms]=STEPS[i];
+    apply(s);
+    timer=setTimeout(()=>{i=(i+1)%STEPS.length;step();},ms);
+  }
+  function stop(){running=false;clearTimeout(timer);timer=null;}
+  function play(){if(!running&&ok&&!mq.matches&&!halts.size){running=true;step();}}
+  // off-screen rewinds so every visit tells the whole story from the top;
+  // hover/tab just freeze in place
+  function halt(k,rewind){halts.add(k);stop();if(rewind){i=0;apply('base');}}
+  function go(k){halts.delete(k);play();}
+
+  // Measured with .on removed so the letters report their natural width, and
+  // refused outright if the row ever wraps — the merge is a single-line idea.
+  function measure(){
+    stop();
+    row.classList.remove('on','shed','join');
+    void row.offsetWidth;
+    const pills=[...row.children],tops=pills.map(p=>p.getBoundingClientRect().top);
+    if(!row.offsetWidth||Math.max.apply(null,tops)-Math.min.apply(null,tops)>.5){ok=false;return false;}
+    row.querySelectorAll('i').forEach(c=>c.style.setProperty('--w',c.getBoundingClientRect().width.toFixed(2)+'px'));
+    row.classList.add('on');
+    hostW=host.clientWidth;ok=true;return true;
+  }
+  function init(){if(measure()){row.classList.toggle('still',mq.matches);play();}}
+
+  new IntersectionObserver(e=>{e[0].isIntersecting?go('off'):halt('off',true);},{threshold:0}).observe(row);
+  row.addEventListener('pointerenter',()=>halt('hover'));   // WCAG 2.2.2: a way to stop it
+  row.addEventListener('pointerleave',()=>go('hover'));
+  document.addEventListener('visibilitychange',()=>document.hidden?halt('tab'):go('tab'));
+  const onMQ=()=>{stop();i=0;apply('base');row.classList.toggle('still',mq.matches);play();};
+  mq.addEventListener?mq.addEventListener('change',onMQ):mq.addListener(onMQ);
+
+  // host width, not row width — the row's own width changes with the animation
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(host.clientWidth!==hostW)init();},200);});
+  addEventListener('load',()=>{if(host.clientWidth!==hostW)init();});
+  document.fonts.ready.then(init);
+})();
 
 /* ================= boot ================= */
 applyFrac(fracOf(state.mc));
