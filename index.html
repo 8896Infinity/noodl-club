@@ -174,19 +174,21 @@ a{color:inherit}
   line-height:1.85;letter-spacing:.01em;text-align:center;text-wrap:balance;
 }
 
-/* ---------- v1 → v2 mirror (parity inversion) ----------
-   Two frames either side of a centre point. Every segment's destination is the
-   exact point reflection (x,y) → (2Cx−x, 2Cy−y) of its source, so the last frame
-   is the inversion of the first — that is the whole idea, and buildMirror()
-   asserts it rather than trusting the arithmetic.
-   Three tiers of claim, carried by the drawing and not only by the caption:
-     v1's capital  = solid, settled, cyan            (happened)
-     NOODL now     = solid gold at TRUE linear scale (measured, live)
-     the transfer  = dashed outline, never filled    (argued, not forecast)
-   The dash on the right frame is static. Animating stroke-dasharray is what
-   broke this project twice in WebKit; it is never animated here. */
+/* ---------- v1 → v2 fold: two mirrored noodle bowls ----------
+   ONE strand, sampled as a polyline and wound twice. The left half spirals from
+   the v1 bowl's rim inward to its centre and then out to the figure's centre C;
+   the right half is that same half point-reflected through C, so the left
+   bowl's last point IS the right bowl's first point and the whole curve is
+   continuous. buildFold() asserts the reflection rather than trusting it.
+   Deliberately no animated stroke-dasharray on the geometry: that is what broke
+   this project twice in WebKit. The only dash that moves is a decorative
+   overlay, and the figure is already correct without it.
+   Claim grammar, carried by the drawing:
+     v1 spiral   solid cyan      happened
+     v2 lit arc  solid gold      measured, bound to the live market cap
+     v2 rest     dashed gold     argued, never a forecast */
 .mirror{margin:24px 0 6px}
-.mir-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}
+.mir-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px}
 .mir-side{min-width:0}
 .mir-side.r{text-align:right}
 .mir-side b{display:block;font-size:17px;font-weight:700;line-height:1.2;
@@ -194,22 +196,21 @@ a{color:inherit}
 .mir-side.r b{color:var(--noodle-y)}
 .mir-side span{display:block;font-size:11px;color:var(--dim);margin-top:3px;line-height:1.4}
 .mir-svg{display:block;width:100%;height:auto;overflow:visible}
-.mir-frame{fill:none;stroke:var(--line);stroke-width:1}
-.mir-frame.r{stroke:rgba(252,209,79,.45);stroke-dasharray:3 3}
-.mir-seg{fill:rgba(0,201,201,.22);stroke:var(--cyan-dim);stroke-width:.8}
-.mir-live{fill:var(--noodle-y)}
-.mir-axis{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
-/* one staggered flight per segment; .run is toggled by a timeout chain, so no
-   second always-on rAF competes with the hero galaxy loop */
-.mirror.run .mir-seg{animation:mirFly 950ms cubic-bezier(.45,0,.25,1) forwards;
-  animation-delay:calc(var(--i) * 300ms + 700ms)}
-@keyframes mirFly{
-  0%{transform:translate(0,0);fill:rgba(0,201,201,.22);stroke:var(--cyan-dim)}
-  38%{fill:rgba(252,209,79,.5);stroke:var(--noodle-y)}
-  100%{transform:translate(var(--dx),var(--dy));fill:none;stroke:rgba(252,209,79,.7)}
-}
-.mirror figcaption{font-size:11.5px;color:var(--dim);text-align:center;margin-top:11px;line-height:1.6}
-
+.fold-bowl{fill:none;stroke:var(--line);stroke-width:1}
+.fold-bowl.r{stroke:rgba(252,209,79,.3);stroke-dasharray:3 4}
+.fold-seam{stroke:var(--line);stroke-width:1;stroke-dasharray:2 5}
+.fold-v1{fill:none;stroke:var(--cyan-dim);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.fold-ghost{fill:none;stroke:rgba(252,209,79,.34);stroke-width:3;stroke-linecap:round;
+  stroke-linejoin:round;stroke-dasharray:5 7}
+.fold-lit{fill:none;stroke:var(--noodle-y);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+/* the travelling capital. Positive dashoffset only, decreasing to zero: negative
+   offsets are the other half of the WebKit dash bug this file has already paid for */
+.fold-flow{fill:none;stroke:var(--noodle-y);stroke-width:4.6;stroke-linecap:round;
+  stroke-dasharray:4 30;opacity:.9}
+.mirror.run .fold-flow{animation:foldFlow 1.5s linear infinite}
+@keyframes foldFlow{from{stroke-dashoffset:34}to{stroke-dashoffset:0}}
+.fold-node{fill:var(--bg);stroke:var(--noodle-y);stroke-width:1.4}
+.mirror figcaption{font-size:11.5px;color:var(--dim);text-align:center;margin-top:6px;line-height:1.6}
 /* ---------- roadmap ---------- */
 /* A noodle strand runs down a left gutter and threads every stage marker, the
    same metaphor as the hero spiral: it fills as the live market cap climbs the
@@ -264,7 +265,10 @@ a{color:inherit}
 .step-t{font-size:14.5px;font-weight:600;color:var(--text);line-height:1.35}
 .step-d{font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:5px}
 .step-s{font-size:10.5px;font-weight:600;letter-spacing:.08em;color:var(--cyan);margin-top:7px;text-transform:uppercase}
-.step.locked .step-t,.step.locked .step-d{filter:blur(4px);user-select:none}
+/* the title of a locked stage is legible: it is the promise being made, and a
+   blurred promise is just decoration. Only the detail stays sealed. */
+.step.locked .step-t{color:var(--text-2)}
+.step.locked .step-d{filter:blur(4px);user-select:none}
 .step.locked .step-s{color:var(--dim)}
 .step.locked{background:repeating-linear-gradient(135deg,var(--panel),var(--panel) 9px,#15151b 9px,#15151b 18px)}
 .lockbar{
@@ -494,9 +498,7 @@ footer a:hover{color:var(--cyan)}
   #stars i,.sparkle,#head,#nBlink,.live-dot{animation:none !important}
   .planet{transition:none}
   .pill,.pill i{transition:none !important}
-  /* rests on the FIRST frame, never the last: the end state is the hypothesis,
-     and the hypothesis must not become the default thing a reader sees */
-  .mirror.run .mir-seg{animation:none !important}
+  .mirror.run .fold-flow{animation:none !important}
 }
 </style>
 </head>
@@ -717,8 +719,8 @@ footer a:hover{color:var(--cyan)}
           <div class="mir-side"><b>≈5000 BTC</b><span data-i="mirV1">ODIN·FUN v1, every token combined, before the incident stopped it</span></div>
           <div class="mir-side r"><b id="mirNow">1.57 BTC</b><span data-i="mirNow">NOODL today, measured live</span></div>
         </div>
-        <svg class="mir-svg" id="mirSvg" viewBox="0 0 600 200" aria-hidden="true"></svg>
-        <figcaption data-i="mirCap">Left: v1's realised market cap, roughly 5000 BTC, a community estimate. Right: the same 5000 BTC of room, drawn as an outline because it is an argument, not a forecast. The gold line is NOODL at true scale against it, and it is drawn one pixel thick because true scale would be one twentieth of that.</figcaption>
+        <svg class="mir-svg" id="mirSvg" viewBox="0 0 600 260" aria-hidden="true"></svg>
+        <figcaption data-i="mirCap">One strand, wound twice. The left bowl is v1's realised market cap, roughly 5000 BTC, a community estimate, and its spiral ends exactly where the right one begins. The right bowl is NOODL's road to 5000 BTC: solid as far as the live market cap has actually travelled, dashed the rest of the way, because that part is an argument and not a forecast. Distance along that road is measured in orders of magnitude, the same scale as the spiral at the top of this page, not as a share of 5000.</figcaption>
       </figure>
 
       <div class="road">
@@ -882,7 +884,7 @@ en:{
     navWhat:'NOODL',navCulture:'Culture',navCommunity:'Community',navEco:'Ecosystem',navRoadmap:'Roadmap',
     mirV1:'ODIN·FUN v1, every token combined, before the incident stopped it',
     mirNow:'NOODL today, measured live',
-    mirCap:"Left: v1's realised market cap, roughly 5000 BTC, a community estimate. Right: the same 5000 BTC of room, drawn as an outline because it is an argument, not a forecast. The gold line is NOODL at true scale against it, and it is drawn one pixel thick because true scale would be one twentieth of that.",
+    mirCap:"One strand, wound twice. The left bowl is v1's realised market cap, roughly 5000 BTC, a community estimate, and its spiral ends exactly where the right one begins. The right bowl is NOODL's road to 5000 BTC: solid as far as the live market cap has actually travelled, dashed the rest of the way, because that part is an argument and not a forecast. Distance along that road is measured in orders of magnitude, the same scale as the spiral at the top of this page, not as a share of 5000.",
     roadReached:'Reached',roadNow:'In testing',roadUnlocked:'Unlocked',
     road:[
       {t:'Launch: ascended into the AMM',d:"Odin sells 80% of a token's supply along the bonding curve for 0.211 BTC; clearing that threshold is what deposits the remaining supply plus 0.2 BTC into the AMM. NOODL cleared it in mid-July 2026, which is what opened everything below."},
@@ -985,7 +987,7 @@ zh:{
     navWhat:'NOODL',navCulture:'文化',navCommunity:'社区',navEco:'生态',navRoadmap:'规划',
     mirV1:'ODIN·FUN v1 全生态代币合计，事故打断之前',
     mirNow:'NOODL 现在，实时读数',
-    mirCap:'左边是 v1 已经实现过的市值，约 5000 BTC，社区估算。右边是同样 5000 BTC 的空间，画成虚线轮廓，因为那是一个论点而不是预测。金色那条是 NOODL 按真实比例放在同一把尺子上，它被画成一像素粗，是因为真实比例只有这条线的二十分之一。',
+    mirCap:'一根面条，绕了两个碗。左边是 v1 已经实现过的市值，约 5000 BTC，社区估算，它的螺旋终点正好是右边的起点。右边是 NOODL 通往 5000 BTC 的那条路：实时市值真正走到的地方画成实线，余下画成虚线，因为那一段是论点，不是预测。路上的距离按数量级来量，和本页顶部那条螺旋同一把尺子，不是按占 5000 的比例。',
     roadReached:'已达成',roadNow:'测试中',roadUnlocked:'已解锁',
     road:[
       {t:'发射：上升进入 AMM',d:'Odin 的代币先在联合曲线上交易，80% 供应量卖满 0.211 BTC 即「上升」毕业，剩余 20% 供应与 0.2 BTC 一并注入 AMM 池。NOODL 于 2026 年 7 月中旬跨过这道门槛：下面这些阶段之所以开启，正是因为它已经达成。'},
@@ -1341,7 +1343,7 @@ function render(){
   // number there would quietly become a false statement on its own page
   const hf=$('#ecoHolders');if(hf)hf.textContent=state.holders;
   const mn=$('#mirNow');if(mn)mn.textContent=fmtBtc(state.mc)+' BTC';
-  if(window.__mirLive)window.__mirLive(state.mc);
+  if(window.__foldLive)window.__foldLive(state.mc);
   buildRoad();   // roadmap stages unlock as the live cap crosses each milestone
   const next=MILESTONES.find(m=>state.mc<m);
   $('#nextLine').textContent=(!state.live&&seeded)?'':(next?ui.toNext((100*state.mc/next).toFixed(1),next):ui.reached);
@@ -1371,69 +1373,87 @@ $('#langBtn').addEventListener('click',()=>{
   applyLang();
 });
 
-/* ============ v1 → v2 mirror (parity inversion) ============
-   Segment i leaves left slot i (counted from the top) and lands in right slot
-   9−i, which is the point reflection of its source through the centre. The
-   assertion below is the point of the figure: if the inversion is not exact the
-   drawing is lying, so it is checked rather than assumed. */
+/* ============ v1 → v2 fold: two mirrored noodle bowls ============
+   One strand. The left half spirals from the v1 bowl's rim inward to its centre
+   and then out to the figure's centre C; the right half is that half reflected
+   through C, so the left bowl's last point is the right bowl's first point and
+   the curve never breaks. The reflection is asserted below, not assumed. */
 (function(){
   const svg=$('#mirSvg'),fig=$('#mirror');
   if(!svg||!fig)return;
-  const N=10,W=600,H=200,CX=W/2,CY=H/2;
-  const FX=56,FY=26,FW=104,FH=148,GAP=3;
-  const SH=(FH-GAP*(N-1))/N;                 // segment height
-  const slotY=i=>FY+i*(SH+GAP);
-  const RX=W-FX-FW;                          // right frame x = reflection of left
+  const W=600,H=260,CX=W/2,CY=H/2;
+  const BX=150,BY=CY,R=78,TURNS=2.6,NA=260,NB=70;
   const NS='http://www.w3.org/2000/svg';
-  const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const mk=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const d=p=>p.map((q,i)=>(i?'L':'M')+q[0].toFixed(2)+' '+q[1].toFixed(2)).join('');
 
-  let out='';
-  const add=(n,a)=>{svg.appendChild(el(n,a));};
-  add('line',{class:'mir-axis',x1:CX,y1:8,x2:CX,y2:H-8});
-  add('rect',{class:'mir-frame',x:FX,y:FY,width:FW,height:FH});
-  add('rect',{class:'mir-frame r',x:RX,y:FY,width:FW,height:FH});
-
-  let worstErr=0;
-  for(let i=0;i<N;i++){
-    const sx=FX,sy=slotY(i);
-    const dx0=2*CX-sx-FW, dy0=2*CY-sy-SH;    // point reflection of the source rect
-    const dx1=RX,        dy1=slotY(N-1-i);   // the slot we actually target
-    worstErr=Math.max(worstErr,Math.abs(dx0-dx1),Math.abs(dy0-dy1));
-    const r=el('rect',{class:'mir-seg',x:sx,y:sy,width:FW,height:SH.toFixed(2),rx:1});
-    r.style.setProperty('--i',i);
-    r.style.setProperty('--dx',(dx1-sx).toFixed(2)+'px');
-    r.style.setProperty('--dy',(dy1-sy).toFixed(2)+'px');
-    svg.appendChild(r);
+  // left half: rim → bowl centre → fold point C
+  const half=[];
+  for(let i=0;i<=NA;i++){
+    const u=i/NA,r=R*(1-u),a=-Math.PI/2+u*TURNS*2*Math.PI;
+    half.push([BX+r*Math.cos(a),BY+r*Math.sin(a)]);
   }
-  fig.dataset.parityError=worstErr.toFixed(4);   // 0 = the inversion is exact
+  for(let i=1;i<=NB;i++){
+    const u=i/NB;
+    half.push([BX+(CX-BX)*u, BY-24*Math.sin(Math.PI*u)]);   // ends exactly on C
+  }
+  // right half = point reflection of the left half, walked backwards
+  const refl=p=>[2*CX-p[0],2*CY-p[1]];
+  const full=half.slice();
+  for(let i=half.length-2;i>=0;i--)full.push(refl(half[i]));
+  const right=full.slice(half.length-1);                    // starts at C
 
-  // NOODL at true linear scale against 5000 BTC. At ~1.5 BTC that is under a
-  // twentieth of a pixel, so it is floored at 0.8 and the caption says so;
-  // a log axis here would quietly flatter the small number.
-  // It protrudes past the frame's left edge so the arriving outlines can never
-  // occlude it: this line is the only measured fact in the drawing and it must
-  // stay readable underneath the hypothesis.
-  const OVER=16;
-  const live=el('rect',{class:'mir-live',x:RX-OVER,width:FW+OVER,height:0.8,y:FY+FH-0.8});
-  svg.appendChild(live);
-  window.__mirLive=(mc)=>{
-    const h=Math.max(0.8,FH*Math.min(mc,FINAL_MC)/FINAL_MC);
-    live.setAttribute('height',h.toFixed(2));
-    live.setAttribute('y',(FY+FH-h).toFixed(2));
+  // the whole claim of the figure, checked: full[i] must be the reflection of
+  // full[n-1-i] for every sample, and the join must sit exactly on C
+  let err=0;
+  for(let i=0;i<full.length;i++){
+    const m=refl(full[full.length-1-i]);
+    err=Math.max(err,Math.abs(m[0]-full[i][0]),Math.abs(m[1]-full[i][1]));
+  }
+  err=Math.max(err,Math.abs(half[half.length-1][0]-CX),Math.abs(half[half.length-1][1]-CY));
+  fig.dataset.parityError=err.toFixed(4);
+
+  svg.appendChild(mk('line',{class:'fold-seam',x1:CX,y1:14,x2:CX,y2:H-14}));
+  svg.appendChild(mk('circle',{class:'fold-bowl',cx:BX,cy:BY,r:R+13}));
+  svg.appendChild(mk('circle',{class:'fold-bowl r',cx:2*CX-BX,cy:BY,r:R+13}));
+  svg.appendChild(mk('path',{class:'fold-v1',d:d(half)}));
+  svg.appendChild(mk('path',{class:'fold-ghost',d:d(right)}));
+  const lit=mk('path',{class:'fold-lit',d:''});svg.appendChild(lit);
+  svg.appendChild(mk('path',{class:'fold-flow',d:d(full)}));
+  svg.appendChild(mk('circle',{class:'fold-node',cx:CX,cy:CY,r:3.6}));
+
+  // cumulative length of the right half, so the lit run can be cut by distance
+  const cum=[0];
+  for(let i=1;i<right.length;i++){
+    const a=right[i-1],b=right[i];
+    cum.push(cum[i-1]+Math.hypot(b[0]-a[0],b[1]-a[1]));
+  }
+  const TOT=cum[cum.length-1];
+  // Distance along the road, on the same order-of-magnitude scale as the hero
+  // spiral (0.211 → 5000 BTC). It is NOT a proportion of 5000, and the caption
+  // says so: at true proportion this arc would be invisible.
+  window.__foldLive=(mc)=>{
+    const want=TOT*fracOf(mc);
+    const out=[right[0]];
+    for(let i=1;i<right.length;i++){
+      if(cum[i]<=want){out.push(right[i]);continue;}
+      const t=(want-cum[i-1])/(cum[i]-cum[i-1]||1),a=right[i-1],b=right[i];
+      out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]);
+      break;
+    }
+    lit.setAttribute('d',out.length>1?d(out):'');
   };
 
   const mq=matchMedia('(prefers-reduced-motion: reduce)');
-  let t=null,halted=new Set();
-  const cycle=()=>{fig.classList.add('run');t=setTimeout(()=>{fig.classList.remove('run');t=setTimeout(cycle,700);},7600);};
-  const play=()=>{if(!t&&!halted.size&&!mq.matches)cycle();};
-  const stop=()=>{clearTimeout(t);t=null;};
-  const halt=(k,rewind)=>{halted.add(k);stop();if(rewind)fig.classList.remove('run');};
+  let halted=new Set();
+  const play=()=>{if(!halted.size&&!mq.matches)fig.classList.add('run');};
+  const halt=k=>{halted.add(k);fig.classList.remove('run');};
   const go=k=>{halted.delete(k);play();};
-  new IntersectionObserver(e=>{e[0].isIntersecting?go('off'):halt('off',true);},{threshold:0}).observe(fig);
+  new IntersectionObserver(e=>{e[0].isIntersecting?go('off'):halt('off');},{threshold:0}).observe(fig);
   fig.addEventListener('pointerenter',()=>halt('hover'));   // WCAG 2.2.2
   fig.addEventListener('pointerleave',()=>go('hover'));
   document.addEventListener('visibilitychange',()=>document.hidden?halt('tab'):go('tab'));
-  const onMQ=()=>{stop();fig.classList.remove('run');play();};
+  const onMQ=()=>{fig.classList.remove('run');play();};
   mq.addEventListener?mq.addEventListener('change',onMQ):mq.addListener(onMQ);
 })();
 
