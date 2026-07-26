@@ -166,6 +166,49 @@ a{color:inherit}
   border-left:2px solid var(--cyan);padding:2px 0 2px 16px;margin:22px 0;
   color:var(--text);font-size:15px;line-height:1.75;font-style:italic;
 }
+/* the site's closing line: it ends the last section, so it is set as a statement
+   rather than the footnote the old roadmap disclaimer was */
+.coda{
+  margin:30px 0 4px;padding-top:22px;border-top:1px solid var(--line);
+  color:var(--text);font-size:clamp(15px,2.6vw,18px);font-weight:500;
+  line-height:1.85;letter-spacing:.01em;text-align:center;text-wrap:balance;
+}
+
+/* ---------- v1 → v2 mirror (parity inversion) ----------
+   Two frames either side of a centre point. Every segment's destination is the
+   exact point reflection (x,y) → (2Cx−x, 2Cy−y) of its source, so the last frame
+   is the inversion of the first — that is the whole idea, and buildMirror()
+   asserts it rather than trusting the arithmetic.
+   Three tiers of claim, carried by the drawing and not only by the caption:
+     v1's capital  = solid, settled, cyan            (happened)
+     NOODL now     = solid gold at TRUE linear scale (measured, live)
+     the transfer  = dashed outline, never filled    (argued, not forecast)
+   The dash on the right frame is static. Animating stroke-dasharray is what
+   broke this project twice in WebKit; it is never animated here. */
+.mirror{margin:24px 0 6px}
+.mir-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}
+.mir-side{min-width:0}
+.mir-side.r{text-align:right}
+.mir-side b{display:block;font-size:17px;font-weight:700;line-height:1.2;
+  font-variant-numeric:tabular-nums;color:var(--cyan-dim)}
+.mir-side.r b{color:var(--noodle-y)}
+.mir-side span{display:block;font-size:11px;color:var(--dim);margin-top:3px;line-height:1.4}
+.mir-svg{display:block;width:100%;height:auto;overflow:visible}
+.mir-frame{fill:none;stroke:var(--line);stroke-width:1}
+.mir-frame.r{stroke:rgba(252,209,79,.45);stroke-dasharray:3 3}
+.mir-seg{fill:rgba(0,201,201,.22);stroke:var(--cyan-dim);stroke-width:.8}
+.mir-live{fill:var(--noodle-y)}
+.mir-axis{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+/* one staggered flight per segment; .run is toggled by a timeout chain, so no
+   second always-on rAF competes with the hero galaxy loop */
+.mirror.run .mir-seg{animation:mirFly 950ms cubic-bezier(.45,0,.25,1) forwards;
+  animation-delay:calc(var(--i) * 300ms + 700ms)}
+@keyframes mirFly{
+  0%{transform:translate(0,0);fill:rgba(0,201,201,.22);stroke:var(--cyan-dim)}
+  38%{fill:rgba(252,209,79,.5);stroke:var(--noodle-y)}
+  100%{transform:translate(var(--dx),var(--dy));fill:none;stroke:rgba(252,209,79,.7)}
+}
+.mirror figcaption{font-size:11.5px;color:var(--dim);text-align:center;margin-top:11px;line-height:1.6}
 
 /* ---------- roadmap ---------- */
 /* A noodle strand runs down a left gutter and threads every stage marker, the
@@ -451,6 +494,9 @@ footer a:hover{color:var(--cyan)}
   #stars i,.sparkle,#head,#nBlink,.live-dot{animation:none !important}
   .planet{transition:none}
   .pill,.pill i{transition:none !important}
+  /* rests on the FIRST frame, never the last: the end state is the hypothesis,
+     and the hypothesis must not become the default thing a reader sees */
+  .mirror.run .mir-seg{animation:none !important}
 }
 </style>
 </head>
@@ -632,7 +678,7 @@ footer a:hover{color:var(--cyan)}
       <p class="lead" data-i="ecoLead">Every large chain eventually produced one meme that came to stand for the whole thing. Ethereum got SHIB, Solana got BONK, Base got BRETT. Bitcoin never did: the oldest chain, the largest, the one carrying the most cultural weight in the industry. This section starts there, with the absence, and not with NOODL.</p>
 
       <h3 data-i="ecoWhyH">Why the oldest chain never got one</h3>
-      <p data-i="ecoWhyP">It was never a shortage of tokens. Odin's own FAQ lists the lineage: coloured coins, Genesis spells, rare pepes, Counterparty, Ordinals, BRC-20, Runes. That is more than ten years of issuing things on Bitcoin. What was missing was a venue where a joke could move at the speed of a joke. Ten-minute blocks and order books are a fine way to settle a treasury and a poor way to run a punchline: you eat whatever someone happened to list, and a sell order may never find a buyer at all. The other half is temperament. Bitcoin's culture was built on refusing to be a casino, so the tokens that did appear got treated as protocol artefacts to be collected rather than jokes to be repeated. ORDI comes closest to a defining Bitcoin-ecosystem asset, and it is a claim on a standard rather than a culture with a punchline attached. Ten years, seven token eras, no totem.</p>
+      <p data-i="ecoWhyP">It was never a shortage of tokens. Bitcoin's ecosystem has produced countless of them: coloured coins, Genesis spells, rare pepes, Counterparty, Ordinals, BRC-20, Runes. That is more than ten years of issuing things on Bitcoin. What was missing was a venue where a Bitcoin asset could trade at lightning speed. Ten-minute blocks and order books are a fine way to settle a treasury and a poor way to run a punchline: you eat whatever someone happened to list, and a sell order may never find a buyer at all. The other half is temperament. Bitcoin's culture was built on refusing to be a casino, so the tokens that did appear got treated as protocol artefacts to be collected rather than jokes to be repeated. ORDI comes closest to a defining Bitcoin-ecosystem asset, and it is a claim on a standard rather than a culture with a punchline attached. Ten years, seven token eras, no totem.</p>
 
       <div class="facts">
         <div class="fact"><b>0</b><span data-i="ecoF1">chain-defining memes Bitcoin has produced in more than ten years of tokens</span></div>
@@ -666,12 +712,21 @@ footer a:hover{color:var(--cyan)}
       <h2 data-i="roadH">The road to Nova</h2>
       <p class="lead" data-i="roadLead">Everything below unlocks by market cap. Later stages stay sealed until the milestone is actually reached, no promises made in advance.</p>
 
+      <figure class="mirror" id="mirror">
+        <div class="mir-head">
+          <div class="mir-side"><b>≈5000 BTC</b><span data-i="mirV1">ODIN·FUN v1, every token combined, before the incident stopped it</span></div>
+          <div class="mir-side r"><b id="mirNow">1.57 BTC</b><span data-i="mirNow">NOODL today, measured live</span></div>
+        </div>
+        <svg class="mir-svg" id="mirSvg" viewBox="0 0 600 200" aria-hidden="true"></svg>
+        <figcaption data-i="mirCap">Left: v1's realised market cap, roughly 5000 BTC, a community estimate. Right: the same 5000 BTC of room, drawn as an outline because it is an argument, not a forecast. The gold line is NOODL at true scale against it, and it is drawn one pixel thick because true scale would be one twentieth of that.</figcaption>
+      </figure>
+
       <div class="road">
         <span class="rail" id="roadRail"><i id="roadFill"><b id="roadTag"></b></i></span>
         <div class="road-steps" id="roadList"></div>
       </div>
 
-      <p data-i="roadNote" style="font-size:12.5px;color:var(--dim);margin-top:18px">Locked stages reveal themselves automatically as NOODL's live market cap crosses each milestone. Nothing here is a commitment or a forecast.</p>
+      <p class="coda" data-i="roadNote">First it was a token. Then it became a culture. Finally, it became a movement.</p>
     </section>
 
   </div></div>
@@ -805,7 +860,7 @@ en:{
     ecoH:'The empty slot on the biggest chain',
     ecoLead:'Every large chain eventually produced one meme that came to stand for the whole thing. Ethereum got SHIB, Solana got BONK, Base got BRETT. Bitcoin never did: the oldest chain, the largest, the one carrying the most cultural weight in the industry. This section starts there, with the absence, and not with NOODL.',
     ecoWhyH:'Why the oldest chain never got one',
-    ecoWhyP:"It was never a shortage of tokens. Odin's own FAQ lists the lineage: coloured coins, Genesis spells, rare pepes, Counterparty, Ordinals, BRC-20, Runes. That is more than ten years of issuing things on Bitcoin. What was missing was a venue where a joke could move at the speed of a joke. Ten-minute blocks and order books are a fine way to settle a treasury and a poor way to run a punchline: you eat whatever someone happened to list, and a sell order may never find a buyer at all. The other half is temperament. Bitcoin's culture was built on refusing to be a casino, so the tokens that did appear got treated as protocol artefacts to be collected rather than jokes to be repeated. ORDI comes closest to a defining Bitcoin-ecosystem asset, and it is a claim on a standard rather than a culture with a punchline attached. Ten years, seven token eras, no totem.",
+    ecoWhyP:"It was never a shortage of tokens. Bitcoin's ecosystem has produced countless of them: coloured coins, Genesis spells, rare pepes, Counterparty, Ordinals, BRC-20, Runes. That is more than ten years of issuing things on Bitcoin. What was missing was a venue where a Bitcoin asset could trade at lightning speed. Ten-minute blocks and order books are a fine way to settle a treasury and a poor way to run a punchline: you eat whatever someone happened to list, and a sell order may never find a buyer at all. The other half is temperament. Bitcoin's culture was built on refusing to be a casino, so the tokens that did appear got treated as protocol artefacts to be collected rather than jokes to be repeated. ORDI comes closest to a defining Bitcoin-ecosystem asset, and it is a claim on a standard rather than a culture with a punchline attached. Ten years, seven token eras, no totem.",
     ecoF1:'chain-defining memes Bitcoin has produced in more than ten years of tokens',
     ecoF2:'token eras from coloured coins to Runes, not one of them left a totem',
     ecoF3:'sold along the bonding curve before a token ascends into the AMM',
@@ -821,19 +876,22 @@ en:{
     kRoadmap:'05: Roadmap',
     roadH:'The road to Nova',
     roadLead:'Everything below unlocks by market cap. Later stages stay sealed until the milestone is actually reached, no promises made in advance.',
-    roadNote:"Locked stages reveal themselves automatically as NOODL's live market cap crosses each milestone. Nothing here is a commitment or a forecast.",
+    roadNote:'First it was a token. Then it became a culture. Finally, it became a movement.',
     ctxPendulumP:"The pendulum of flow has swung this way before. In January 2025 the TRUMP coin marked the climax of the pump.fun era, and one week after it topped, Odin v1 was announced, receiving the capital that went looking for somewhere to build. In July 2026 Robinhood's own chain went live and was promptly occupied by memes, until noxa, the launchpad behind three quarters of its deployments, went dark for two days and the community erupted in soft-rug accusations. Same pendulum, same position, and Odin v2 restarted at precisely that moment.",
     capFalcon:'Comebacks are rare, which is why they are the favourite plot: the company that kept exploding later taught its rockets to come home',
     navWhat:'NOODL',navCulture:'Culture',navCommunity:'Community',navEco:'Ecosystem',navRoadmap:'Roadmap',
+    mirV1:'ODIN·FUN v1, every token combined, before the incident stopped it',
+    mirNow:'NOODL today, measured live',
+    mirCap:"Left: v1's realised market cap, roughly 5000 BTC, a community estimate. Right: the same 5000 BTC of room, drawn as an outline because it is an argument, not a forecast. The gold line is NOODL at true scale against it, and it is drawn one pixel thick because true scale would be one twentieth of that.",
     roadReached:'Reached',roadNow:'In testing',roadUnlocked:'Unlocked',
     road:[
       {t:'Launch: ascended into the AMM',d:"Odin sells 80% of a token's supply along the bonding curve for 0.211 BTC; clearing that threshold is what deposits the remaining supply plus 0.2 BTC into the AMM. NOODL cleared it in mid-July 2026, which is what opened everything below."},
       {t:'ODIN·FUN v1 → v2 migration',d:"v1's runes and communities migrate to the official v2 platform, bringing the original funds, chips and holders across."},
       {t:'Staking & unlocking',d:'Staking and unlocking arrive on the platform, giving holders a reason to hold rather than rotate.'},
-      {t:'Stage unlocks at 5 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 5 BTC.'},
-      {t:'Stage unlocks at 50 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 50 BTC.'},
-      {t:'Stage unlocks at 500 BTC',d:'This stage stays sealed until NOODL’s market cap reaches 500 BTC.'},
-      {t:'NOVA: 5000 BTC',d:'The final milestone. Sealed until the noodle leaves the bowl.'}
+      {t:'From HODL to NOODL',d:'This stage stays sealed until NOODL’s market cap reaches 5 BTC.'},
+      {t:'From DEX to CEX',d:'This stage stays sealed until NOODL’s market cap reaches 50 BTC.'},
+      {t:'The NOODL Layer of Bitcoin',d:'This stage stays sealed until NOODL’s market cap reaches 500 BTC.'},
+      {t:'From Bitcoin Pizza to Bitcoin NOODL',d:'The final milestone. Sealed until the noodle leaves the bowl.'}
     ],
     chopHint:'PICK UP A #NOODL POST',
     fdNext:'Next post →',
@@ -905,7 +963,7 @@ zh:{
     ecoH:'空着的那个位置',
     ecoLead:'每条大公链最后都长出了一枚代表它自己的币：以太坊有 SHIB，Solana 有 BONK，Base 有 BRETT。比特币没有。最老、最大、文化包袱最重的那一条，至今没有。常见的解释是文化问题，更朴素的解释是机制问题，所以这篇的起点不是 NOODL，而是这个一直空着的位置。',
     ecoWhyH:'最老的链为什么反而没有',
-    ecoWhyP:'不是因为没发过币。Odin 自己的 FAQ 就把这条线列全了：彩色币、Genesis spells、rare pepes、Counterparty、铭文、BRC-20、符文，在比特币上发资产这件事已经有十几年历史。缺的是场子：一个能让玩笑用玩笑的速度成交的地方。十分钟一个块加订单簿，用来结算国库很好，用来跑 meme 很糟：买只能吃别人挂的量，卖则可能永远等不到接盘。另一半原因是脾气。比特币的文化建立在「我们不是赌场」之上，于是真出现的那些代币，都被当成协议产物去收藏，而不是当成段子去复述。ORDI 已经是最接近「比特币生态代表资产」的东西，但它本质是对一个标准的押注，不是一种带梗的文化。十年，七套标准，一个大奇迹币都没有。',
+    ecoWhyP:'不是因为没发过币。比特币生态曾经产生过无数代币：彩色币、Genesis spells、rare pepes、Counterparty、铭文、BRC-20、符文，在比特币上发资产这件事已经有十几年历史。缺的是场子：一个能让比特币资产用闪电的速度成交的地方。十分钟一个块加订单簿，用来结算国库很好，用来跑 meme 很糟：买只能吃别人挂的量，卖则可能永远等不到接盘。另一半原因是脾气。比特币的文化建立在「我们不是赌场」之上，于是真出现的那些代币，都被当成协议产物去收藏，而不是当成段子去复述。ORDI 已经是最接近「比特币生态代表资产」的东西，但它本质是对一个标准的押注，不是一种带梗的文化。十年，七套标准，一个大奇迹币都没有。',
     ecoF1:'比特币十几年代币史里，长出的大奇迹币数量',
     ecoF2:'从彩色币到符文的七个代币时代，没有一个留下图腾',
     ecoF3:'沿联合曲线卖完 80% 供应、代币毕业进 AMM 的金额',
@@ -921,19 +979,22 @@ zh:{
     kRoadmap:'05：规划',
     roadH:'通往超新星之路',
     roadLead:'以下所有阶段按市值解锁。后续阶段在里程碑真正达成前保持封存，不提前承诺任何事。',
-    roadNote:'被锁阶段会随 NOODL 实时市值越过各里程碑自动揭晓。此处内容不构成任何承诺或预测。',
+    roadNote:'起初，它只是一个代币；后来，它成为一种文化；最终，它成为一种运动。',
     ctxPendulumP:'流量的钟摆此前就这样摆过一次。2025 年 1 月，TRUMP 币标志着 pump.fun 时代的高潮；它见顶一周后，Odin v1 官宣：承接了那批四处寻找建设之地的资金。2026 年 7 月，Robinhood 自己的链上线，随即被 meme 占领，直到承接了该链四分之三部署量的发射台 noxa 网站连续两天打不开、社区爆发软跑路指控。同一个钟摆，同一个位置，而 Odin v2 恰好在这一刻重启。',
     capFalcon:'王者归来之所以是最受欢迎的剧本，正因为它罕见：那家不断炸火箭的公司，后来教会了火箭这样回家',
     navWhat:'NOODL',navCulture:'文化',navCommunity:'社区',navEco:'生态',navRoadmap:'规划',
+    mirV1:'ODIN·FUN v1 全生态代币合计，事故打断之前',
+    mirNow:'NOODL 现在，实时读数',
+    mirCap:'左边是 v1 已经实现过的市值，约 5000 BTC，社区估算。右边是同样 5000 BTC 的空间，画成虚线轮廓，因为那是一个论点而不是预测。金色那条是 NOODL 按真实比例放在同一把尺子上，它被画成一像素粗，是因为真实比例只有这条线的二十分之一。',
     roadReached:'已达成',roadNow:'测试中',roadUnlocked:'已解锁',
     road:[
       {t:'发射：上升进入 AMM',d:'Odin 的代币先在联合曲线上交易，80% 供应量卖满 0.211 BTC 即「上升」毕业，剩余 20% 供应与 0.2 BTC 一并注入 AMM 池。NOODL 于 2026 年 7 月中旬跨过这道门槛：下面这些阶段之所以开启，正是因为它已经达成。'},
       {t:'ODIN·FUN v1 → v2 迁移',d:'v1 的符文与社区迁移至官方 v2 平台，原始资金、筹码与持有者一并带入。'},
       {t:'质押解锁功能',d:'平台质押与解锁功能上线，让持有者有理由长期持有而非轮动。'},
-      {t:'达到 5 BTC 解锁',d:'该阶段在 NOODL 市值达到 5 BTC 前保持封存。'},
-      {t:'达到 50 BTC 解锁',d:'该阶段在 NOODL 市值达到 50 BTC 前保持封存。'},
-      {t:'达到 500 BTC 解锁',d:'该阶段在 NOODL 市值达到 500 BTC 前保持封存。'},
-      {t:'超新星：5000 BTC',d:'最终里程碑。在面条冲出碗外之前保持封存。'}
+      {t:'From HODL to NOODL',d:'该阶段在 NOODL 市值达到 5 BTC 前保持封存。'},
+      {t:'From DEX to CEX：从链上社区走向全球市场',d:'该阶段在 NOODL 市值达到 50 BTC 前保持封存。'},
+      {t:'The NOODL Layer of Bitcoin：比特币上的 NOODL 文化层',d:'该阶段在 NOODL 市值达到 500 BTC 前保持封存。'},
+      {t:'From Bitcoin Pizza to Bitcoin NOODL：从比特币披萨到比特币面条',d:'最终里程碑。在面条冲出碗外之前保持封存。'}
     ],
     chopHint:'夹一条 #NOODL 帖子',
     fdNext:'下一条 →',
@@ -1279,6 +1340,8 @@ function render(){
   // the ecosystem section's holder count is bound to live data — a hardcoded
   // number there would quietly become a false statement on its own page
   const hf=$('#ecoHolders');if(hf)hf.textContent=state.holders;
+  const mn=$('#mirNow');if(mn)mn.textContent=fmtBtc(state.mc)+' BTC';
+  if(window.__mirLive)window.__mirLive(state.mc);
   buildRoad();   // roadmap stages unlock as the live cap crosses each milestone
   const next=MILESTONES.find(m=>state.mc<m);
   $('#nextLine').textContent=(!state.live&&seeded)?'':(next?ui.toNext((100*state.mc/next).toFixed(1),next):ui.reached);
@@ -1307,6 +1370,72 @@ $('#langBtn').addEventListener('click',()=>{
   try{localStorage.setItem('noodl_lang',lang);}catch(e){}
   applyLang();
 });
+
+/* ============ v1 → v2 mirror (parity inversion) ============
+   Segment i leaves left slot i (counted from the top) and lands in right slot
+   9−i, which is the point reflection of its source through the centre. The
+   assertion below is the point of the figure: if the inversion is not exact the
+   drawing is lying, so it is checked rather than assumed. */
+(function(){
+  const svg=$('#mirSvg'),fig=$('#mirror');
+  if(!svg||!fig)return;
+  const N=10,W=600,H=200,CX=W/2,CY=H/2;
+  const FX=56,FY=26,FW=104,FH=148,GAP=3;
+  const SH=(FH-GAP*(N-1))/N;                 // segment height
+  const slotY=i=>FY+i*(SH+GAP);
+  const RX=W-FX-FW;                          // right frame x = reflection of left
+  const NS='http://www.w3.org/2000/svg';
+  const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+  let out='';
+  const add=(n,a)=>{svg.appendChild(el(n,a));};
+  add('line',{class:'mir-axis',x1:CX,y1:8,x2:CX,y2:H-8});
+  add('rect',{class:'mir-frame',x:FX,y:FY,width:FW,height:FH});
+  add('rect',{class:'mir-frame r',x:RX,y:FY,width:FW,height:FH});
+
+  let worstErr=0;
+  for(let i=0;i<N;i++){
+    const sx=FX,sy=slotY(i);
+    const dx0=2*CX-sx-FW, dy0=2*CY-sy-SH;    // point reflection of the source rect
+    const dx1=RX,        dy1=slotY(N-1-i);   // the slot we actually target
+    worstErr=Math.max(worstErr,Math.abs(dx0-dx1),Math.abs(dy0-dy1));
+    const r=el('rect',{class:'mir-seg',x:sx,y:sy,width:FW,height:SH.toFixed(2),rx:1});
+    r.style.setProperty('--i',i);
+    r.style.setProperty('--dx',(dx1-sx).toFixed(2)+'px');
+    r.style.setProperty('--dy',(dy1-sy).toFixed(2)+'px');
+    svg.appendChild(r);
+  }
+  fig.dataset.parityError=worstErr.toFixed(4);   // 0 = the inversion is exact
+
+  // NOODL at true linear scale against 5000 BTC. At ~1.5 BTC that is under a
+  // twentieth of a pixel, so it is floored at 0.8 and the caption says so;
+  // a log axis here would quietly flatter the small number.
+  // It protrudes past the frame's left edge so the arriving outlines can never
+  // occlude it: this line is the only measured fact in the drawing and it must
+  // stay readable underneath the hypothesis.
+  const OVER=16;
+  const live=el('rect',{class:'mir-live',x:RX-OVER,width:FW+OVER,height:0.8,y:FY+FH-0.8});
+  svg.appendChild(live);
+  window.__mirLive=(mc)=>{
+    const h=Math.max(0.8,FH*Math.min(mc,FINAL_MC)/FINAL_MC);
+    live.setAttribute('height',h.toFixed(2));
+    live.setAttribute('y',(FY+FH-h).toFixed(2));
+  };
+
+  const mq=matchMedia('(prefers-reduced-motion: reduce)');
+  let t=null,halted=new Set();
+  const cycle=()=>{fig.classList.add('run');t=setTimeout(()=>{fig.classList.remove('run');t=setTimeout(cycle,700);},7600);};
+  const play=()=>{if(!t&&!halted.size&&!mq.matches)cycle();};
+  const stop=()=>{clearTimeout(t);t=null;};
+  const halt=(k,rewind)=>{halted.add(k);stop();if(rewind)fig.classList.remove('run');};
+  const go=k=>{halted.delete(k);play();};
+  new IntersectionObserver(e=>{e[0].isIntersecting?go('off'):halt('off',true);},{threshold:0}).observe(fig);
+  fig.addEventListener('pointerenter',()=>halt('hover'));   // WCAG 2.2.2
+  fig.addEventListener('pointerleave',()=>go('hover'));
+  document.addEventListener('visibilitychange',()=>document.hidden?halt('tab'):go('tab'));
+  const onMQ=()=>{stop();fig.classList.remove('run');play();};
+  mq.addEventListener?mq.addEventListener('change',onMQ):mq.addListener(onMQ);
+})();
 
 /* ================= roadmap ================= */
 // Every stage is gated on live market cap, including the first three: they are
