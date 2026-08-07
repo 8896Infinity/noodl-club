@@ -15,6 +15,28 @@
  * ========================================================================== */
 window.NOODL_TWEETS = [
   {
+    id: '2085683206247088137',
+    url: 'https://x.com/NOODL_club/status/2085683206247088137',
+    name: 'NOODL',
+    handle: 'NOODL_club',
+    date: '2026-08-07T11:03:21Z',
+    text: 'Time to NOODL in!\n\n#NOODL',
+    likes: 0,
+    retweets: 0,
+    replies: 0
+  },
+  {
+    id: '2084967939678355624',
+    url: 'https://x.com/NOODL_club/status/2084967939678355624',
+    name: 'NOODL',
+    handle: 'NOODL_club',
+    date: '2026-08-05T11:41:08Z',
+    text: '$NOODL is the first token on ODIN v2.\nThe community is already here, and NOODL.club has been built by the community.\nNOODL = New Odin HODL.\n\nFirst token.\nBest community.\nNative culture of the new Odin era.\n\nWe’re not waiting for what’s next.\nWe’re building it.\n\n#NOODL',
+    likes: 7,
+    retweets: 1,
+    replies: 0
+  },
+  {
     id: '2083949197745860715',
     url: 'https://x.com/jixiofng450094/status/2083949197745860715',
     name: '清野',
@@ -22,7 +44,7 @@ window.NOODL_TWEETS = [
     date: '2026-08-02T16:13:01Z',
     text: '$NOODL · Noodle Nova\n\nODIN·FUN v2 重启后的第一枚代币。\n\n它不喊口号，也不画大饼，只说一句：No promises, just NOODL。\n\n这是一枚很“温馨”的比特币 Runes meme。名字拆开是 New Odin HODL——西方的长期持有文化，配上东方“面”的长寿寓意。面既是面条，也是体面、情面和场面。一碗面，慢慢吃到 Nova。\n\n作为平台重启后的首发代币，它天然占了位置。v1 曾经热闹过，也翻过车；v2 在安全上做了明显升级，TSS 托管、多签治理，团队把钥匙分得更开。$NOODL 踩在这个新起点上，叙事干净，没有历史包袱。\n\n目前市值还在早期，持有者不多，社区也在慢慢长。官网 noodl.club 写得很用心，把文化、平台逻辑和长期视角都摊开讲了。它不是那种靠喊麦起飞的币，更像一碗慢慢煮的面——有味道，也经得起等。\n\n比特币一直缺一个真正有辨识度的 meme。$NOODL 尝试用“第一”和“长期主义”去填这个位置。\n\n感兴趣的，自己去看看。\n\n@Odin_GodOfRunes @NOODL_club\n\n#NOODL #ODINFUN #Bitcoin #Runes #NoodleNova',
     likes: 0,
-    retweets: 0,
+    retweets: 1,
     replies: 3
   },
   {
@@ -32,7 +54,7 @@ window.NOODL_TWEETS = [
     handle: 'SuZhe_eth',
     date: '2026-08-02T14:13:01Z',
     text: '人生三碗面：场面、情面和体面。\n\nnoodl.club 社区网站，蓄势待发\n\n#noodl',
-    likes: 12,
+    likes: 13,
     retweets: 3,
     replies: 0
   },
