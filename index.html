@@ -359,11 +359,11 @@ a{color:inherit}
 .step.breaking .rv>*:nth-child(2){animation-delay:.66s}
 .step.breaking .rv>*:nth-child(3){animation-delay:.76s}
 @keyframes rvIn{from{transform:translateY(4px)}to{transform:none}}
-/* the noodle is pulled up to the freed marker instead of jumping to it */
-.rail.surge i{transition:height 1.1s cubic-bezier(.22,1,.36,1)}
+/* the noodle pulling up to the freed marker needs no rule of its own: .rail i
+   already transitions its height, so the surge comes for free with placeRail */
 @media (prefers-reduced-motion:reduce){
   .step.breaking::before,.step.breaking::after,.step.breaking .step-i::after{display:none}
-  .step.breaking,.step.breaking *,.rail.surge i{animation:none!important;transition:none!important}
+  .step.breaking,.step.breaking *{animation:none!important;transition:none!important}
 }
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
@@ -1645,7 +1645,6 @@ function playUnlock(){
   const i=pendingIdx;if(i<0)return;
   pendingIdx=-1;ceremony=i;ceremonyLang=lang;
   buildRoad();                                    // re-renders card i as .unlocked.breaking
-  railEl.classList.add('surge');
   $('#unlockSr').textContent=I18N[lang].ui.unlockSr(ROAD[i].at);
   clearTimeout(playUnlock.t);
   playUnlock.t=setTimeout(endUnlock,1900);
@@ -1654,7 +1653,6 @@ function endUnlock(){
   if(ceremony<0)return;
   clearTimeout(playUnlock.t);
   markUnlock(ceremony);ceremony=-1;
-  railEl.classList.remove('surge');
   buildRoad();
 }
 
