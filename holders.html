@@ -43,9 +43,6 @@ a{color:inherit}
 #langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
 
 h1{font-weight:800;font-size:clamp(26px,5.5vw,38px);line-height:1.06;letter-spacing:.01em}
-.sub{color:var(--text-2);font-size:13.5px;margin-top:11px;line-height:1.7;max-width:74ch}
-.sub a{color:var(--cyan-dim);text-decoration:none}
-.sub a:hover{color:var(--cyan)}
 
 /* live pulse: solid while data is fresh, hollow while a refresh is in flight */
 .live{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;
@@ -146,7 +143,6 @@ footer a:hover{color:var(--cyan)}
   </header>
 
   <h1 data-i="title">HOLDER BOARD</h1>
-  <p class="sub" id="sub"></p>
   <p style="margin-top:12px"><span class="live" id="live"><b></b><span id="liveTxt"></span></span></p>
 
   <div id="err"></div>
@@ -211,11 +207,11 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const I18N={
  en:{
   back:'← Home',title:'HOLDER BOARD',
-  sub:'Every NOODL holder, their share, what they paid and what that is worth now, plus the liquidity pool and the fee yield it is actually throwing off. Read live from the <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun</a> API on every load, nothing stored, nothing edited by hand.',
   bMarket:'Market',bHolders:'Holders',bPool:'Liquidity pool',
   liveOk:d=>'Live · updated '+d,liveBusy:'Loading from odin.fun…',liveFail:'odin.fun unreachable',
   mc:'Market cap',price:'Price',d1:'24 hours',d7:'7 days',d30:'30 days',
   holders:'Holders',over:n=>'Over $'+n,heldN:n=>'Held '+n+'+ days',
+  newIn:n=>n===1?'Joined in 24h':'Joined in '+n+'d',ofTotal:p=>p+'% of holders',
   poolSize:'Pool size',vol24:'24h swap volume',lpFee:'LP fee share',apy:'LP fee APY',
   chefs:'Chefs (LP providers)',lpHeld:n=>'In pool '+n+'+ days',
   notYet:d=>'possible from '+d,tokenAge:d=>'token is '+d+' days old',poolAge:d=>'pool is '+d+' days old',
@@ -232,6 +228,7 @@ const I18N={
    '<b>Price changes</b> are read off the token’s own trade feed: the last trade at or before 24h / 7d / 30d ago, against the price now. The 30-day window reaches back before NOODL bonded on 13 Jul 2026, so it spans the bonding curve as well as the AMM.',
    '<b>Cost and P&L</b> use odin.fun’s own recorded average cost per holder. It is unrealised: what the position would be worth if sold at the current price, minus what it cost. Tokens that arrived by transfer rather than by buying can carry a cost basis that is not the receiver’s own.',
    '<b>Days held</b> counts from a holder’s first NOODL buy or receipt, and resets if they sell. It is derived from each holder’s activity log, one request per holder, so it fills in a few seconds after the table appears.',
+   '<b>Joined in 24h / 30d / 60d</b> counts how many of the holders here today first got NOODL inside that window. It is not net growth: the API can only see people who still hold, so anyone who bought and fully sold out again is invisible to it, and the count can never go down on its own.',
    '<b>LP fee APY</b> is the pool’s own arithmetic, not a promise: odin.fun charges 1% on a swap and gives <b>0.3%</b> to liquidity providers (from <code>/v2/settings</code>). Take the last 24 hours of swap volume, multiply by 0.3%, divide by the pool’s value, multiply by 365. One busy day makes it look enormous and one quiet day makes it look like nothing. It does not account for impermanent loss.',
    '<b>NOODLER</b> = held 30+ days without selling, and at least $100 of NOODL now. <b>Chef</b> = currently provides liquidity to the NOODL pool.',
    '<b>Empty buckets are honest.</b> NOODL was created on 10 Jun 2026 and the pool only opened when it bonded on 13 Jul 2026, so the longer tenure buckets are still counting down rather than reading zero because nobody held on.',
@@ -242,11 +239,11 @@ const I18N={
  },
  zh:{
   back:'← 首页',title:'NOODL 持仓看板',
-  sub:'每一个 NOODL 持有者的持仓、占比、成本和现在值多少，加上流动性池子和它真正跑出来的手续费收益。每次打开都从 <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun</a> 接口实时读，不存档，不手填。',
   bMarket:'行情',bHolders:'持有者',bPool:'流动性池',
   liveOk:d=>'实时 · 更新于 '+d,liveBusy:'正在从 odin.fun 读取…',liveFail:'odin.fun 连不上',
   mc:'市值',price:'单价',d1:'24 小时',d7:'7 天',d30:'30 天',
   holders:'持有人数',over:n=>'持仓超 $'+n,heldN:n=>'持有满 '+n+' 天',
+  newIn:n=>n===1?'24 小时新增':n+' 天新增',ofTotal:p=>'占 '+p+'%',
   poolSize:'池子规模',vol24:'24 小时交易量',lpFee:'LP 手续费分成',apy:'LP 手续费年化',
   chefs:'Chef（做市者）',lpHeld:n=>'入池满 '+n+' 天',
   notYet:d=>d+' 起才可能有',tokenAge:d=>'币龄 '+d+' 天',poolAge:d=>'池龄 '+d+' 天',
@@ -263,6 +260,7 @@ const I18N={
    '<b>涨跌幅</b>取自代币自己的成交记录：24 小时 / 7 天 / 30 天之前最后一笔成交价，对比现价。30 天这一档会回溯到 2026 年 7 月 13 日毕业之前，所以它同时跨了联合曲线和 AMM 两个阶段。',
    '<b>成本与盈亏</b>用的是 odin.fun 自己记录的每人均价。这是未实现盈亏：按现价卖掉值多少，减去当初花了多少。靠转账拿到的仓位，成本价可能不是收币方自己的成本。',
    '<b>持有天数</b>从这个人第一次买入或收到 NOODL 算起，卖出就归零。它来自每个持有者的活动记录，一人一次请求，所以表格出来之后还要几秒才填满。',
+   '<b>24 小时 / 30 天 / 60 天新增</b>数的是：今天还在持有的人里面，有多少是在那段时间里第一次拿到 NOODL 的。这不是净增长 — 接口只看得到当前还持有的人，中途买了又全部卖光的人它根本看不见，所以这个数自己不会往下掉。',
    '<b>LP 手续费年化</b>是池子自己的算术，不是承诺：odin.fun 每笔交易收 1%，其中 <b>0.3%</b> 给做市者（数据取自 <code>/v2/settings</code>）。拿过去 24 小时的交易量 × 0.3% ÷ 池子规模 × 365。热闹一天它就大得离谱，冷清一天它就几乎归零。这个数没有把无常损失算进去。',
    '<b>NOODLER</b> = 满 30 天没卖，且现在持仓价值 ≥ $100。<b>Chef</b> = 当前正在给 NOODL 池子提供流动性。',
    '<b>空着的档位是老实话。</b>NOODL 2026 年 6 月 10 日创建，池子要到 7 月 13 日毕业才开，所以更长的那几档还在倒计时，不是因为没人拿得住才是零。',
@@ -401,7 +399,9 @@ async function loadTrades(){
 /* One activity request per holder. The endpoint caps limit at 100, so holders
    with a longer history need paging. Results are cached briefly, because this
    is by far the most expensive thing the page does to odin.fun. */
-const TKEY='noodl_tenure_v1', TTL=20*60*1000;
+/* v2: the cached shape gained firstAcq. A v1 blob would still be readable and
+   would quietly report nobody joined, so the key moves rather than the reader. */
+const TKEY='noodl_tenure_v2', TTL=20*60*1000;
 async function loadTenure(){
   const ui=I18N[lang];
   try{
@@ -436,7 +436,10 @@ async function loadTenure(){
         const firstAcq=acq.length?Math.min.apply(null,acq):null;
         const lastSell=sells.length?Math.max.apply(null,sells):null;
         tenure[u]={
+          // `since` is the holding clock and resets on a sell; `firstAcq` never
+          // resets, because joining is a thing that happened once
           since:lastSell?Math.max(firstAcq||0,lastSell):firstAcq,
+          firstAcq,
           lastSell,
           lpSince:lps.length?Math.min.apply(null,lps):null
         };
@@ -462,6 +465,14 @@ function lpDays(u){
   const t=tenure[u];
   if(!t||!t.lpSince)return null;
   return (Date.now()-t.lpSince)/DAY;
+}
+/* How long ago this holder first showed up, ignoring anything they did since.
+   Only current holders are visible to the API, so somebody who bought and fully
+   exited inside the window is not counted here and never can be. */
+function joinedDays(u){
+  const t=tenure[u];
+  if(!t||!t.firstAcq)return null;
+  return (Date.now()-t.firstAcq)/DAY;
 }
 function isNoodler(o){
   const d=heldDays(o.user);
@@ -489,7 +500,6 @@ function render(){
   document.querySelectorAll('[data-i]').forEach(el=>{
     const v=ui[el.dataset.i];if(typeof v==='string')el.textContent=v;
   });
-  $('#sub').innerHTML=ui.sub;
   $('#langBtn').textContent=lang==='en'?'中文':'EN';
   $('#q').placeholder=ui.search;
   $('#how').innerHTML=ui.how.map(h=>'<li>'+h+'</li>').join('');
@@ -521,7 +531,13 @@ function render(){
     h+=statHtml(ui.over(nf(t,0)),nf(n,0),
       S.owners.length?nf(n/S.owners.length*100,0)+'%':'');
   });
-  [30,60,90].forEach(d=>{
+  [1,30,60].forEach(d=>{
+    const n=S.owners.filter(o=>{const x=joinedDays(o.user);return x!==null&&x<=d}).length;
+    h+=statHtml(ui.newIn(d),
+      tenureDone||n?nf(n,0):'<span class="pend">…</span>',
+      tenureDone&&S.owners.length?ui.ofTotal(nf(n/S.owners.length*100,0)):'');
+  });
+  [30,60].forEach(d=>{
     const possible=tokenAgeD>=d;
     const n=S.owners.filter(o=>{const x=heldDays(o.user);return x!==null&&x>=d}).length;
     h+=statHtml(ui.heldN(d),
@@ -547,7 +563,7 @@ function render(){
     lang==='zh'?'按过去 24 小时简单年化':'simple, from the last 24h');
   p+=statHtml(ui.chefs,nf(S.lpRows.length,0),
     lang==='zh'?'池龄 '+nf(poolAgeD,1)+' 天':nf(poolAgeD,1)+' days old');
-  [30,60,90].forEach(d=>{
+  [30,60].forEach(d=>{
     const possible=poolAgeD>=d;
     const n=S.owners.filter(o=>{const x=lpDays(o.user);return x!==null&&x>=d}).length;
     p+=statHtml(ui.lpHeld(d),
