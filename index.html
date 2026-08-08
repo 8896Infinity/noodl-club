@@ -257,7 +257,10 @@ a{color:inherit}
 .step.now{border-color:rgba(0,255,255,.75);box-shadow:0 0 0 1px rgba(0,255,255,.18)}
 .step.now .step-i{background:var(--cyan);color:#06060a;animation:stepPulse 1.8s ease-in-out infinite}
 @keyframes stepPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,255,.5)}50%{box-shadow:0 0 0 6px rgba(0,255,255,0)}}
-.step-b{min-width:0;flex:1}
+/* z-index:1 keeps the copy above the seal, which is an absolutely positioned
+   ::before and would otherwise paint over it. Order stays card < seal < copy <
+   rail < marker < the tearing light. */
+.step-b{min-width:0;flex:1;position:relative;z-index:1}
 .step-t{font-size:14.5px;font-weight:600;color:var(--text);line-height:1.35}
 .step-d{font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:5px}
 .step-s{font-size:10.5px;font-weight:600;letter-spacing:.08em;color:var(--cyan);margin-top:7px;text-transform:uppercase}
@@ -266,7 +269,14 @@ a{color:inherit}
 .step.locked .step-t{color:var(--text-2)}
 .step.locked .step-d{filter:blur(4px);user-select:none}
 .step.locked .step-s{color:var(--dim)}
-.step.locked{background:repeating-linear-gradient(135deg,var(--panel),var(--panel) 9px,#15151b 9px,#15151b 18px)}
+/* The seal is an overlay, not the card's own background: a background cannot be
+   masked away on its own while the panel colour underneath stays put, and the
+   tear has to remove the hatching without touching the card. Sealed and tearing
+   draw the identical pixels, so the ceremony only subtracts. */
+.step.locked::before,.step.breaking::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:repeating-linear-gradient(135deg,transparent,transparent 9px,#15151b 9px,#15151b 18px);
+}
 .lockbar{
   display:flex;align-items:center;gap:8px;margin-top:10px;
   font-size:11.5px;font-weight:600;color:var(--dim);letter-spacing:.03em;
@@ -278,6 +288,84 @@ a{color:inherit}
 .step.unlocked .step-t,.step.unlocked .step-d{filter:none}
 .step.unlocked{border-color:rgba(0,255,255,.4)}
 .step.unlocked .step-i{background:var(--cyan);color:#06060a}
+
+/* ---------- the reveal a milestone opens ---------- */
+.rv{margin-top:6px}
+.rv-a{
+  font-size:13.5px;font-weight:600;color:var(--text);line-height:1.5;
+  letter-spacing:.01em;font-variant-numeric:tabular-nums;
+}
+.rv-a em{font-style:normal;font-weight:400;color:var(--cyan);padding:0 7px}
+.rv-l{font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:7px}
+
+/* ---------- milestone unlock ceremony ----------
+   The seal tears off under a travelling light. Both are driven by the SAME
+   300%-wide gradient stepped from position 100% to 0% with the same easing and
+   timing, so the bright band sits exactly on the mask's own 50% boundary
+   instead of merely near it: with size 3n and offset p, the boundary lands at
+   1.5 - 2p of the card either way. */
+.step.breaking{border-color:rgba(0,255,255,.4);animation:sealGlow 1.5s cubic-bezier(.3,0,.2,1) .3s backwards}
+.step.breaking::before{
+  -webkit-mask-image:linear-gradient(100deg,transparent 0 33.33%,rgba(0,0,0,.55) 50%,#000 66.67%,#000 100%);
+          mask-image:linear-gradient(100deg,transparent 0 33.33%,rgba(0,0,0,.55) 50%,#000 66.67%,#000 100%);
+  -webkit-mask-size:300% 100%;mask-size:300% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:100% 0;mask-position:100% 0;
+  animation:sealTear .8s cubic-bezier(.42,0,.24,1) .22s forwards;
+}
+.step.breaking::after{
+  content:'';position:absolute;inset:-1px;z-index:4;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(100deg,transparent 0 40%,rgba(0,255,255,.14) 47%,rgba(0,255,255,.6) 50%,rgba(0,255,255,.14) 53%,transparent 60% 100%);
+  background-size:300% 100%;background-position:100% 0;background-repeat:no-repeat;opacity:0;
+  animation:sealTear .8s cubic-bezier(.42,0,.24,1) .22s forwards,
+            scanFade .8s linear .22s forwards;
+}
+@keyframes sealTear{to{-webkit-mask-position:0% 0;mask-position:0% 0;background-position:0% 0}}
+@keyframes scanFade{0%{opacity:0}12%{opacity:1}84%{opacity:1}100%{opacity:0}}
+@keyframes sealGlow{
+  0%{box-shadow:0 0 0 0 rgba(0,255,255,0)}
+  24%{box-shadow:0 0 0 1px rgba(0,255,255,.7),0 0 30px rgba(0,255,255,.26)}
+  100%{box-shadow:0 0 0 0 rgba(0,255,255,0)}
+}
+/* the lock gives: a shudder, then it pops open into its number */
+.step.breaking .step-i{animation:lockPop .95s cubic-bezier(.2,1.5,.32,1) forwards}
+@keyframes lockPop{
+  0%,30%{transform:translateX(0)}
+  6%{transform:translateX(-2px)}12%{transform:translateX(2px)}
+  18%{transform:translateX(-2px)}24%{transform:translateX(1.5px)}
+  48%{transform:scale(1.34)}100%{transform:scale(1)}
+}
+/* absolutely positioned so the grid-centred number never shifts */
+.step.breaking .step-i::after{
+  content:'';position:absolute;inset:-3px;border-radius:50%;
+  border:1.5px solid var(--cyan);
+  animation:lockRing .8s cubic-bezier(.2,.7,.3,1) .2s 2 forwards;
+}
+@keyframes lockRing{from{transform:scale(.7);opacity:.85}to{transform:scale(2.6);opacity:0}}
+/* the copy comes into focus behind the tear, not with it */
+.step.breaking .step-d,.step.breaking .rv,.step.breaking .step-s{
+  animation:sealFocus .62s cubic-bezier(.3,0,.2,1) .5s backwards;
+}
+/* .55 and blur(4px) are the sealed card's own look, so swapping the seal copy
+   for the reveal at t=0 happens underneath a blur nobody can read through. */
+@keyframes sealFocus{
+  from{filter:blur(4px);opacity:.55;transform:translateY(3px)}
+  to{filter:blur(0);opacity:1;transform:none}
+}
+/* the lines settle in turn, but never fade from nothing: the copy was under the
+   seal the whole time, so an opacity ramp here would blank the card mid-tear */
+.step.breaking .rv>*{animation:rvIn .55s cubic-bezier(.22,1,.36,1) backwards}
+.step.breaking .rv>*:nth-child(1){animation-delay:.56s}
+.step.breaking .rv>*:nth-child(2){animation-delay:.66s}
+.step.breaking .rv>*:nth-child(3){animation-delay:.76s}
+@keyframes rvIn{from{transform:translateY(4px)}to{transform:none}}
+/* the noodle is pulled up to the freed marker instead of jumping to it */
+.rail.surge i{transition:height 1.1s cubic-bezier(.22,1,.36,1)}
+@media (prefers-reduced-motion:reduce){
+  .step.breaking::before,.step.breaking::after,.step.breaking .step-i::after{display:none}
+  .step.breaking,.step.breaking *,.rail.surge i{animation:none!important;transition:none!important}
+}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
 /* ---------- hero / scene ---------- */
 main{position:relative;z-index:1}
@@ -723,6 +811,8 @@ footer a:hover{color:var(--cyan)}
         <span class="rail" id="roadRail"><i id="roadFill"><b id="roadTag"></b></i></span>
         <div class="road-steps" id="roadList"></div>
       </div>
+      <!-- the tear is silent for anyone who cannot see it, so it is announced -->
+      <p class="sr-only" id="unlockSr" role="status" aria-live="polite"></p>
 
       <p class="coda" data-i="roadNote">First it was a token. Then it became a culture. Finally, it became a movement.</p>
     </section>
@@ -882,11 +972,13 @@ en:{
     mirNow:'NOODL today, measured live',
     mirCap:"One strand, wound twice. The left bowl is v1's realised market cap, roughly 5000 BTC, a community estimate, and its spiral ends exactly where the right one begins. The right bowl is NOODL's road to 5000 BTC: solid as far as the live market cap has actually travelled, dashed the rest of the way, because that part is an argument and not a forecast. Distance along that road is measured in orders of magnitude, the same scale as the spiral at the top of this page, not as a share of 5000.",
     roadReached:'Reached',roadNow:'In testing',roadUnlocked:'Unlocked',
+    unlockSr:n=>'Milestone unlocked: '+n+' BTC.',
     road:[
       {t:'Launch: ascended into the AMM',d:"Odin sells 80% of a token's supply along the bonding curve for 0.211 BTC; clearing that threshold is what deposits the remaining supply plus 0.2 BTC into the AMM. NOODL cleared it in mid-July 2026, which is what opened everything below."},
       {t:'ODIN·FUN v1 → v2 migration',d:"v1's runes and communities migrate to the official v2 platform, bringing the original funds, chips and holders across."},
       {t:'Staking & unlocking',d:'Staking and unlocking arrive on the platform, giving holders a reason to hold rather than rotate.'},
-      {t:'From HODL to NOODL',d:'This stage stays sealed until NOODL’s market cap reaches 5 BTC.'},
+      {t:'From HODL to NOODL',d:'This stage stays sealed until NOODL’s market cap reaches 5 BTC.',
+       open:{rows:[['Bitcoin','Bitcoiner'],['NOODL','NOODLER']],line:'The birth of a new Bitcoin-native culture.'}},
       {t:'From DEX to CEX',d:'This stage stays sealed until NOODL’s market cap reaches 50 BTC.'},
       {t:'The NOODL Layer of Bitcoin',d:'This stage stays sealed until NOODL’s market cap reaches 500 BTC.'},
       {t:'From Bitcoin Pizza to Bitcoin NOODL',d:'The final milestone. Sealed until the noodle leaves the bowl.'}
@@ -985,11 +1077,13 @@ zh:{
     mirNow:'NOODL 现在，实时读数',
     mirCap:'一根面条，绕了两个碗。左边是 v1 已经实现过的市值，约 5000 BTC，社区估算，它的螺旋终点正好是右边的起点。右边是 NOODL 通往 5000 BTC 的那条路：实时市值真正走到的地方画成实线，余下画成虚线，因为那一段是论点，不是预测。路上的距离按数量级来量，和本页顶部那条螺旋同一把尺子，不是按占 5000 的比例。',
     roadReached:'已达成',roadNow:'测试中',roadUnlocked:'已解锁',
+    unlockSr:n=>'里程碑已解锁：'+n+' BTC。',
     road:[
       {t:'发射：上升进入 AMM',d:'Odin 的代币先在联合曲线上交易，80% 供应量卖满 0.211 BTC 即「上升」毕业，剩余 20% 供应与 0.2 BTC 一并注入 AMM 池。NOODL 于 2026 年 7 月中旬跨过这道门槛：下面这些阶段之所以开启，正是因为它已经达成。'},
       {t:'ODIN·FUN v1 → v2 迁移',d:'v1 的符文与社区迁移至官方 v2 平台，原始资金、筹码与持有者一并带入。'},
       {t:'质押解锁功能',d:'平台质押与解锁功能上线，让持有者有理由长期持有而非轮动。'},
-      {t:'From HODL to NOODL',d:'该阶段在 NOODL 市值达到 5 BTC 前保持封存。'},
+      {t:'From HODL to NOODL',d:'该阶段在 NOODL 市值达到 5 BTC 前保持封存。',
+       open:{rows:[['Bitcoin','Bitcoiner'],['NOODL','NOODLER']],line:'一种比特币原生文化的诞生。'}},
       {t:'From DEX to CEX：从链上社区走向全球市场',d:'该阶段在 NOODL 市值达到 50 BTC 前保持封存。'},
       {t:'The NOODL Layer of Bitcoin：比特币上的 NOODL 文化层',d:'该阶段在 NOODL 市值达到 500 BTC 前保持封存。'},
       {t:'From Bitcoin Pizza to Bitcoin NOODL：从比特币披萨到比特币面条',d:'最终里程碑。在面条冲出碗外之前保持封存。'}
@@ -1340,7 +1434,9 @@ function render(){
   const hf=$('#ecoHolders');if(hf)hf.textContent=state.holders;
   const mn=$('#mirNow');if(mn)mn.textContent=fmtBtc(state.mc)+' BTC';
   if(window.__foldLive)window.__foldLive(state.mc);
-  buildRoad();   // roadmap stages unlock as the live cap crosses each milestone
+  checkUnlocks();   // roadmap stages unlock as the live cap crosses each milestone
+  buildRoad();
+  armUnlock();
   const next=MILESTONES.find(m=>state.mc<m);
   $('#nextLine').textContent=(!state.live&&seeded)?'':(next?ui.toNext((100*state.mc/next).toFixed(1),next):ui.reached);
 }
@@ -1502,12 +1598,88 @@ const ROAD=[
 const roadEl=$('#roadList');
 const railEl=$('#roadRail'),railFillEl=$('#roadFill'),railTagEl=$('#roadTag');
 
+/* ---- milestone unlock ceremony ----
+   A sealed milestone is opened exactly once per browser, and the ceremony is
+   queued rather than fired: if the roadmap is off-screen when the cap crosses,
+   nothing gets played to an empty room. It waits until the card is in view.
+   Once a browser has witnessed a crossing the stage stays open even if the cap
+   later slips back under it, because crossing 5 BTC is an event that happened,
+   not a current reading, and a card that re-seals itself on every wobble around
+   the threshold is just flicker. */
+const UKEY=i=>'noodl.unlock.'+i;
+const seenUnlock=i=>{try{return localStorage.getItem(UKEY(i))==='1'}catch(e){return false}};
+const markUnlock=i=>{try{localStorage.setItem(UKEY(i),'1')}catch(e){}};
+let pendingIdx=-1,ceremony=-1,ceremonyLang='',unlockIO=null;
+
+function checkUnlocks(){
+  if(seeded)return;                     // DEFAULTS are a placeholder, not a reading: never unseal on them
+  if(ceremony>=0||pendingIdx>=0)return;
+  const fresh=[];
+  for(let i=0;i<ROAD.length;i++){
+    if(ROAD[i].at<=LAUNCH_MC)continue;      // the launch stages were never sealed
+    if(state.mc>=ROAD[i].at&&!seenUnlock(i))fresh.push(i);
+  }
+  if(!fresh.length)return;
+  // Arriving already past several milestones must not queue several ceremonies:
+  // the lower ones are simply recorded, and only the highest one is played.
+  const top=fresh.pop();
+  fresh.forEach(markUnlock);
+  if(reduceMotion){markUnlock(top);return;}
+  pendingIdx=top;
+}
+
+function armUnlock(){
+  if(unlockIO){unlockIO.disconnect();unlockIO=null;}
+  if(pendingIdx<0)return;
+  const card=roadEl.children[pendingIdx];
+  if(!card)return;
+  unlockIO=new IntersectionObserver(es=>{
+    if(!es.some(e=>e.isIntersecting))return;
+    unlockIO.disconnect();unlockIO=null;
+    playUnlock();
+  },{threshold:.45});
+  unlockIO.observe(card);
+}
+
+function playUnlock(){
+  const i=pendingIdx;if(i<0)return;
+  pendingIdx=-1;ceremony=i;ceremonyLang=lang;
+  buildRoad();                                    // re-renders card i as .unlocked.breaking
+  railEl.classList.add('surge');
+  $('#unlockSr').textContent=I18N[lang].ui.unlockSr(ROAD[i].at);
+  clearTimeout(playUnlock.t);
+  playUnlock.t=setTimeout(endUnlock,1900);
+}
+function endUnlock(){
+  if(ceremony<0)return;
+  clearTimeout(playUnlock.t);
+  markUnlock(ceremony);ceremony=-1;
+  railEl.classList.remove('surge');
+  buildRoad();
+}
+
+function revealHtml(o){
+  return '<div class="rv">'
+    +o.rows.map(p=>'<div class="rv-a">'+TW.esc(p[0])+'<em>→</em>'+TW.esc(p[1])+'</div>').join('')
+    +'<div class="rv-l">'+TW.esc(o.line)+'</div>'
+  +'</div>';
+}
+
 function buildRoad(){
+  // never wipe a ceremony out from under itself; a language switch aborts it
+  // instead, since half the card would otherwise be left in the old language
+  if(ceremony>=0){
+    if(ceremonyLang===lang&&roadEl.querySelector('.breaking')){placeRail();return;}
+    if(ceremonyLang!==lang){endUnlock();return;}
+  }
   const ui=I18N[lang].ui,R=ui.road;
   roadEl.innerHTML=ROAD.map((s,i)=>{
     const r=R[i];
-    const unlocked=state.mc>=s.at;
-    const cls=unlocked?(s.state||'unlocked'):'locked';
+    const sealed=s.at>LAUNCH_MC;                 // the four stages that start blurred
+    // The three launch stages still open on the seed, or they would flash locked
+    // on every cold load; a sealed milestone waits for a real reading.
+    const unlocked=i!==pendingIdx&&((state.mc>=s.at&&!(sealed&&seeded))||seenUnlock(i));
+    const cls=i===ceremony?'unlocked breaking':unlocked?(s.state||'unlocked'):'locked';
     const pct=clamp(state.mc/s.at*100,0,100);
     const label=s.state==='done'?ui.roadReached:s.state==='now'?ui.roadNow:ui.roadUnlocked;
     const badge=unlocked
@@ -1515,11 +1687,16 @@ function buildRoad(){
       : '<div class="lockbar">🔒 <span class="goal">'+s.at+' BTC</span>'
         +'<span class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></span>'
         +'<span>'+pct.toFixed(0)+'%</span></div>';
+    // `d` on a sealed stage is only the wax on the envelope, so once the stage is
+    // open it is replaced by the reveal, or by nothing at all where the reveal
+    // has not been written yet: better silent than echoing its own seal.
+    const body=(!unlocked||!sealed)?'<div class="step-d">'+TW.esc(r.d)+'</div>'
+              :r.open?revealHtml(r.open):'';
     return '<div class="step '+cls+'">'
       +'<span class="step-i">'+(unlocked?(i+1):'🔒')+'</span>'
       +'<div class="step-b">'
         +'<div class="step-t">'+TW.esc(r.t)+'</div>'
-        +'<div class="step-d">'+TW.esc(r.d)+'</div>'
+        +body
         +badge
       +'</div></div>';
   }).join('');
