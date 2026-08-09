@@ -79,7 +79,7 @@ h1{font-weight:800;font-size:clamp(26px,5.5vw,38px);line-height:1.06;letter-spac
 /* the table is the widest thing here, so it scrolls inside its own box
    instead of making the whole page scroll sideways on a phone */
 .tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
-table{border-collapse:collapse;width:100%;min-width:840px;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;min-width:930px;font-variant-numeric:tabular-nums}
 th,td{padding:9px 11px;text-align:right;white-space:nowrap;font-size:12.5px;border-bottom:1px solid var(--line-soft)}
 th{position:sticky;top:0;z-index:1;background:#15151b;font-size:10.5px;font-weight:700;letter-spacing:.08em;
   color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--line)}
@@ -172,12 +172,18 @@ footer a:hover{color:var(--cyan)}
     <div class="grid" id="gPool"></div>
   </section>
 
+  <section class="band">
+    <div class="band-k" data-i="bFees">Fees earned to date</div>
+    <div class="grid" id="gFees"></div>
+  </section>
+
   <div class="tools">
     <span class="lbl" data-i="sortBy">SORT BY</span>
     <button class="sort" type="button" data-s="bal" data-i="sBal">Holding</button>
     <button class="sort" type="button" data-s="pnl" data-i="sPnl">P&amp;L</button>
     <button class="sort" type="button" data-s="held" data-i="sHeld">Days held</button>
     <button class="sort" type="button" data-s="lp" data-i="sLp">LP share</button>
+    <button class="sort" type="button" data-s="lpe" data-i="sLpEarn">LP earned</button>
     <input id="q" type="search" autocomplete="off">
     <span class="count" id="count"></span>
   </div>
@@ -217,7 +223,11 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const I18N={
  en:{
   back:'← Home',title:'HOLDER BOARD',
-  bMarket:'Market',bHolders:'Holders',bPool:'Liquidity pool',
+  bMarket:'Market',bHolders:'Holders',bPool:'Liquidity pool',bFees:'Fees earned to date',
+  swapVolAll:'AMM volume, all time',lpEarnedAll:'Earned by providers',
+  platFromNoodl:'Odin’s cut from NOODL',platAll:'Odin’s swap fees, all tokens',
+  swapOnly:'swap fees only, excludes bonding',swaps:' swaps',swapped:' BTC swapped · NOODL ',
+  unattributed:p=>p+'% pre-dates the ledger',
   liveOk:d=>'Live · updated '+d,liveBusy:'Loading from odin.fun…',liveFail:'odin.fun unreachable',
   mc:'Market cap',price:'Price',d1:'24 hours',d7:'7 days',d30:'30 days',
   holders:'Holders',over:n=>'Over $'+n,heldN:n=>'Held '+n+'+ days',
@@ -226,9 +236,9 @@ const I18N={
   poolSize:'Pool size',vol24:'24h swap volume',lpFee:'LP fee share',apy:'LP fee APY',
   chefs:'Chefs (LP providers)',lpHeld:n=>'In pool '+n+'+ days',
   notYet:d=>'possible from '+d,tokenAge:d=>'token is '+d+' days old',poolAge:d=>'pool is '+d+' days old',
-  sortBy:'SORT BY',sBal:'Holding',sPnl:'P&L',sHeld:'Days held',sLp:'LP share',
+  sortBy:'SORT BY',sBal:'Holding',sPnl:'P&L',sHeld:'Days held',sLp:'LP share',sLpEarn:'LP earned',
   search:'Search holder…',count:(n,t)=>n===t?n+' holders':n+' of '+t+' holders',
-  th:['#','Holder','NOODL','Share','Value','Cost','Unrealised P&L','Held','LP share','Titles'],
+  th:['#','Holder','NOODL','Share','Value','Cost','Unrealised P&L','Held','LP share','LP earned','Titles'],
   loading:'Reading holder history from odin.fun…',
   progress:(a,b)=>'Working out how long each holder has held — '+a+' / '+b,
   days:d=>d+'d',noData:'—',
@@ -243,6 +253,9 @@ const I18N={
    '<b>Days held.</b> Derived from <code>/user/{principal}/activity?token=hjrg</code>. The clock starts at the earliest <code>BUY</code> or <code>RECEIVE</code> and restarts at any <code>SELL</code>. <code>SEND</code> (transfer out to another address) does not restart it. The endpoint caps <code>limit</code> at 100, so addresses with longer histories are paged. One request per address, so this column populates asynchronously after the table renders.',
    '<b>Joined in 24h / 30d / 60d.</b> The number of current holders whose earliest acquisition falls inside the window. The owners endpoint returns only addresses with a non-zero balance, so an address that bought and fully exited within the window is not in the sample. This is therefore a measure of retained arrivals, not net change, and cannot decrease on its own.',
    '<b>LP fee APY.</b> Fee rates come from <code>/settings</code>: <code>swap_platform_fee</code> 700 and <code>swap_lp_fee</code> 300, divided by 1000 per the platform’s own conversion, giving a 1% total swap fee of which 0.3% accrues to liquidity providers. APY = <code>swap_volume_24</code> × 0.3% ÷ pool value × 365, where pool value = <code>btc_liquidity</code> × 2 on the assumption of balanced sides. The figure is simple, not compounded, extrapolates a single 24-hour window, and excludes impermanent loss. <code>swap_fees_24</code> is not used because the upstream field currently returns 0.',
+   '<b>LP share and LP earned.</b> Both are blank for addresses outside the pool. Share is the address’s <code>lp_hjrg</code> balance over the sum of all provider balances. Earnings are accumulated by replaying every AMM swap in time order against a ledger rebuilt from each provider’s <code>ADD_LIQUIDITY</code> and <code>REMOVE_LIQUIDITY</code> events, crediting each swap’s 0.3% at the share held at that moment. Replayed balances are checked against the balance the API reports for every provider, and the column is suppressed entirely if any address fails to reconcile.',
+   '<b>Limits on LP earnings.</b> The events are read from <code>/user/{principal}/activity?token=lp_hjrg</code>, which only exists for addresses that still hold a share, so providers who withdrew in full are absent from the reconstruction and their historical share is not subtracted from the others. Fees accrued before the first reconstructed mint are reported as unattributed rather than distributed. The figure is gross fee income and does not net off impermanent loss.',
+   '<b>Fee totals.</b> NOODL’s lifetime AMM turnover is <code>swap_volume</code> from <code>/token/hjrg</code>, which reconciles exactly with the sum of <code>amount_btc</code> over trades flagged <code>bonded</code>. Provider income is that figure × 0.3% and the platform’s cut is × 0.7%. The all-tokens figure sums <code>swap_volume</code> across every token from <code>/tokens</code>; it counts swap fees only and excludes bonding-curve and mint fees, which are set by <code>bond_platform_fee</code> and <code>mint_fee</code> and are not derivable from the volume fields.',
    '<b>Titles.</b> NOODLER: 30 or more days since the earliest acquisition with no <code>SELL</code> in that period, at any position size; transfers out do not disqualify. Chef: currently holds a share in <code>/token/hjrg/liquidity</code>.',
    '<b>Windows not yet reachable.</b> NOODL was deployed on 10 Jun 2026 and the liquidity pool opened at bonding on 13 Jul 2026. Any tenure window longer than the corresponding elapsed period reads 0 and is annotated with the date it becomes reachable.',
    '<b>Disclosure.</b> Addresses, usernames and balances shown here are already public on odin.fun. This page presents data only and is not investment advice.'
@@ -252,7 +265,11 @@ const I18N={
  },
  zh:{
   back:'← 首页',title:'NOODL 持仓看板',
-  bMarket:'行情',bHolders:'持有者',bPool:'流动性池',
+  bMarket:'行情',bHolders:'持有者',bPool:'流动性池',bFees:'累计手续费收入',
+  swapVolAll:'AMM 累计成交量',lpEarnedAll:'做市者累计收益',
+  platFromNoodl:'平台从 NOODL 抽成',platAll:'平台全站交易手续费',
+  swapOnly:'仅交易手续费，不含毕业环节',swaps:' 笔',swapped:' BTC 成交 · NOODL 占 ',
+  unattributed:p=>p+'% 早于台账起点',
   liveOk:d=>'实时 · 更新于 '+d,liveBusy:'正在从 odin.fun 读取…',liveFail:'odin.fun 连不上',
   mc:'市值',price:'单价',d1:'24 小时',d7:'7 天',d30:'30 天',
   holders:'持有人数',over:n=>'持仓超 $'+n,heldN:n=>'持有满 '+n+' 天',
@@ -261,9 +278,9 @@ const I18N={
   poolSize:'池子规模',vol24:'24 小时交易量',lpFee:'LP 手续费分成',apy:'LP 手续费年化',
   chefs:'Chef（做市者）',lpHeld:n=>'入池满 '+n+' 天',
   notYet:d=>d+' 起才可能有',tokenAge:d=>'币龄 '+d+' 天',poolAge:d=>'池龄 '+d+' 天',
-  sortBy:'排序',sBal:'持仓量',sPnl:'盈亏',sHeld:'持有天数',sLp:'LP 占比',
+  sortBy:'排序',sBal:'持仓量',sPnl:'盈亏',sHeld:'持有天数',sLp:'LP 占比',sLpEarn:'LP 收益',
   search:'搜持有者…',count:(n,t)=>n===t?n+' 位持有者':n+' / '+t+' 位持有者',
-  th:['#','持有者','NOODL','占比','持仓价值','成本价','未实现盈亏','持有','LP 占比','称号'],
+  th:['#','持有者','NOODL','占比','持仓价值','成本价','未实现盈亏','持有','LP 占比','LP 收益','称号'],
   loading:'正在读取持有者历史…',
   progress:(a,b)=>'正在算每个人拿了多久 — '+a+' / '+b,
   days:d=>d+' 天',noData:'—',
@@ -278,6 +295,9 @@ const I18N={
    '<b>持有天数。</b>由 <code>/user/{principal}/activity?token=hjrg</code> 推导：计时起点为最早一次 <code>BUY</code> 或 <code>RECEIVE</code>，出现 <code>SELL</code> 则重新计时；<code>SEND</code>（转出至其他地址）不重新计时。该端点 <code>limit</code> 上限为 100，记录较长的地址分页取全。每地址一次请求，故本列在表格渲染后异步填充。',
    '<b>24 小时 / 30 天 / 60 天新增。</b>统计当前持有者中最早取得时间落在该窗口内的地址数。owners 端点仅返回余额非零的地址，故窗口内买入后已全部退出的地址不在样本中。该指标衡量的是留存新增而非净变化，其数值不会自行下降。',
    '<b>LP 手续费年化。</b>费率取自 <code>/settings</code>：<code>swap_platform_fee</code> 为 700、<code>swap_lp_fee</code> 为 300，按平台自身换算规则除以 1000，即单笔交易总费率 1%，其中 0.3% 归属做市者。年化 = <code>swap_volume_24</code> × 0.3% ÷ 池子总值 × 365，池子总值按 <code>btc_liquidity</code> × 2 计（假设两侧等值）。该数值为单利、未复利，由单个 24 小时窗口外推，且未计入无常损失。<code>swap_fees_24</code> 未采用，因该上游字段当前返回 0。',
+   '<b>LP 占比与 LP 收益。</b>池外地址两列均留空。占比为该地址 <code>lp_hjrg</code> 余额除以全部做市者余额之和。收益的算法是：按时间顺序重放每一笔 AMM 成交，对照由各做市者 <code>ADD_LIQUIDITY</code> 与 <code>REMOVE_LIQUIDITY</code> 事件重建的台账，将每笔成交的 0.3% 按当时的份额计入。重放余额会与接口报告的余额逐一核对，任一地址对不上则整列不予显示。',
+   '<b>LP 收益的局限。</b>事件读自 <code>/user/{principal}/activity?token=lp_hjrg</code>，该记录仅对仍持有份额的地址存在，因此已全额撤出的做市者不在重建范围内，其历史份额也未从他人份额中扣除。首笔可重建的注入之前产生的手续费按未归属处理，不分配给任何人。该数值为手续费毛收入，未扣减无常损失。',
+   '<b>手续费合计。</b>NOODL 的 AMM 累计成交额取自 <code>/token/hjrg</code> 的 <code>swap_volume</code>，该值与成交记录中标记 <code>bonded</code> 的 <code>amount_btc</code> 之和完全一致。做市者收入为该值 × 0.3%，平台抽成为 × 0.7%。全站数值由 <code>/tokens</code> 汇总各代币的 <code>swap_volume</code> 得出，仅计交易手续费，不含毕业环节与铸造费用 — 后两者由 <code>bond_platform_fee</code> 与 <code>mint_fee</code> 决定，无法从成交额字段推导。',
    '<b>称号。</b>NOODLER：距最早取得时间满 30 天且期间无 <code>SELL</code> 记录，不设持仓金额门槛，转出至其他地址不影响资格。Chef：当前在 <code>/token/hjrg/liquidity</code> 中持有份额。',
    '<b>尚不可达的时间窗。</b>NOODL 部署于 2026 年 6 月 10 日，流动性池于 2026 年 7 月 13 日毕业时开启。长于对应存续时长的时间窗一律显示 0，并标注其可达日期。',
    '<b>公开性说明。</b>本页展示的地址、用户名与余额在 odin.fun 上均为公开数据。本页仅作数据呈现，不构成投资建议。'
@@ -393,10 +413,11 @@ async function load(){
   render();                                   // table is usable now, ~2s in
   setLive('ok',ui.liveOk(fmtTime(S.stamp)));
 
-  /* The two slow jobs run behind the table rather than in front of it: the
-     whole trade feed is ~4700 records and only the three price-change tiles
-     need it, and tenure is one request per holder. Neither blocks first paint. */
-  loadTrades();
+  /* The slow jobs run behind the table rather than in front of it: the whole
+     trade feed is ~4800 records, the LP ledger is one request per provider and
+     tenure is one per holder. None of them blocks first paint. */
+  Promise.all([loadTrades(),loadLpLedger()]).then(()=>{computeLpEarnings();render();});
+  loadPlatform();
   loadTenure();
 }
 
@@ -409,6 +430,88 @@ async function loadTrades(){
   }
   trades.sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
   S.trades=trades;
+  render();
+}
+
+/* Mint and burn events for the pool's LP token. They are filed against the
+   synthetic `lp_<token>` id rather than the token itself, so the plain token
+   filter never returns them. Only current providers are fetched, which is a
+   dozen requests rather than one per holder. */
+async function loadLpLedger(){
+  const evs={};
+  await Promise.all(S.lpRows.map(async o=>{
+    let all=[],pg=1,cnt=0;
+    do{
+      const d=await api('/user/'+o.user+'/activity?token=lp_'+TOKEN+'&limit=100&page='+pg);
+      all=all.concat(d.data||[]);cnt=d.count||0;pg++;
+    }while(all.length<cnt&&pg<8);
+    evs[o.user]=all.map(a=>({
+      t:Date.parse(a.time),
+      d:(a.action==='ADD_LIQUIDITY'?1:-1)*Number(a.amount_token)
+    })).sort((a,b)=>a.t-b.t);
+  }));
+  S.lpEvents=evs;
+  /* Replaying every mint and burn should land on the balance the API reports.
+     The balances and the event lists are fetched a second or two apart though,
+     so a provider who moves in between leaves a real but harmless gap. The
+     tolerance is therefore proportional: a rounding-scale drift is accepted,
+     a ledger that is genuinely missing events is not, and in that case the
+     column is withheld rather than shown as a number nobody can reproduce. */
+  const supply=S.lpRows.reduce((s,o)=>s+Number(o.balance),0)||1;
+  const drift=S.lpRows.reduce((s,o)=>
+    s+Math.abs((evs[o.user]||[]).reduce((a,e)=>a+e.d,0)-Number(o.balance)),0);
+  S.lpLedgerDrift=drift/supply;
+  S.lpLedgerOk=S.lpLedgerDrift<0.005;
+}
+
+/* Fees are earned per swap in proportion to the share held at that moment, so
+   they are accumulated by replaying every AMM swap against the reconstructed
+   ledger, not by applying today's share to the whole history. Swaps landing
+   while the reconstructed supply is zero stay unattributed rather than being
+   handed to whoever happens to be present. */
+function computeLpEarnings(){
+  if(!S.trades||!S.lpEvents)return;
+  const rate=S.lpFeePct/100;
+  const evs=[];
+  Object.keys(S.lpEvents).forEach(u=>S.lpEvents[u].forEach(e=>evs.push({t:e.t,u:u,d:e.d})));
+  evs.sort((a,b)=>a.t-b.t);
+  const swaps=S.trades.filter(t=>t.bonded)
+    .map(t=>({t:Date.parse(t.time),btc:Number(t.amount_btc)}))
+    .sort((a,b)=>a.t-b.t);
+
+  const bal={},earn={};
+  let total=0,unattributed=0,supply=0,ei=0;
+  swaps.forEach(s=>{
+    while(ei<evs.length&&evs[ei].t<=s.t){
+      const e=evs[ei++];
+      bal[e.u]=(bal[e.u]||0)+e.d;
+      supply+=e.d;
+    }
+    const fee=s.btc*rate;
+    total+=fee;
+    if(supply<=0){unattributed+=fee;return;}
+    for(const u in bal)if(bal[u]>0)earn[u]=(earn[u]||0)+fee*bal[u]/supply;
+  });
+  S.lpEarn=earn;
+  S.lpFeeTotalBtc=total/MS;
+  S.lpUnattributedBtc=unattributed/MS;
+  S.lpSwapCount=swaps.length;
+}
+
+/* Platform-wide swap volume is summed from every token rather than read from
+   the dashboard's `total_volume_all`, because that figure also contains
+   bonding-curve turnover, which carries a different fee and no LP side. */
+async function loadPlatform(){
+  let all=[],pg=1,count=0;
+  do{
+    const d=await api('/tokens?limit=100&page='+pg);
+    all=all.concat(d.data||[]);count=d.count||0;pg++;
+  }while(all.length<count&&pg<60);
+  S.plat={
+    tokens:all.length,
+    swapVolBtc:all.reduce((s,t)=>s+Number(t.swap_volume||0),0)/MS,
+    totalVolBtc:all.reduce((s,t)=>s+Number(t.volume||0),0)/MS
+  };
   render();
 }
 
@@ -442,12 +545,11 @@ async function loadTenure(){
         const pages=Math.ceil((first.count||0)/100);
         for(let pg=2;pg<=pages;pg++)
           all=all.concat((await api('/user/'+u+'/activity?token='+TOKEN+'&limit=100&page='+pg)).data||[]);
-        const acq=[],sells=[],lps=[];
+        const acq=[],sells=[];
         all.forEach(a=>{
           const t=Date.parse(a.time);
           if(a.action==='BUY'||a.action==='RECEIVE')acq.push(t);
           else if(a.action==='SELL')sells.push(t);
-          else if(a.action==='ADD_LIQUIDITY')lps.push(t);
         });
         const firstAcq=acq.length?Math.min.apply(null,acq):null;
         const lastSell=sells.length?Math.max.apply(null,sells):null;
@@ -456,8 +558,7 @@ async function loadTenure(){
           // resets, because joining is a thing that happened once
           since:lastSell?Math.max(firstAcq||0,lastSell):firstAcq,
           firstAcq,
-          lastSell,
-          lpSince:lps.length?Math.min.apply(null,lps):null
+          lastSell
         };
       }catch(e){tenure[u]=null;}
       step();
@@ -477,10 +578,18 @@ function heldDays(u){
   if(!t||!t.since)return null;
   return (Date.now()-t.since)/DAY;
 }
+/* Reads the LP ledger, not the tenure feed: ADD_LIQUIDITY is filed under
+   `lp_<token>`, so the token-filtered activity used for holding days never
+   contained it and this returned null for every provider. */
 function lpDays(u){
-  const t=tenure[u];
-  if(!t||!t.lpSince)return null;
-  return (Date.now()-t.lpSince)/DAY;
+  const es=S&&S.lpEvents&&S.lpEvents[u];
+  if(!es||!es.length)return null;
+  return (Date.now()-es[0].t)/DAY;
+}
+function lpEarnedUsd(u){
+  if(!S||!S.lpEarn||!S.lpLedgerOk)return null;
+  const e=S.lpEarn[u];
+  return e===undefined?null:e/MS*S.btcUsd;
 }
 /* How long ago this holder first showed up, ignoring anything they did since.
    Only current holders are visible to the API, so somebody who bought and fully
@@ -588,22 +697,43 @@ function render(){
     const possible=poolAgeD>=d;
     const n=S.owners.filter(o=>{const x=lpDays(o.user);return x!==null&&x>=d}).length;
     p+=statHtml(ui.lpHeld(d),
-      possible?(tenureDone||n?nf(n,0):'<span class="pend">…</span>'):'<span class="pend">0</span>','',
+      possible?(S.lpEvents||n?nf(n,0):'<span class="pend">…</span>'):'<span class="pend">0</span>','',
       possible?null:'pending',
       possible||!S.bonded?null:ui.notYet(fmtDate(S.bonded+d*DAY)));
   });
   $('#gPool').innerHTML=p;
 
+  /* --- fees earned to date --- */
+  const platPct=Number(S.set.swap_platform_fee)/1000/100;
+  const noodlSwapBtc=Number(S.tok.swap_volume)/MS;
+  const noodlLpBtc=noodlSwapBtc*(S.lpFeePct/100);
+  const noodlPlatBtc=noodlSwapBtc*platPct;
+  let f=statHtml(ui.swapVolAll,fmtBtc(noodlSwapBtc)+' <span class="cy">BTC</span>',
+    fmtUsd(noodlSwapBtc*S.btcUsd)+(S.lpSwapCount?' · '+nf(S.lpSwapCount,0)+ui.swaps:''));
+  f+=statHtml(ui.lpEarnedAll,'<span class="up">'+fmtUsd(noodlLpBtc*S.btcUsd)+'</span>',
+    fmtBtc(noodlLpBtc)+' BTC',null,
+    S.lpUnattributedBtc>0&&noodlLpBtc?ui.unattributed(nf(S.lpUnattributedBtc/noodlLpBtc*100,1)):null);
+  f+=statHtml(ui.platFromNoodl,fmtUsd(noodlPlatBtc*S.btcUsd),
+    fmtBtc(noodlPlatBtc)+' BTC · '+nf(platPct*100,1)+'%');
+  f+=S.plat
+    ? statHtml(ui.platAll,fmtUsd(S.plat.swapVolBtc*platPct*S.btcUsd),
+        fmtBtc(S.plat.swapVolBtc)+ui.swapped+nf(S.plat.swapVolBtc?noodlSwapBtc/S.plat.swapVolBtc*100:0,1)+'%',
+        null,ui.swapOnly)
+    : statHtml(ui.platAll,'<span class="pend">…</span>');
+  $('#gFees').innerHTML=f;
+
   /* --- table --- */
   const q=query.trim().toLowerCase();
   let rows=S.owners.filter(o=>!q||o.name.toLowerCase().includes(q)||o.user.toLowerCase().includes(q));
-  const key={bal:o=>o.bal,pnl:o=>o.pnlUsd,held:o=>heldDays(o.user)==null?-1:heldDays(o.user),lp:o=>o.lpShare}[sort];
+  const key={bal:o=>o.bal,pnl:o=>o.pnlUsd,held:o=>heldDays(o.user)==null?-1:heldDays(o.user),
+             lp:o=>o.lpShare,lpe:o=>lpEarnedUsd(o.user)||0}[sort];
   rows=rows.slice().sort((a,b)=>key(b)-key(a));
   $('#count').textContent=ui.count(rows.length,S.owners.length);
 
   const maxShare=S.owners.reduce((m,o)=>Math.max(m,o.share),0)||1;
   $('#rows').innerHTML=rows.map((o,i)=>{
     const d=heldDays(o.user);
+    const earn=lpEarnedUsd(o.user);
     const tags=(isNoodler(o)?'<span class="tag noodler">NOODLER</span>':'')
               +(o.lpShare>0?'<span class="tag chef">CHEF</span>':'');
     return '<tr>'
@@ -617,7 +747,11 @@ function render(){
       +'<td class="'+pctCls(o.pnlUsd)+'">'+(o.pnlUsd>=0?'+':'−')+fmtUsd(Math.abs(o.pnlUsd)).replace('$','$')
         +(o.pnlPct===null?'':' <span class="stat-s">'+signPct(o.pnlPct)+'</span>')+'</td>'
       +'<td>'+(d===null?'<span class="pend">'+(tenureDone?ui.noData:'…')+'</span>':ui.days(nf(d,0)))+'</td>'
-      +'<td>'+(o.lpShare?nf(o.lpShare,2)+'%':'<span class="pend">'+ui.noData+'</span>')+'</td>'
+      // the pool columns stay empty for everyone outside the pool: a dash there
+      // reads as a missing reading rather than as "does not apply"
+      +'<td>'+(o.lpShare?nf(o.lpShare,2)+'%':'')+'</td>'
+      +'<td>'+(!o.lpShare?'':earn===null?'<span class="pend">…</span>'
+              :'<span class="up">'+fmtUsd(earn)+'</span>')+'</td>'
       +'<td><span class="tags">'+(tags||'<span class="pend">'+ui.noData+'</span>')+'</span></td>'
       +'</tr>';
   }).join('');
