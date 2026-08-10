@@ -15,6 +15,17 @@
  * ========================================================================== */
 window.NOODL_TWEETS = [
   {
+    id: '2086789694356897815',
+    url: 'https://x.com/jixiofng450094/status/2086789694356897815',
+    name: '清野',
+    handle: 'jixiofng450094',
+    date: '2026-08-10T12:20:08Z',
+    text: '🚀 想真正看懂 $NOODL？\n\n别再只盯着价格！\n\n👉 noodl.club\n社区官网一次讲透：\n📖 叙事\n为什么它是 ODIN·FUN v2 的「第一个」\n\n🍜 文化\nNew Odin HODL + 面条 = 长久持有的双重信仰\n🌍 生态\n比特币空位 & meme 图腾的可能性\n\n🗺️ 规划\n通往 Nova 的清晰路线图\n从故事到信仰，从文化到未来\n全部一站式看懂\n\n为什么这么多人在 NOODL in 🍜\n打开就知道：\n🔗 noodl.club\n\n@BobBodily @Odin_GodOfRunes\n\n#NOODL #OdinFun #Bitcoin',
+    likes: 0,
+    retweets: 0,
+    replies: 0
+  },
+  {
     id: '2085683206247088137',
     url: 'https://x.com/NOODL_club/status/2085683206247088137',
     name: 'NOODL',
@@ -54,9 +65,9 @@ window.NOODL_TWEETS = [
     handle: 'SuZhe_eth',
     date: '2026-08-02T14:13:01Z',
     text: '人生三碗面：场面、情面和体面。\n\nnoodl.club 社区网站，蓄势待发\n\n#noodl',
-    likes: 13,
+    likes: 15,
     retweets: 3,
-    replies: 0
+    replies: 1
   },
   {
     id: '2079951746538037336',
@@ -87,7 +98,7 @@ window.NOODL_TWEETS = [
     handle: 'SuZhe_eth',
     date: '2026-07-16T15:47:21Z',
     text: 'We are just getting started.\nWe must make ODIN.FUN fun again.\n\n#NOODL @NOODL_club',
-    likes: 11,
+    likes: 15,
     retweets: 7,
     replies: 2
   },
@@ -131,7 +142,7 @@ window.NOODL_TWEETS = [
     handle: 'NOODL_club',
     date: '2026-07-15T17:51:04Z',
     text: 'Welcome to the best club in the galaxy.\n\nnoodl.club\n\nNOODL in!\n\n#NOODL',
-    likes: 2,
+    likes: 4,
     retweets: 0,
     replies: 0
   },
