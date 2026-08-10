@@ -125,6 +125,12 @@ tbody tr:hover{background:#1c1c22}
 /* the SVGs stretch to the container and are drawn in their own viewBox units,
    so nothing here depends on measuring the DOM before the first paint */
 .chart svg{display:block;width:100%;height:240px;overflow:visible}
+/* volume sits directly under the price line and shares its x scale, so it gets
+   no top margin and the same left/right padding */
+#cVol{height:64px;margin-top:2px}
+.cbar{shape-rendering:crispEdges}
+.cbar.up{fill:var(--up);opacity:.5}
+.cbar.down{fill:var(--down);opacity:.5}
 .cmini{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
 .cmini svg{height:90px}
 .cmini-k{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
@@ -224,6 +230,7 @@ footer a:hover{color:var(--cyan)}
         <span class="creadout" id="cRead"></span>
       </div>
       <svg id="cMain" viewBox="0 0 800 240" preserveAspectRatio="none" role="img"></svg>
+      <svg id="cVol" viewBox="0 0 800 64" preserveAspectRatio="none" role="img"></svg>
       <div class="cmini">
         <div>
           <div class="cmini-k"><span data-i="cHolders">Holders</span><b id="cHoldNow"></b></div>
@@ -287,7 +294,7 @@ const I18N={
   bMarket:'Market',bHolders:'Holders',bPool:'Liquidity pool',bFees:'Fees earned to date',
   bChart:'Trend',cHolders:'Holders',cPool:'Pool size',cWait:'loading…',
   tf:{'1m':'1m','5m':'5m','1h':'1h','4h':'4h','1d':'1D','1w':'1W'},
-  tfWindow:(t,n)=>'last '+n+' × '+t,
+  tfWindow:(t,n)=>'last '+n+' × '+t,volLabel:'vol',
   cNote:'Price and pool size are read from the token’s own trade feed. The holder line is rebuilt from on-chain buys, sells and transfers, so it can sit a few addresses below the live count above.',
   swapVolAll:'AMM volume, all time',lpEarnedAll:'Earned by providers',
   platFromNoodl:'Odin’s cut from NOODL',platAll:'Odin’s swap fees, all tokens',
@@ -321,7 +328,7 @@ const I18N={
   bMarket:'行情',bHolders:'持有者',bPool:'流动性池',bFees:'累计手续费收入',
   bChart:'走势',cHolders:'持仓人数',cPool:'池子规模',cWait:'加载中…',
   tf:{'1m':'1分','5m':'5分','1h':'1时','4h':'4时','1d':'1日','1w':'1周'},
-  tfWindow:(t,n)=>'最近 '+n+' 根 · '+t,
+  tfWindow:(t,n)=>'最近 '+n+' 根 · '+t,volLabel:'成交',
   cNote:'单价与池子规模取自代币自己的成交记录。持仓人数由链上买入、卖出与转账重建，可能比上方的实时人数少几个。',
   swapVolAll:'AMM 累计成交量',lpEarnedAll:'做市者累计收益',
   platFromNoodl:'平台从 NOODL 抽成',platAll:'平台全站交易手续费',
@@ -747,6 +754,19 @@ function priceBuckets(){
   return out;
 }
 
+/* Traded BTC per bucket. Buys and sells both count, so this is turnover rather
+   than net flow, and it sums to the token's reported volume over the whole
+   history. Buckets with no trades are real zeroes, not carried forward. */
+function volBuckets(px){
+  const step=(TFS.find(x=>x[0]===tf)||TFS[2])[1];
+  const sum={};
+  S.trades.forEach(t=>{
+    const b=Math.floor(Date.parse(t.time)/step)*step;
+    sum[b]=(sum[b]||0)+Number(t.amount_btc);
+  });
+  return px.map(p=>({t:p.t,v:(sum[p.t]||0)/MS}));
+}
+
 /* Pool reserves follow the AMM's own invariant: with k = btc x tokens held
    across the window, the BTC side is btcNow * sqrt(p/pNow). Anchored on the
    live reserves this reproduces the ~0.2 BTC the pool was seeded with at
@@ -814,6 +834,35 @@ function drawSeries(svg,pts,opt){
   svg.__geo={X:X,Y:Y,pts:pts,gold:opt.gold,key:opt.key,W:W,H:H,PAD:PAD};
 }
 
+/* Volume histogram. It reuses the price panel's left/right padding so every bar
+   lands under the point it belongs to, and colours each bar by whether that
+   bucket closed above or below the one before it. */
+function drawVolume(vol,px){
+  const svg=$('#cVol');if(!svg)return;
+  const W=800,H=64,PAD={t:6,r:52,b:2,l:6};
+  if(!vol||!vol.length){svg.innerHTML='';svg.__geo=null;return;}
+  const hi=Math.max.apply(null,vol.map(v=>v.v))||1;
+  const n=vol.length;
+  const span=(W-PAD.l-PAD.r);
+  const bw=Math.max(1,span/n*0.62);
+  const X=t=>{
+    const x0=vol[0].t,x1=vol[n-1].t;
+    return PAD.l+(x1===x0?0:(t-x0)/(x1-x0))*span;
+  };
+  let bars='';
+  vol.forEach((v,i)=>{
+    const h=v.v/hi*(H-PAD.t-PAD.b);
+    if(h<=0)return;
+    const up=i===0||px[i].v>=px[i-1].v;
+    bars+='<rect class="cbar '+(up?'up':'down')+'" x="'+(X(v.t)-bw/2).toFixed(1)
+      +'" y="'+(H-PAD.b-h).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'"/>';
+  });
+  svg.innerHTML=bars
+    +'<text class="clab" x="'+(W-PAD.r+6)+'" y="'+(PAD.t+7)+'">'+esc(fmtBtc(hi)+' BTC')+'</text>'
+    +'<g id="gvolh"></g>';
+  svg.__geo={X:X,pts:vol,W:W,H:H,PAD:PAD,key:'vol'};
+}
+
 function drawChart(){
   const ui=I18N[lang];
   if(!S||!S.trades){
@@ -826,7 +875,10 @@ function drawChart(){
   const main=metric==='mc'
     ? px.map(p=>({t:p.t,v:p.v/MS*S.supply}))
     : px.map(p=>({t:p.t,v:p.v/MS*S.btcUsd}));
+  const vol=volBuckets(px);
+  S.chartPx=px;S.chartVol=vol;
   drawSeries($('#cMain'),main,{key:metric==='mc'?'mc':'px'});
+  drawVolume(vol,px);
   drawSeries($('#cPool'),poolSeries(px),{key:'pool',gold:true});
   drawSeries($('#cHold'),sampleStep(S.holderSeries,px),{key:'hold'});
 
@@ -839,25 +891,51 @@ function drawChart(){
   $('#cPoolNow').textContent=fmtBtc(S.poolBtc*2)+' BTC';
 }
 
-/* Hover readout: nearest bucket by x, drawn into the panel's own overlay group. */
+/* Hover readout: nearest bucket by x, drawn into the panel's own overlay group.
+   Price and volume are one reading split across two panels, so pointing at
+   either draws the crosshair on both and the readout names both numbers. */
 function chartHover(svg,ev){
   const geo=svg.__geo;if(!geo)return;
   const r=svg.getBoundingClientRect();
   const vx=(ev.clientX-r.left)/r.width*geo.W;
-  let best=null,bd=1e9;
-  geo.pts.forEach(p=>{const d=Math.abs(geo.X(p.t)-vx);if(d<bd){bd=d;best=p;}});
-  if(!best)return;
-  const g=svg.querySelector('g[id$="h"]');if(!g)return;
-  const x=geo.X(best.t).toFixed(1),y=geo.Y(best.v).toFixed(1);
-  g.innerHTML='<line class="cx" x1="'+x+'" x2="'+x+'" y1="'+geo.PAD.t+'" y2="'+(geo.H-geo.PAD.b)+'"/>'
-    +'<circle class="cdot'+(geo.gold?' gold':'')+'" cx="'+x+'" cy="'+y+'" r="3.5"/>';
-  if(svg===$('#cMain')){
-    $('#cRead').innerHTML='<b>'+esc(fmtAxis(best.v,geo.key))+'</b> · '+esc(fmtStamp(best.t));
+  let bi=-1,bd=1e9;
+  geo.pts.forEach((p,i)=>{const d=Math.abs(geo.X(p.t)-vx);if(d<bd){bd=d;bi=i;}});
+  if(bi<0)return;
+  const best=geo.pts[bi];
+  const g=svg.querySelector('g[id$="h"]');
+  if(g){
+    const x=geo.X(best.t).toFixed(1);
+    let mark='<line class="cx" x1="'+x+'" x2="'+x+'" y1="'+geo.PAD.t+'" y2="'+(geo.H-geo.PAD.b)+'"/>';
+    if(geo.Y)mark+='<circle class="cdot'+(geo.gold?' gold':'')+'" cx="'+x
+      +'" cy="'+geo.Y(best.v).toFixed(1)+'" r="3.5"/>';
+    g.innerHTML=mark;
+  }
+  // mirror the crosshair onto the paired panel
+  const other=svg===$('#cMain')?$('#cVol'):(svg===$('#cVol')?$('#cMain'):null);
+  if(other&&other.__geo&&other.__geo.pts[bi]){
+    const og=other.__geo,op=og.pts[bi],ox=og.X(op.t).toFixed(1);
+    const oh=other.querySelector('g[id$="h"]');
+    if(oh){
+      let m='<line class="cx" x1="'+ox+'" x2="'+ox+'" y1="'+og.PAD.t+'" y2="'+(og.H-og.PAD.b)+'"/>';
+      if(og.Y)m+='<circle class="cdot" cx="'+ox+'" cy="'+og.Y(op.v).toFixed(1)+'" r="3.5"/>';
+      oh.innerHTML=m;
+    }
+  }
+  if(svg===$('#cMain')||svg===$('#cVol')){
+    const ui=I18N[lang];
+    const pxPt=svg===$('#cMain')?best:($('#cMain').__geo?$('#cMain').__geo.pts[bi]:null);
+    const vPt=S.chartVol&&S.chartVol[bi];
+    let s='';
+    if(pxPt)s+='<b>'+esc(fmtAxis(pxPt.v,metric==='mc'?'mc':'px'))+'</b>';
+    if(vPt)s+=(s?' · ':'')+esc(ui.volLabel)+' '+esc(fmtBtc(vPt.v)+' BTC');
+    $('#cRead').innerHTML=s+' · '+esc(fmtStamp(best.t));
   }
 }
 function chartLeave(svg){
-  const g=svg&&svg.querySelector('g[id$="h"]');if(g)g.innerHTML='';
-  if(svg===$('#cMain'))drawChart();
+  [svg,svg===$('#cMain')?$('#cVol'):$('#cMain')].forEach(s=>{
+    const g=s&&s.querySelector('g[id$="h"]');if(g)g.innerHTML='';
+  });
+  drawChart();
 }
 function fmtStamp(t){
   const d=new Date(t),z=n=>String(n).padStart(2,'0');
@@ -1021,7 +1099,7 @@ $('#segMetric').addEventListener('click',e=>{
 $('#segTf').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;tf=b.dataset.t;render();
 });
-[$('#cMain'),$('#cHold'),$('#cPool')].forEach(svg=>{
+[$('#cMain'),$('#cVol'),$('#cHold'),$('#cPool')].forEach(svg=>{
   svg.addEventListener('pointermove',e=>chartHover(svg,e));
   svg.addEventListener('pointerleave',()=>chartLeave(svg));
 });
