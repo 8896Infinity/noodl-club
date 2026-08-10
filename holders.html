@@ -109,6 +109,44 @@ tbody tr:hover{background:#1c1c22}
 .prog .bar{flex:1;max-width:220px;height:3px;border-radius:2px;background:var(--line);overflow:hidden}
 .prog .bar i{display:block;height:100%;background:var(--noodle-y);border-radius:2px;transition:width .3s linear}
 
+/* ---------- chart ---------- */
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px 11px}
+.ctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{
+  font-family:inherit;font-size:11.5px;font-weight:500;cursor:pointer;white-space:nowrap;
+  background:transparent;color:var(--text-2);border:none;padding:5px 10px;transition:all .13s;
+}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button:hover{color:var(--cyan)}
+.seg button[aria-pressed="true"]{background:var(--cyan);color:#06060a;font-weight:600}
+.creadout{margin-left:auto;font-size:11.5px;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.creadout b{color:var(--text);font-weight:600}
+/* the SVGs stretch to the container and are drawn in their own viewBox units,
+   so nothing here depends on measuring the DOM before the first paint */
+.chart svg{display:block;width:100%;height:240px;overflow:visible}
+.cmini{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+.cmini svg{height:90px}
+.cmini-k{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-bottom:4px}
+.cmini-k b{font-size:12.5px;font-weight:600;letter-spacing:0;color:var(--text);
+  text-transform:none;font-variant-numeric:tabular-nums}
+.cgrid{stroke:var(--line-soft);stroke-width:1}
+.cline{fill:none;stroke:var(--cyan);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.cline.gold{stroke:var(--noodle-y)}
+.carea{stroke:none}
+.cdot{fill:var(--cyan);stroke:var(--bg);stroke-width:2}
+.cdot.gold{fill:var(--noodle-y)}
+.cx{stroke:var(--dim);stroke-width:1;stroke-dasharray:2 3}
+.clab{fill:var(--dim);font-size:9.5px;font-family:inherit}
+.cempty{fill:var(--dim);font-size:11px;font-family:inherit}
+.cnote{font-size:10.5px;color:var(--dim);line-height:1.6;margin-top:9px}
+@media (max-width:620px){
+  .cmini{grid-template-columns:1fr}
+  .chart svg{height:190px}
+  .creadout{margin-left:0;width:100%}
+}
+
 .note{margin-top:30px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:15px 17px}
 .note h2{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
 .note li{list-style:none;font-size:12.5px;color:var(--text-2);line-height:1.75;padding-left:15px;position:relative;margin-bottom:7px}
@@ -177,6 +215,29 @@ footer a:hover{color:var(--cyan)}
     <div class="grid" id="gFees"></div>
   </section>
 
+  <section class="band">
+    <div class="band-k" data-i="bChart">Trend</div>
+    <div class="chart">
+      <div class="ctl">
+        <div class="seg" id="segMetric" role="group"></div>
+        <div class="seg" id="segTf" role="group"></div>
+        <span class="creadout" id="cRead"></span>
+      </div>
+      <svg id="cMain" viewBox="0 0 800 240" preserveAspectRatio="none" role="img"></svg>
+      <div class="cmini">
+        <div>
+          <div class="cmini-k"><span data-i="cHolders">Holders</span><b id="cHoldNow"></b></div>
+          <svg id="cHold" viewBox="0 0 800 90" preserveAspectRatio="none" role="img"></svg>
+        </div>
+        <div>
+          <div class="cmini-k"><span data-i="cPool">Pool size</span><b id="cPoolNow"></b></div>
+          <svg id="cPool" viewBox="0 0 800 90" preserveAspectRatio="none" role="img"></svg>
+        </div>
+      </div>
+      <p class="cnote" data-i="cNote"></p>
+    </div>
+  </section>
+
   <div class="tools">
     <span class="lbl" data-i="sortBy">SORT BY</span>
     <button class="sort" type="button" data-s="bal" data-i="sBal">Holding</button>
@@ -224,6 +285,10 @@ const I18N={
  en:{
   back:'← Home',title:'HOLDER BOARD',
   bMarket:'Market',bHolders:'Holders',bPool:'Liquidity pool',bFees:'Fees earned to date',
+  bChart:'Trend',cHolders:'Holders',cPool:'Pool size',cWait:'loading…',
+  tf:{'1m':'1m','5m':'5m','1h':'1h','4h':'4h','1d':'1D','1w':'1W'},
+  tfWindow:(t,n)=>'last '+n+' × '+t,
+  cNote:'Price and pool size are read from the token’s own trade feed. The holder line is rebuilt from on-chain buys, sells and transfers, so it can sit a few addresses below the live count above.',
   swapVolAll:'AMM volume, all time',lpEarnedAll:'Earned by providers',
   platFromNoodl:'Odin’s cut from NOODL',platAll:'Odin’s swap fees, all tokens',
   swapOnly:'swap fees only, excludes bonding',swaps:' swaps',swapped:' BTC swapped · NOODL ',
@@ -243,22 +308,10 @@ const I18N={
   progress:(a,b)=>'Working out how long each holder has held — '+a+' / '+b,
   days:d=>d+'d',noData:'—',
   errLoad:'Could not reach the odin.fun API. It rate-limits and occasionally blocks non-browser traffic; try a reload in a minute.',
-  howTitle:'Data notes',
+  howTitle:'Titles',
   how:[
-   '<b>Source.</b> Every field is read at page load from the public odin.fun v2 API. Endpoints used: <code>/token/hjrg</code>, <code>/token/hjrg/owners</code>, <code>/token/hjrg/liquidity</code>, <code>/token/hjrg/trades</code>, <code>/user/{principal}/activity</code>, <code>/currency/btc</code>, <code>/settings</code>. No values are stored between sessions or entered manually.',
-   '<b>Units.</b> The token declares decimals 3 and divisibility 8, so raw integer balances are divided by 1e11 to give NOODL. BTC amounts are returned in the same 1e11 scale (millisatoshi) and converted identically. USD figures apply the spot rate from <code>/currency/btc</code> at load time.',
-   '<b>Market cap, price, holdings.</b> <code>marketcap</code> and <code>price</code> from <code>/token/hjrg</code>; per-address <code>balance</code> from <code>/token/hjrg/owners</code>. Share of supply = balance ÷ <code>total_supply</code>.',
-   '<b>Price change.</b> Derived from the complete trade feed. For each window the <code>price</code> of the last trade at or before the cutoff is compared with the current price. The 30-day window begins before the bonding event of 13 Jul 2026 and therefore spans both bonding-curve and AMM pricing.',
-   '<b>Cost basis and unrealised P&L.</b> Cost is the <code>price</code> field on each row of <code>/token/hjrg/owners</code>, i.e. odin.fun’s own recorded average cost for that address. P&L = balance × (current price − cost), and excludes any realised result. For positions acquired by transfer, the recorded cost follows the platform’s accounting and need not equal what the receiving address paid.',
-   '<b>Days held.</b> Derived from <code>/user/{principal}/activity?token=hjrg</code>. The clock starts at the earliest <code>BUY</code> or <code>RECEIVE</code> and restarts at any <code>SELL</code>. <code>SEND</code> (transfer out to another address) does not restart it. The endpoint caps <code>limit</code> at 100, so addresses with longer histories are paged. One request per address, so this column populates asynchronously after the table renders.',
-   '<b>Joined in 24h / 30d / 60d.</b> The number of current holders whose earliest acquisition falls inside the window. The owners endpoint returns only addresses with a non-zero balance, so an address that bought and fully exited within the window is not in the sample. This is therefore a measure of retained arrivals, not net change, and cannot decrease on its own.',
-   '<b>LP fee APY.</b> Fee rates come from <code>/settings</code>: <code>swap_platform_fee</code> 700 and <code>swap_lp_fee</code> 300, divided by 1000 per the platform’s own conversion, giving a 1% total swap fee of which 0.3% accrues to liquidity providers. APY = <code>swap_volume_24</code> × 0.3% ÷ pool value × 365, where pool value = <code>btc_liquidity</code> × 2 on the assumption of balanced sides. The figure is simple, not compounded, extrapolates a single 24-hour window, and excludes impermanent loss. <code>swap_fees_24</code> is not used because the upstream field currently returns 0.',
-   '<b>LP share and LP earned.</b> Both are blank for addresses outside the pool. Share is the address’s <code>lp_hjrg</code> balance over the sum of all provider balances. Earnings are accumulated by replaying every AMM swap in time order against a ledger rebuilt from each provider’s <code>ADD_LIQUIDITY</code> and <code>REMOVE_LIQUIDITY</code> events, crediting each swap’s 0.3% at the share held at that moment. Replayed balances are checked against the balance the API reports for every provider, and the column is suppressed entirely if any address fails to reconcile.',
-   '<b>Limits on LP earnings.</b> The events are read from <code>/user/{principal}/activity?token=lp_hjrg</code>, which only exists for addresses that still hold a share, so providers who withdrew in full are absent from the reconstruction and their historical share is not subtracted from the others. Fees accrued before the first reconstructed mint are reported as unattributed rather than distributed. The figure is gross fee income and does not net off impermanent loss.',
-   '<b>Fee totals.</b> NOODL’s lifetime AMM turnover is <code>swap_volume</code> from <code>/token/hjrg</code>, which reconciles exactly with the sum of <code>amount_btc</code> over trades flagged <code>bonded</code>. Provider income is that figure × 0.3% and the platform’s cut is × 0.7%. The all-tokens figure sums <code>swap_volume</code> across every token from <code>/tokens</code>; it counts swap fees only and excludes bonding-curve and mint fees, which are set by <code>bond_platform_fee</code> and <code>mint_fee</code> and are not derivable from the volume fields.',
-   '<b>Titles.</b> NOODLER: 30 or more days since the earliest acquisition with no <code>SELL</code> in that period, at any position size; transfers out do not disqualify. Chef: currently holds a share in <code>/token/hjrg/liquidity</code>.',
-   '<b>Windows not yet reachable.</b> NOODL was deployed on 10 Jun 2026 and the liquidity pool opened at bonding on 13 Jul 2026. Any tenure window longer than the corresponding elapsed period reads 0 and is annotated with the date it becomes reachable.',
-   '<b>Disclosure.</b> Addresses, usernames and balances shown here are already public on odin.fun. This page presents data only and is not investment advice.'
+   '<b>NOODLER</b> — held for 30 days or more without selling. Position size does not matter, and moving NOODL to another address does not break the streak.',
+   '<b>Chef</b> — currently providing liquidity to the NOODL pool.'
   ],
   foot:'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles. 🍜',
   footPosts:'#NOODL posts'
@@ -266,6 +319,10 @@ const I18N={
  zh:{
   back:'← 首页',title:'NOODL 持仓看板',
   bMarket:'行情',bHolders:'持有者',bPool:'流动性池',bFees:'累计手续费收入',
+  bChart:'走势',cHolders:'持仓人数',cPool:'池子规模',cWait:'加载中…',
+  tf:{'1m':'1分','5m':'5分','1h':'1时','4h':'4时','1d':'1日','1w':'1周'},
+  tfWindow:(t,n)=>'最近 '+n+' 根 · '+t,
+  cNote:'单价与池子规模取自代币自己的成交记录。持仓人数由链上买入、卖出与转账重建，可能比上方的实时人数少几个。',
   swapVolAll:'AMM 累计成交量',lpEarnedAll:'做市者累计收益',
   platFromNoodl:'平台从 NOODL 抽成',platAll:'平台全站交易手续费',
   swapOnly:'仅交易手续费，不含毕业环节',swaps:' 笔',swapped:' BTC 成交 · NOODL 占 ',
@@ -285,22 +342,10 @@ const I18N={
   progress:(a,b)=>'正在算每个人拿了多久 — '+a+' / '+b,
   days:d=>d+' 天',noData:'—',
   errLoad:'连不上 odin.fun 接口。它有频率限制，偶尔也会拦非浏览器流量，过一分钟刷新试试。',
-  howTitle:'数据备注',
+  howTitle:'称号',
   how:[
-   '<b>数据来源。</b>所有字段在页面加载时实时读取自 odin.fun 公开 v2 接口。使用端点：<code>/token/hjrg</code>、<code>/token/hjrg/owners</code>、<code>/token/hjrg/liquidity</code>、<code>/token/hjrg/trades</code>、<code>/user/{principal}/activity</code>、<code>/currency/btc</code>、<code>/settings</code>。不做跨会话存档，不含人工录入数值。',
-   '<b>单位换算。</b>代币精度 decimals 3、divisibility 8，原始整数余额除以 1e11 得 NOODL。BTC 金额同样以 1e11 为标度（毫聪）返回，换算方式一致。美元数值按加载时 <code>/currency/btc</code> 的即时汇率折算。',
-   '<b>市值、单价、持仓。</b><code>marketcap</code> 与 <code>price</code> 取自 <code>/token/hjrg</code>；各地址 <code>balance</code> 取自 <code>/token/hjrg/owners</code>。占比 = 持仓 ÷ <code>total_supply</code>。',
-   '<b>涨跌幅。</b>由完整成交记录推导：各时间窗取截止时点前最后一笔成交的 <code>price</code>，与当前价格比较。30 天窗口起点早于 2026 年 7 月 13 日的毕业时点，因此同时覆盖联合曲线与 AMM 两种定价机制。',
-   '<b>成本价与未实现盈亏。</b>成本价为 <code>/token/hjrg/owners</code> 各行的 <code>price</code> 字段，即 odin.fun 记录的该地址平均成本。盈亏 = 持仓量 ×（现价 − 成本价），不含已实现部分。经转账取得的仓位，其记录成本遵循平台记账逻辑，未必等于接收地址的实际支出。',
-   '<b>持有天数。</b>由 <code>/user/{principal}/activity?token=hjrg</code> 推导：计时起点为最早一次 <code>BUY</code> 或 <code>RECEIVE</code>，出现 <code>SELL</code> 则重新计时；<code>SEND</code>（转出至其他地址）不重新计时。该端点 <code>limit</code> 上限为 100，记录较长的地址分页取全。每地址一次请求，故本列在表格渲染后异步填充。',
-   '<b>24 小时 / 30 天 / 60 天新增。</b>统计当前持有者中最早取得时间落在该窗口内的地址数。owners 端点仅返回余额非零的地址，故窗口内买入后已全部退出的地址不在样本中。该指标衡量的是留存新增而非净变化，其数值不会自行下降。',
-   '<b>LP 手续费年化。</b>费率取自 <code>/settings</code>：<code>swap_platform_fee</code> 为 700、<code>swap_lp_fee</code> 为 300，按平台自身换算规则除以 1000，即单笔交易总费率 1%，其中 0.3% 归属做市者。年化 = <code>swap_volume_24</code> × 0.3% ÷ 池子总值 × 365，池子总值按 <code>btc_liquidity</code> × 2 计（假设两侧等值）。该数值为单利、未复利，由单个 24 小时窗口外推，且未计入无常损失。<code>swap_fees_24</code> 未采用，因该上游字段当前返回 0。',
-   '<b>LP 占比与 LP 收益。</b>池外地址两列均留空。占比为该地址 <code>lp_hjrg</code> 余额除以全部做市者余额之和。收益的算法是：按时间顺序重放每一笔 AMM 成交，对照由各做市者 <code>ADD_LIQUIDITY</code> 与 <code>REMOVE_LIQUIDITY</code> 事件重建的台账，将每笔成交的 0.3% 按当时的份额计入。重放余额会与接口报告的余额逐一核对，任一地址对不上则整列不予显示。',
-   '<b>LP 收益的局限。</b>事件读自 <code>/user/{principal}/activity?token=lp_hjrg</code>，该记录仅对仍持有份额的地址存在，因此已全额撤出的做市者不在重建范围内，其历史份额也未从他人份额中扣除。首笔可重建的注入之前产生的手续费按未归属处理，不分配给任何人。该数值为手续费毛收入，未扣减无常损失。',
-   '<b>手续费合计。</b>NOODL 的 AMM 累计成交额取自 <code>/token/hjrg</code> 的 <code>swap_volume</code>，该值与成交记录中标记 <code>bonded</code> 的 <code>amount_btc</code> 之和完全一致。做市者收入为该值 × 0.3%，平台抽成为 × 0.7%。全站数值由 <code>/tokens</code> 汇总各代币的 <code>swap_volume</code> 得出，仅计交易手续费，不含毕业环节与铸造费用 — 后两者由 <code>bond_platform_fee</code> 与 <code>mint_fee</code> 决定，无法从成交额字段推导。',
-   '<b>称号。</b>NOODLER：距最早取得时间满 30 天且期间无 <code>SELL</code> 记录，不设持仓金额门槛，转出至其他地址不影响资格。Chef：当前在 <code>/token/hjrg/liquidity</code> 中持有份额。',
-   '<b>尚不可达的时间窗。</b>NOODL 部署于 2026 年 6 月 10 日，流动性池于 2026 年 7 月 13 日毕业时开启。长于对应存续时长的时间窗一律显示 0，并标注其可达日期。',
-   '<b>公开性说明。</b>本页展示的地址、用户名与余额在 odin.fun 上均为公开数据。本页仅作数据呈现，不构成投资建议。'
+   '<b>NOODLER</b> — 满 30 天没卖。不看持仓金额，把 NOODL 转到自己的其他地址也不算断。',
+   '<b>Chef</b> — 当前正在给 NOODL 池子提供流动性。'
   ],
   foot:'NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议，只有面条。🍜',
   footPosts:'#NOODL 帖子'
@@ -309,7 +354,8 @@ const I18N={
 let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
 if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
 
-let sort='bal',query='',S=null,tenure={},tenureDone=false;
+let sort='bal',query='',S=null,tenure={},tenureDone=false,xfers=[];
+let metric='mc',tf='1h';
 
 /* ================= stars, same as the other pages ================= */
 (function(){
@@ -430,6 +476,7 @@ async function loadTrades(){
   }
   trades.sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
   S.trades=trades;
+  buildHolderSeries();     // whichever of trades/tenure finishes last builds it
   render();
 }
 
@@ -518,14 +565,18 @@ async function loadPlatform(){
 /* One activity request per holder. The endpoint caps limit at 100, so holders
    with a longer history need paging. Results are cached briefly, because this
    is by far the most expensive thing the page does to odin.fun. */
-/* v2: the cached shape gained firstAcq. A v1 blob would still be readable and
-   would quietly report nobody joined, so the key moves rather than the reader. */
-const TKEY='noodl_tenure_v2', TTL=20*60*1000;
+/* The key carries a version because each change to the cached shape would
+   otherwise be read back as missing data rather than as a stale cache: v2 added
+   firstAcq, v3 added the transfer list the holder-count line is built from. */
+const TKEY='noodl_tenure_v3', TTL=20*60*1000;
 async function loadTenure(){
   const ui=I18N[lang];
   try{
     const c=JSON.parse(localStorage.getItem(TKEY)||'null');
-    if(c&&Date.now()-c.ts<TTL&&c.data){tenure=c.data;tenureDone=true;render();return;}
+    if(c&&Date.now()-c.ts<TTL&&c.data&&c.xfers){
+      tenure=c.data;xfers=c.xfers;tenureDone=true;
+      buildHolderSeries();render();return;
+    }
   }catch(e){}
 
   const users=S.owners.map(o=>o.user);
@@ -550,6 +601,10 @@ async function loadTenure(){
           const t=Date.parse(a.time);
           if(a.action==='BUY'||a.action==='RECEIVE')acq.push(t);
           else if(a.action==='SELL')sells.push(t);
+          // transfers are invisible in the trade feed, so they are kept here to
+          // rebuild balances over time for the holder-count line
+          if(a.action==='RECEIVE')xfers.push({t:t,u:u,d:Number(a.amount_token)});
+          else if(a.action==='SEND')xfers.push({t:t,u:u,d:-Number(a.amount_token)});
         });
         const firstAcq=acq.length?Math.min.apply(null,acq):null;
         const lastSell=sells.length?Math.max.apply(null,sells):null;
@@ -568,8 +623,49 @@ async function loadTenure(){
     if((i/12)%5===4)render();
   }
   tenureDone=true;prog.hidden=true;
-  try{localStorage.setItem(TKEY,JSON.stringify({ts:Date.now(),data:tenure}));}catch(e){}
+  try{localStorage.setItem(TKEY,JSON.stringify({ts:Date.now(),data:tenure,xfers:xfers}));}catch(e){}
+  buildHolderSeries();
   render();
+}
+
+/* Holder count over time. Buys and sells come from the trade feed, which covers
+   every address that ever traded; transfers come from the per-holder activity,
+   which only exists for addresses that still hold something. An address whose
+   replayed history does not land on the balance the API reports for it is
+   therefore missing events, and is dropped rather than allowed to drag a wrong
+   shape through the whole curve. */
+function buildHolderSeries(){
+  // tenureDone is the gate, not xfers.length: the transfer list fills in over
+  // several seconds, and building from a half-collected one paints a curve that
+  // is visibly wrong until the rebuild lands
+  if(!S||!S.trades||!tenureDone)return;
+  const ev=[];
+  S.trades.forEach(t=>ev.push({t:Date.parse(t.time),u:t.user,
+    d:(t.buy?1:-1)*Number(t.amount_token)}));
+  xfers.forEach(x=>ev.push(x));
+  ev.sort((a,b)=>a.t-b.t);
+
+  const net={};ev.forEach(e=>{net[e.u]=(net[e.u]||0)+e.d;});
+  const cur={};S.owners.forEach(o=>{cur[o.user]=o.bal*MS;});
+  const bad={};
+  Object.keys(net).forEach(u=>{
+    const want=cur[u]||0;
+    if(Math.abs(net[u]-want)>Math.max(1e7,Math.abs(want)*0.02))bad[u]=1;
+  });
+
+  const DUST=1e6;                       // a rounding crumb is not a holder
+  const bal={};let n=0;const pts=[];
+  ev.forEach(e=>{
+    if(bad[e.u])return;
+    const was=(bal[e.u]||0)>DUST;
+    bal[e.u]=(bal[e.u]||0)+e.d;
+    const is=bal[e.u]>DUST;
+    if(!was&&is)n++;else if(was&&!is)n--;
+    pts.push({t:e.t,v:n});
+  });
+  S.holderSeries=pts;
+  S.holderDropped=Object.keys(bad).length;
+  S.holderSeen=Object.keys(net).length;
 }
 
 /* ================= derived ================= */
@@ -613,6 +709,162 @@ function priceAgo(days){
   return t?Number(t.price):null;
 }
 
+/* ================= chart ================= */
+const TFS=[['1m',60e3],['5m',300e3],['1h',36e5],['4h',144e5],['1d',864e5],['1w',6048e5]];
+const BARS=110;                          // how many buckets a window shows
+
+/* Close price per bucket, carried forward across empty ones so a quiet hour is
+   a flat line rather than a gap. Prices come from the trade feed, whose
+   `amount_btc` sums reconcile exactly with the token's reported volume. */
+function priceBuckets(){
+  const step=(TFS.find(x=>x[0]===tf)||TFS[2])[1];
+  const trades=S.trades;if(!trades||!trades.length)return[];
+  const now=Date.now();
+  const end=Math.floor(now/step)*step;
+  // never draw earlier than the token's first trade: at 1d and 1w the requested
+  // window is longer than NOODL has existed, and carrying the opening price
+  // backwards would invent a flat line across dates with no token on them
+  const born=Math.floor(Date.parse(trades[trades.length-1].time)/step)*step;
+  const start=Math.max(end-(BARS-1)*step,born);
+  const close={};
+  // trades arrive newest-first, so walking forward leaves the latest per bucket
+  for(let i=trades.length-1;i>=0;i--){
+    const t=trades[i],ts=Date.parse(t.time);
+    if(ts<start-step*4)continue;
+    close[Math.floor(ts/step)*step]=Number(t.price);
+  }
+  // seed the carry with the last price at or before the window
+  let carry=null;
+  for(let i=0;i<trades.length;i++){
+    if(Date.parse(trades[i].time)<=start){carry=Number(trades[i].price);break;}
+  }
+  if(carry===null)carry=Number(trades[trades.length-1].price);
+  const out=[];
+  for(let b=start;b<=end;b+=step){
+    if(close[b]!==undefined)carry=close[b];
+    out.push({t:b,v:carry});
+  }
+  return out;
+}
+
+/* Pool reserves follow the AMM's own invariant: with k = btc x tokens held
+   across the window, the BTC side is btcNow * sqrt(p/pNow). Anchored on the
+   live reserves this reproduces the ~0.2 BTC the pool was seeded with at
+   bonding, which is the check that says the shape is real and not a rescaled
+   copy of the price line. */
+function poolSeries(px){
+  const btcNow=S.poolBtc,pNow=S.price;
+  if(!btcNow||!pNow)return[];
+  return px.map(p=>({t:p.t,v:btcNow*Math.sqrt(p.v/pNow)*2}));
+}
+
+/* Step series sampled onto the price buckets. */
+function sampleStep(series,px){
+  if(!series||!series.length)return[];
+  let i=0,v=series[0].v;
+  return px.map(p=>{
+    while(i<series.length&&series[i].t<=p.t){v=series[i].v;i++;}
+    return {t:p.t,v:v};
+  });
+}
+
+function fmtAxis(v,kind){
+  if(kind==='mc')return fmtBtc(v)+' BTC';
+  if(kind==='px')return fmtUsd(v);
+  if(kind==='pool')return fmtBtc(v)+' BTC';
+  return nf(v,0);
+}
+
+/* One renderer for all three panels. Draws into the SVG's own viewBox units so
+   it never has to measure layout, which keeps it correct before first paint and
+   after any resize. */
+function drawSeries(svg,pts,opt){
+  const W=800,H=svg===$('#cMain')?240:90,PAD=opt.pad||{t:10,r:52,b:16,l:6};
+  if(!pts||pts.length<2){
+    svg.innerHTML='<text class="cempty" x="12" y="'+(H/2)+'">'+esc(I18N[lang].cWait)+'</text>';
+    return;
+  }
+  const xs=pts.map(p=>p.t),ys=pts.map(p=>p.v);
+  let lo=Math.min.apply(null,ys),hi=Math.max.apply(null,ys);
+  if(hi===lo){hi=lo+(Math.abs(lo)||1)*0.02;lo=lo-(Math.abs(lo)||1)*0.02;}
+  const padY=(hi-lo)*0.12;lo-=padY;hi+=padY;
+  const x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs);
+  const X=t=>PAD.l+(x1===x0?0:(t-x0)/(x1-x0))*(W-PAD.l-PAD.r);
+  const Y=v=>PAD.t+(1-(v-lo)/(hi-lo))*(H-PAD.t-PAD.b);
+  const gold=opt.gold?' gold':'';
+  const gid='g'+opt.key;
+  let d='';pts.forEach((p,i)=>{d+=(i?'L':'M')+X(p.t).toFixed(1)+' '+Y(p.v).toFixed(1);});
+  const area=d+'L'+X(x1).toFixed(1)+' '+(H-PAD.b)+'L'+X(x0).toFixed(1)+' '+(H-PAD.b)+'Z';
+  const c=opt.gold?'252,209,79':'0,255,255';
+  let g='';
+  const ticks=svg===$('#cMain')?4:2;
+  for(let i=0;i<=ticks;i++){
+    const v=lo+(hi-lo)*i/ticks,y=Y(v).toFixed(1);
+    g+='<line class="cgrid" x1="'+PAD.l+'" x2="'+(W-PAD.r)+'" y1="'+y+'" y2="'+y+'"/>'
+      +'<text class="clab" x="'+(W-PAD.r+6)+'" y="'+(+y+3)+'">'+esc(fmtAxis(v,opt.key))+'</text>';
+  }
+  svg.innerHTML=
+    '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'
+    +'<stop offset="0" stop-color="rgba('+c+',.22)"/>'
+    +'<stop offset="1" stop-color="rgba('+c+',0)"/></linearGradient></defs>'
+    +g
+    +'<path class="carea" fill="url(#'+gid+')" d="'+area+'"/>'
+    +'<path class="cline'+gold+'" d="'+d+'"/>'
+    +'<g id="'+gid+'h"></g>';
+  svg.__geo={X:X,Y:Y,pts:pts,gold:opt.gold,key:opt.key,W:W,H:H,PAD:PAD};
+}
+
+function drawChart(){
+  const ui=I18N[lang];
+  if(!S||!S.trades){
+    [$('#cMain'),$('#cHold'),$('#cPool')].forEach(s=>{
+      if(s)s.innerHTML='<text class="cempty" x="12" y="'+(s===$('#cMain')?120:45)+'">'+esc(ui.cWait)+'</text>';
+    });
+    return;
+  }
+  const px=priceBuckets();
+  const main=metric==='mc'
+    ? px.map(p=>({t:p.t,v:p.v/MS*S.supply}))
+    : px.map(p=>({t:p.t,v:p.v/MS*S.btcUsd}));
+  drawSeries($('#cMain'),main,{key:metric==='mc'?'mc':'px'});
+  drawSeries($('#cPool'),poolSeries(px),{key:'pool',gold:true});
+  drawSeries($('#cHold'),sampleStep(S.holderSeries,px),{key:'hold'});
+
+  const last=main[main.length-1],first=main[0];
+  const ch=first&&first.v?(last.v-first.v)/first.v*100:0;
+  $('#cRead').innerHTML='<b>'+esc(fmtAxis(last.v,metric==='mc'?'mc':'px'))+'</b> '
+    +'<span class="'+pctCls(ch)+'">'+esc(signPct(ch))+'</span> · '+esc(ui.tfWindow(tf,main.length));
+  const hs=S.holderSeries;
+  $('#cHoldNow').textContent=hs&&hs.length?nf(hs[hs.length-1].v,0):'…';
+  $('#cPoolNow').textContent=fmtBtc(S.poolBtc*2)+' BTC';
+}
+
+/* Hover readout: nearest bucket by x, drawn into the panel's own overlay group. */
+function chartHover(svg,ev){
+  const geo=svg.__geo;if(!geo)return;
+  const r=svg.getBoundingClientRect();
+  const vx=(ev.clientX-r.left)/r.width*geo.W;
+  let best=null,bd=1e9;
+  geo.pts.forEach(p=>{const d=Math.abs(geo.X(p.t)-vx);if(d<bd){bd=d;best=p;}});
+  if(!best)return;
+  const g=svg.querySelector('g[id$="h"]');if(!g)return;
+  const x=geo.X(best.t).toFixed(1),y=geo.Y(best.v).toFixed(1);
+  g.innerHTML='<line class="cx" x1="'+x+'" x2="'+x+'" y1="'+geo.PAD.t+'" y2="'+(geo.H-geo.PAD.b)+'"/>'
+    +'<circle class="cdot'+(geo.gold?' gold':'')+'" cx="'+x+'" cy="'+y+'" r="3.5"/>';
+  if(svg===$('#cMain')){
+    $('#cRead').innerHTML='<b>'+esc(fmtAxis(best.v,geo.key))+'</b> · '+esc(fmtStamp(best.t));
+  }
+}
+function chartLeave(svg){
+  const g=svg&&svg.querySelector('g[id$="h"]');if(g)g.innerHTML='';
+  if(svg===$('#cMain'))drawChart();
+}
+function fmtStamp(t){
+  const d=new Date(t),z=n=>String(n).padStart(2,'0');
+  const day=d.toLocaleDateString(lang==='zh'?'zh-CN':'en-GB',{month:'short',day:'numeric'});
+  return (tf==='1d'||tf==='1w')?day:day+' '+z(d.getHours())+':'+z(d.getMinutes());
+}
+
 /* ================= render ================= */
 function statHtml(label,value,sub,cls,note){
   return '<div class="stat'+(cls?' '+cls:'')+'">'
@@ -631,8 +883,13 @@ function render(){
   $('#langBtn').textContent=lang==='en'?'中文':'EN';
   $('#q').placeholder=ui.search;
   $('#how').innerHTML=ui.how.map(h=>'<li>'+h+'</li>').join('');
+  $('#segMetric').innerHTML=[['mc',ui.mc],['px',ui.price]].map(m=>
+    '<button type="button" data-m="'+m[0]+'" aria-pressed="'+(metric===m[0])+'">'+esc(m[1])+'</button>').join('');
+  $('#segTf').innerHTML=TFS.map(t=>
+    '<button type="button" data-t="'+t[0]+'" aria-pressed="'+(tf===t[0])+'">'+esc(ui.tf[t[0]])+'</button>').join('');
   document.querySelectorAll('.sort').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.s===sort)));
   $('#thead').innerHTML=ui.th.map(h=>'<th>'+esc(h)+'</th>').join('');
+  drawChart();
   if(!S)return;
 
   /* --- market --- */
@@ -758,6 +1015,16 @@ function render(){
 }
 
 /* ================= events ================= */
+$('#segMetric').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;metric=b.dataset.m;render();
+});
+$('#segTf').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;tf=b.dataset.t;render();
+});
+[$('#cMain'),$('#cHold'),$('#cPool')].forEach(svg=>{
+  svg.addEventListener('pointermove',e=>chartHover(svg,e));
+  svg.addEventListener('pointerleave',()=>chartLeave(svg));
+});
 document.querySelectorAll('.sort').forEach(b=>b.addEventListener('click',()=>{sort=b.dataset.s;render();}));
 $('#q').addEventListener('input',e=>{query=e.target.value;render();});
 $('#langBtn').addEventListener('click',()=>{
