@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOODL 日报 · NOODL.club</title>
+<meta name="description" content="NOODL 日报：Odin.Fun 平台 24 小时数据、平台手续费收益，以及 NOODL 的走势、持仓与池子情况。一键保存为图片分享。">
+<meta name="theme-color" content="#111117">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#111117;--panel:#18181d;--line:#27272a;--line-soft:#1f1f25;
+  --cyan:#00ffff;--cyan-dim:#00c9c9;--text:#fafafa;--text-2:#a8aab8;
+  --dim:#6b6d7c;--up:#3ddc84;--down:#ff6b6b;--noodle-y:#fcd14f;--noodle-o:#ef9530;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
+  font-family:'Work Sans','PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+}
+a{color:inherit}
+.wrap{max-width:880px;margin:0 auto;padding:18px 18px 60px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px;
+  flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.wordmark{font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--cyan);text-decoration:none;
+  display:flex;align-items:center;gap:8px}
+.topnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{font-family:inherit;font-weight:500;font-size:12.5px;letter-spacing:.02em;cursor:pointer;
+  color:var(--text-2);text-decoration:none;background:transparent;
+  border:1px solid var(--line);border-radius:6px;padding:6px 12px;
+  transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+.btn.primary{color:#06060a;background:var(--cyan);border-color:var(--cyan);font-weight:600}
+.btn.primary:hover{background:#5cffff;border-color:#5cffff;color:#06060a}
+.btn[disabled]{opacity:.45;cursor:default;pointer-events:none}
+#langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
+
+.tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+.status{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.status b{color:var(--text-2);font-weight:500}
+
+/* the poster is one canvas, so what you save is exactly what you see */
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;overflow:hidden}
+#poster{display:block;width:100%;height:auto;border-radius:6px}
+.err{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.35);color:#ffb3b3;
+  border-radius:8px;padding:11px 14px;font-size:12.5px;margin-bottom:14px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+footer{margin-top:26px;padding-top:15px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--dim);line-height:1.8;text-align:center}
+footer a{color:var(--cyan-dim);text-decoration:none}
+footer a:hover{color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a class="wordmark" href="index.html">🍜 NOODL·CLUB</a>
+    <nav class="topnav">
+      <a class="btn" href="index.html" data-i="back">← 首页</a>
+      <a class="btn" href="holders.html" data-i="board">持仓看板</a>
+      <button class="btn" id="langBtn" type="button">EN</button>
+    </nav>
+  </header>
+
+  <div class="tools">
+    <button class="btn primary" id="save" type="button" disabled data-i="save">保存为图片</button>
+    <button class="btn" id="reload" type="button" data-i="refresh">刷新数据</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div id="err"></div>
+
+  <div class="stage">
+    <canvas id="poster" role="img" aria-describedby="alt"></canvas>
+  </div>
+  <p class="sr" id="alt"></p>
+
+  <footer>
+    <span data-i="foot">NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议，只有面条。🍜</span><br>
+    <a href="index.html">NOODL.club</a> ·
+    <a href="holders.html" data-i="board2">持仓看板</a> ·
+    <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun/token/hjrg</a>
+  </footer>
+</div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+/* Token amounts and trade BTC use 1e11 (decimals 3 + divisibility 8).
+   The platform's ckBTC balance is a plain satoshi figure, so it uses 1e8 —
+   mixing the two is the easiest way to be off by a factor of a thousand. */
+const MS=1e11, SAT=1e8, DAY=864e5, TOKEN='hjrg';
+const ODIN=['https://api.odin.fun/v2','/api/odin'];
+
+const I18N={
+ zh:{
+  back:'← 首页',board:'持仓看板',board2:'持仓看板',save:'保存为图片',saving:'生成中…',
+  refresh:'刷新数据',loading:'正在读取 odin.fun…',
+  ready:t=>'数据抓取时间 '+t,
+  err:'连不上 odin.fun 接口。它有频率限制，偶尔也会拦非浏览器流量，过一分钟再试。',
+  title:'NOODL 日报',stamp:'数据抓取时间',
+  cAsset:'资产',cTrade:'交易',cToken:'代币',cUser:'用户',cRev:'平台收益',
+  btc24:'24H BTC 变动',btcHold:'平台 BTC 存量',
+  vol24:'24H 交易总量',volAll:'历史总交易量',
+  new24:'24H 新发布',tokAll:'平台代币总数',
+  act24:'24H 交易笔数',userAll:'平台总注册账号',
+  rev24:'24H 平台抽成',revAll:'累计平台抽成',revNote:'每笔交易 0.7% 归平台',
+  chart:'NOODL · 24 小时走势',chartNo:'24 小时内没有成交',
+  priceLab:'单价',volLab:'成交量',nowLab:'现在',
+  nMc:'市值',nPrice:'单价',
+  nHold:'持仓人数',nHold24:'24H 变化',
+  nPool:'池子总量',nPool24:'24H 变化',
+  nFee:'做市者累计收益',nApy:'加池子年化',
+  apyNote:'按过去 24 小时手续费简单年化',
+  foot:'NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议，只有面条。🍜',
+  src:'来源 noodl.club',
+  alt:d=>'NOODL 日报，数据抓取时间 '+d
+ },
+ en:{
+  back:'← Home',board:'Holder board',board2:'Holder board',save:'Save as image',saving:'Rendering…',
+  refresh:'Refresh',loading:'Reading odin.fun…',
+  ready:t=>'captured '+t,
+  err:'Could not reach the odin.fun API. It rate-limits and occasionally blocks non-browser traffic; try again in a minute.',
+  title:'NOODL DAILY',stamp:'captured',
+  cAsset:'Assets',cTrade:'Trading',cToken:'Tokens',cUser:'Users',cRev:'Platform revenue',
+  btc24:'24H BTC change',btcHold:'Platform BTC held',
+  vol24:'24H volume',volAll:'All-time volume',
+  new24:'Launched in 24H',tokAll:'Tokens on platform',
+  act24:'24H trades',userAll:'Registered accounts',
+  rev24:'24H platform cut',revAll:'All-time platform cut',revNote:'0.7% of every swap',
+  chart:'NOODL · last 24 hours',chartNo:'no trades in the last 24 hours',
+  priceLab:'price',volLab:'volume',nowLab:'now',
+  nMc:'Market cap',nPrice:'Price',
+  nHold:'Holders',nHold24:'24H change',
+  nPool:'Pool size',nPool24:'24H change',
+  nFee:'Earned by providers',nApy:'LP fee APY',
+  apyNote:'simple, from the last 24h of fees',
+  foot:'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles. 🍜',
+  src:'noodl.club',
+  alt:d=>'NOODL daily report, captured '+d
+ }
+};
+let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
+if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
+let D=null;
+
+/* ================= helpers ================= */
+const nf=(v,d)=>Number(v).toLocaleString(lang==='zh'?'zh-CN':'en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+function fmtUsd(v){
+  const a=Math.abs(v);
+  if(a>=1e6)return '$'+nf(v/1e6,2)+'M';
+  if(a>=1000)return '$'+nf(v/1000,1)+'K';
+  if(a>=100)return '$'+nf(v,0);
+  if(a>=1)return '$'+nf(v,2);
+  if(a>=0.01)return '$'+nf(v,4);
+  return a===0?'$0':'$'+nf(v,6);
+}
+const fmtBtc=v=>nf(v,Math.abs(v)>=100?0:Math.abs(v)>=1?3:4);
+const sign=v=>v>0?'+':v<0?'−':'';
+const signNum=(v,d)=>sign(v)+nf(Math.abs(v),d);
+function fmtStamp(ms){
+  const d=new Date(ms),z=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+':'+z(d.getMinutes());
+}
+async function api(path){
+  let last;
+  for(const base of ODIN){
+    try{
+      const r=await fetch(base+path,{headers:{accept:'application/json'}});
+      if(!r.ok){last=new Error(path+' HTTP '+r.status);continue;}
+      return await r.json();
+    }catch(e){last=e;}
+  }
+  throw last||new Error('fetch failed '+path);
+}
+
+/* ================= data ================= */
+async function load(){
+  const ui=I18N[lang];
+  $('#status').textContent=ui.loading;
+  $('#save').disabled=true;
+  $('#err').innerHTML='';
+
+  const [dash,tok,cur,set,own]=await Promise.all([
+    api('/statistics/dashboard'),api('/token/'+TOKEN),api('/currency/btc'),
+    api('/settings'),api('/token/'+TOKEN+'/owners?limit=1000')
+  ]);
+
+  // every token, for the 24h launch count and the platform's swap-fee take
+  let toks=[],pg=1,count=0;
+  do{
+    const x=await api('/tokens?limit=100&page='+pg);
+    toks=toks.concat(x.data||[]);count=x.count||0;pg++;
+  }while(toks.length<count&&pg<60);
+
+  // whole trade feed: the 24h chart, the pool history and the holder delta
+  let trades=[];
+  for(let i=1;i<=8;i++){
+    const x=await api('/token/'+TOKEN+'/trades?limit=1000&page='+i);
+    trades=trades.concat(x.data||[]);
+    if(!x.data||!x.data.length||trades.length>=(x.count||0))break;
+  }
+  trades.sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
+
+  const now=Date.now();
+  const btcUsd=Number(cur.amount)||0;
+  const price=Number(tok.price)||0;
+  const supply=Number(tok.total_supply)/MS;
+  const lpPct=Number(set.swap_lp_fee)/1000/100;
+  const plPct=Number(set.swap_platform_fee)/1000/100;
+
+  // --- platform ---
+  const cb=dash.ckbtc_balance||[];
+  const btcNow=Number(dash.ckbtc_balance_current)/SAT;
+  // the series is newest-first and its head is today, so yesterday is index 1
+  const btcPrev=cb.length>1?Number(cb[1].balance)/SAT:null;
+  const acts=(dash.activities_30d||[])[0];
+  const at=acts?acts.activity_types:null;
+  const trades24=at?((at.buy&&at.buy.count||0)+(at.sell&&at.sell.count||0)):null;
+
+  const swapVol24=toks.reduce((s,t)=>s+Number(t.swap_volume_24||0),0)/MS;
+  const swapVolAll=toks.reduce((s,t)=>s+Number(t.swap_volume||0),0)/MS;
+
+  // --- NOODL 24h series, hourly ---
+  const step=36e5, bars=24;
+  const end=Math.floor(now/step)*step, start=end-(bars-1)*step;
+  const close={},vol={};
+  for(let i=trades.length-1;i>=0;i--){
+    const t=trades[i],ts=Date.parse(t.time);
+    const b=Math.floor(ts/step)*step;
+    if(b>=start){close[b]=Number(t.price);vol[b]=(vol[b]||0)+Number(t.amount_btc);}
+  }
+  let carry=null;
+  for(let i=0;i<trades.length;i++){if(Date.parse(trades[i].time)<=start){carry=Number(trades[i].price);break;}}
+  if(carry===null)carry=price;
+  const series=[];
+  for(let b=start;b<=end;b+=step){
+    if(close[b]!==undefined)carry=close[b];
+    series.push({t:b,p:carry,v:(vol[b]||0)/MS});
+  }
+  const price24=series.length?series[0].p:price;
+
+  // --- pool: the AMM invariant, anchored on the live reserves ---
+  const poolBtcNow=Number(tok.btc_liquidity)/MS;
+  const poolNow=poolBtcNow*2;
+  const pool24=price24?poolBtcNow*Math.sqrt(price24/price)*2:poolNow;
+
+  /* --- holders: current count is the API's own; the 24h delta replays the
+     last day of trades against current balances and counts addresses that
+     cross the dust line. Transfers inside the window are not in the trade
+     feed, so a position moved between addresses is not counted either way. --- */
+  const DUST=1e6;
+  const bal={};(own.data||[]).forEach(o=>{bal[o.user]=Number(o.balance);});
+  const isNow={};Object.keys(bal).forEach(u=>{isNow[u]=bal[u]>DUST;});
+  const cutoff=now-DAY;
+  trades.forEach(t=>{                       // newest first: undo each trade
+    if(Date.parse(t.time)<cutoff)return;
+    const u=t.user;
+    bal[u]=(bal[u]||0)-(t.buy?1:-1)*Number(t.amount_token);
+  });
+  let gained=0,lost=0;
+  Object.keys(bal).forEach(u=>{
+    const then=bal[u]>DUST;               // balance rewound to 24h ago
+    if(isNow[u]&&!then)gained++;          // arrived inside the window
+    else if(!isNow[u]&&then)lost++;       // sold out inside the window
+  });
+  const holdersNow=(own.data||[]).length;
+  const holdersDelta=gained-lost;
+
+  const lpFeeAll=(Number(tok.swap_volume)/MS)*lpPct;
+  const vol24Noodl=Number(tok.swap_volume_24)/MS;
+  const apy=poolNow?(vol24Noodl*lpPct)/poolNow*365*100:0;
+
+  D={
+    stamp:now,btcUsd:btcUsd,
+    plat:{
+      btcNow:btcNow,btcDelta:btcPrev===null?null:btcNow-btcPrev,
+      vol24:Number(dash.total_volume_24h)/MS,volAll:Number(dash.total_volume_all)/MS,
+      new24:toks.filter(t=>now-Date.parse(t.created_time)<DAY).length,
+      tokens:dash.tokens||toks.length,
+      trades24:trades24,users:Number(dash.total_users)||0,
+      rev24:swapVol24*plPct,revAll:swapVolAll*plPct,plPct:plPct*100
+    },
+    noodl:{
+      mcBtc:Number(tok.marketcap)/MS,price:price,supply:supply,
+      chg24:price24?(price-price24)/price24*100:0,
+      holders:holdersNow,holdersDelta:holdersDelta,
+      poolNow:poolNow,poolDelta:poolNow-pool24,
+      lpFeeAll:lpFeeAll,apy:apy,lpPct:lpPct*100
+    },
+    series:series
+  };
+  $('#status').textContent=ui.ready(fmtStamp(now));
+  $('#alt').textContent=ui.alt(fmtStamp(now));
+  await draw();
+  $('#save').disabled=false;
+}
+
+/* ================= poster ================= */
+const W=880;                       // layout width in CSS px, drawn at 2x
+const F=(w,s)=>w+' '+s+'px "Work Sans","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';
+
+function rr(c,x,y,w,h,r){
+  c.beginPath();
+  c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();
+}
+
+async function draw(){
+  if(!D)return;
+  const ui=I18N[lang];
+  const cv=$('#poster'),c=cv.getContext('2d');
+  const P=26, GAP=12;
+  const colW=(W-P*2-GAP)/2;
+
+  /* Card heights are derived from what stat() actually draws rather than
+     guessed: a stat starting at offset o puts its label at o, the value at
+     o+30 and the sub at o+48, so the card has to reach o+56 or the sub is
+     clipped off the bottom edge. */
+  const S1=58, S2=128, SH=56;
+  const H_HEAD=96, H_CARD=S2+SH, H_REV=S1+SH, H_CHART=250, H_NSTAT=S2+SH+16, H_FOOT=100;
+  const H=P+H_HEAD+H_CARD+GAP+H_CARD+GAP+H_REV+GAP+H_CHART+GAP+H_NSTAT+H_FOOT+P;
+
+  const dpr=2;
+  cv.width=W*dpr;cv.height=H*dpr;
+  cv.style.aspectRatio=W+' / '+H;
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.textBaseline='alphabetic';
+
+  c.fillStyle='#111117';c.fillRect(0,0,W,H);
+
+  let y=P;
+
+  // ---------- header ----------
+  c.fillStyle='#fafafa';c.font=F(800,34);c.textAlign='left';
+  c.fillText('🍜 '+ui.title,P,y+34);
+  c.fillStyle='#6b6d7c';c.font=F(500,12);c.textAlign='right';
+  c.fillText(ui.stamp,W-P,y+18);
+  c.fillStyle='#a8aab8';c.font=F(600,15);
+  c.fillText(fmtStamp(D.stamp),W-P,y+40);
+  c.textAlign='left';
+  y+=H_HEAD-38;
+  c.strokeStyle='#27272a';c.lineWidth=1;
+  c.beginPath();c.moveTo(P,y+.5);c.lineTo(W-P,y+.5);c.stroke();
+  y+=20;
+
+  const card=(x,yy,w,h,title,accent)=>{
+    c.fillStyle='#18181d';rr(c,x,yy,w,h,12);c.fill();
+    c.strokeStyle='#27272a';c.lineWidth=1;rr(c,x+.5,yy+.5,w-1,h-1,12);c.stroke();
+    c.fillStyle=accent||'#a8aab8';c.font=F(700,14);
+    c.fillText(title,x+16,yy+26);
+  };
+  // one figure inside a card: label, big value, optional sub
+  const stat=(x,yy,label,value,color,sub)=>{
+    c.fillStyle='#6b6d7c';c.font=F(600,11.5);
+    c.fillText(label,x,yy);
+    c.fillStyle=color||'#fafafa';c.font=F(700,25);
+    c.fillText(value,x,yy+30);
+    if(sub){c.fillStyle='#6b6d7c';c.font=F(500,11.5);c.fillText(sub,x,yy+48);}
+  };
+
+  // ---------- platform 2x2 ----------
+  const p=D.plat;
+  const L=P,R=P+colW+GAP;
+  card(L,y,colW,H_CARD,ui.cAsset);
+  stat(L+16,y+S1,ui.btc24,
+    p.btcDelta===null?'—':signNum(p.btcDelta,4)+' BTC',
+    p.btcDelta===null?'#6b6d7c':(p.btcDelta>=0?'#3ddc84':'#ff6b6b'),
+    p.btcDelta===null?'':sign(p.btcDelta)+fmtUsd(Math.abs(p.btcDelta)*D.btcUsd).replace('$','$'));
+  stat(L+16,y+S2,ui.btcHold,fmtBtc(p.btcNow)+' BTC','#fafafa',fmtUsd(p.btcNow*D.btcUsd));
+
+  card(R,y,colW,H_CARD,ui.cTrade);
+  stat(R+16,y+S1,ui.vol24,fmtBtc(p.vol24)+' BTC','#fcd14f',fmtUsd(p.vol24*D.btcUsd));
+  stat(R+16,y+S2,ui.volAll,fmtBtc(p.volAll)+' BTC','#fafafa',fmtUsd(p.volAll*D.btcUsd));
+  y+=H_CARD+GAP;
+
+  card(L,y,colW,H_CARD,ui.cToken);
+  stat(L+16,y+S1,ui.new24,nf(p.new24,0),'#fafafa');
+  stat(L+16,y+S2,ui.tokAll,nf(p.tokens,0),'#fafafa');
+
+  card(R,y,colW,H_CARD,ui.cUser);
+  stat(R+16,y+S1,ui.act24,p.trades24===null?'—':nf(p.trades24,0),'#fafafa');
+  stat(R+16,y+S2,ui.userAll,nf(p.users,0),'#fafafa');
+  y+=H_CARD+GAP;
+
+  // ---------- platform revenue ----------
+  card(P,y,W-P*2,H_REV,ui.cRev,'#00ffff');
+  c.fillStyle='#6b6d7c';c.font=F(500,11.5);c.textAlign='right';
+  c.fillText(ui.revNote,W-P-16,y+26);c.textAlign='left';
+  stat(P+16,y+S1,ui.rev24,fmtUsd(p.rev24*D.btcUsd),'#00ffff',fmtBtc(p.rev24)+' BTC');
+  stat(P+16+(W-P*2)/2,y+S1,ui.revAll,fmtUsd(p.revAll*D.btcUsd),'#fafafa',fmtBtc(p.revAll)+' BTC');
+  y+=H_REV+GAP;
+
+  // ---------- NOODL 24h chart ----------
+  card(P,y,W-P*2,H_CHART,ui.chart,'#fcd14f');
+  const n=D.noodl;
+  c.textAlign='right';
+  c.fillStyle=n.chg24>=0?'#3ddc84':'#ff6b6b';c.font=F(700,14);
+  c.fillText(sign(n.chg24)+nf(Math.abs(n.chg24),1)+'%',W-P-16,y+26);
+  c.textAlign='left';
+  drawChart(c,P+16,y+42,W-P*2-32,H_CHART-58);
+  y+=H_CHART+GAP;
+
+  // ---------- NOODL stats ----------
+  card(P,y,W-P*2,H_NSTAT,'NOODL','#00ffff');
+  const cw=(W-P*2-32)/4;
+  const bx=P+16;
+  stat(bx,y+S1,ui.nMc,fmtBtc(n.mcBtc)+' BTC','#fafafa',fmtUsd(n.mcBtc*D.btcUsd));
+  stat(bx+cw,y+S1,ui.nPrice,fmtUsd(n.price/MS*D.btcUsd),'#fafafa',(n.price/MS).toExponential(2)+' BTC');
+  stat(bx+cw*2,y+S1,ui.nHold,nf(n.holders,0),'#fafafa',
+    ui.nHold24+' '+(n.holdersDelta===0?'0':signNum(n.holdersDelta,0)));
+  stat(bx+cw*3,y+S1,ui.nPool,fmtBtc(n.poolNow)+' BTC','#fcd14f',
+    ui.nPool24+' '+signNum(n.poolDelta,4));
+  stat(bx,y+S2,ui.nFee,fmtUsd(n.lpFeeAll*D.btcUsd),'#3ddc84',fmtBtc(n.lpFeeAll)+' BTC');
+  stat(bx+cw,y+S2,ui.nApy,nf(n.apy,1)+'%','#3ddc84',nf(n.lpPct,1)+'% → LP');
+  // parked in the empty right half of the second row, on its value baseline
+  c.fillStyle='#6b6d7c';c.font=F(500,11);c.textAlign='right';
+  c.fillText(ui.apyNote,W-P-16,y+S2+30);c.textAlign='left';
+  y+=H_NSTAT;
+
+  // ---------- footer ----------
+  y+=26;
+  c.strokeStyle='#27272a';c.beginPath();c.moveTo(P,y+.5);c.lineTo(W-P,y+.5);c.stroke();
+  y+=24;
+  c.textAlign='center';
+  c.fillStyle='#a8aab8';c.font=F(500,12.5);
+  c.fillText(ui.foot,W/2,y);
+  c.fillStyle='#00c9c9';c.font=F(600,12.5);
+  c.fillText(ui.src,W/2,y+22);
+  c.textAlign='left';
+}
+
+/* Price line plus volume bars in one frame: volume owns the bottom third and
+   is drawn first so the price line always sits on top of it. */
+function drawChart(c,x,y,w,h){
+  const ui=I18N[lang],s=D.series;
+  if(!s||s.length<2){
+    c.fillStyle='#6b6d7c';c.font=F(500,12);
+    c.fillText(ui.chartNo,x,y+h/2);return;
+  }
+  const ps=s.map(d=>d.p),vs=s.map(d=>d.v);
+  let lo=Math.min.apply(null,ps),hi=Math.max.apply(null,ps);
+  if(hi===lo){hi=lo*1.02;lo=lo*0.98;}
+  const pad=(hi-lo)*0.15;lo-=pad;hi+=pad;
+  const vmax=Math.max.apply(null,vs)||1;
+  const volH=h*0.30, lineH=h-volH-10;
+  const X=i=>x+(s.length===1?0:i/(s.length-1))*(w-64);
+  const Y=v=>y+(1-(v-lo)/(hi-lo))*lineH;
+
+  // grid + price axis
+  c.strokeStyle='#1f1f25';c.lineWidth=1;
+  c.fillStyle='#6b6d7c';c.font=F(500,10);c.textAlign='left';
+  for(let i=0;i<=2;i++){
+    const v=lo+(hi-lo)*i/2,yy=Y(v);
+    c.beginPath();c.moveTo(x,yy+.5);c.lineTo(x+w-64,yy+.5);c.stroke();
+    c.fillText(fmtUsd(v/MS*D.btcUsd),x+w-58,yy+3);
+  }
+
+  // volume
+  const bw=Math.max(2,(w-64)/s.length*0.6);
+  s.forEach((d,i)=>{
+    if(!d.v)return;
+    const bh=d.v/vmax*volH;
+    const up=i===0||d.p>=s[i-1].p;
+    c.fillStyle=up?'rgba(61,220,132,.45)':'rgba(255,107,107,.45)';
+    c.fillRect(X(i)-bw/2,y+h-bh,bw,bh);
+  });
+  // the volume scale label goes above its own band, clear of the axis row
+  c.fillStyle='#6b6d7c';c.font=F(500,10);c.textAlign='left';
+  c.fillText(ui.volLab+' ≤ '+fmtBtc(vmax)+' BTC',x,y+h-volH-4);
+
+  // price area + line
+  c.beginPath();
+  s.forEach((d,i)=>{i?c.lineTo(X(i),Y(d.p)):c.moveTo(X(i),Y(d.p));});
+  const g=c.createLinearGradient(0,y,0,y+lineH);
+  g.addColorStop(0,'rgba(0,255,255,.20)');g.addColorStop(1,'rgba(0,255,255,0)');
+  c.lineTo(X(s.length-1),y+lineH);c.lineTo(X(0),y+lineH);c.closePath();
+  c.fillStyle=g;c.fill();
+  c.beginPath();
+  s.forEach((d,i)=>{i?c.lineTo(X(i),Y(d.p)):c.moveTo(X(i),Y(d.p));});
+  c.strokeStyle='#00ffff';c.lineWidth=2;c.lineJoin='round';c.stroke();
+
+  // time axis: two ends only, so nothing can collide in between
+  c.fillStyle='#6b6d7c';c.font=F(500,10);c.textAlign='left';
+  c.fillText('-24h',x,y+h+11);
+  c.textAlign='right';c.fillText(ui.nowLab,x+w-64,y+h+11);
+  c.textAlign='left';
+}
+
+/* ================= ui ================= */
+function applyLang(){
+  const ui=I18N[lang];
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const v=ui[el.dataset.i];if(typeof v==='string')el.textContent=v;
+  });
+  $('#langBtn').textContent=lang==='zh'?'EN':'中文';
+  if(D){$('#status').textContent=ui.ready(fmtStamp(D.stamp));$('#alt').textContent=ui.alt(fmtStamp(D.stamp));}
+}
+
+$('#langBtn').addEventListener('click',async()=>{
+  lang=lang==='zh'?'en':'zh';
+  try{localStorage.setItem('noodl_lang',lang);}catch(e){}
+  applyLang();await draw();
+});
+$('#reload').addEventListener('click',()=>{boot();});
+$('#save').addEventListener('click',()=>{
+  const ui=I18N[lang],btn=$('#save'),was=btn.textContent;
+  btn.textContent=ui.saving;btn.disabled=true;
+  $('#poster').toBlob(bl=>{
+    const u=URL.createObjectURL(bl),a=document.createElement('a');
+    const d=new Date(D?D.stamp:Date.now()),z=n=>String(n).padStart(2,'0');
+    a.href=u;a.download='NOODL-daily-'+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'-'+z(d.getHours())+z(d.getMinutes())+'.png';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),4000);
+    btn.textContent=was;btn.disabled=false;
+  },'image/png');
+});
+
+async function boot(){
+  applyLang();
+  try{
+    // canvas text falls back to a system font if this is skipped
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+  }catch(e){}
+  try{ await load(); }
+  catch(e){
+    console.error(e);
+    $('#status').textContent='';
+    $('#err').innerHTML='<div class="err">'+I18N[lang].err+'</div>';
+  }
+}
+boot();
+</script>
+</body>
+</html>
