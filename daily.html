@@ -96,28 +96,15 @@ const $=s=>document.querySelector(s);
 const MS=1e11, SAT=1e8, DAY=864e5, TOKEN='hjrg';
 const ODIN=['https://api.odin.fun/v2','/api/odin'];
 
+/* The page chrome follows the language toggle. The poster does not: it is
+   always bilingual, because one saved image gets shared to both audiences. */
 const I18N={
  zh:{
   back:'← 首页',board:'持仓看板',board2:'持仓看板',save:'保存为图片',saving:'生成中…',
   refresh:'刷新数据',loading:'正在读取 odin.fun…',
   ready:t=>'数据抓取时间 '+t,
   err:'连不上 odin.fun 接口。它有频率限制，偶尔也会拦非浏览器流量，过一分钟再试。',
-  title:'NOODL 日报',stamp:'数据抓取时间',
-  cAsset:'资产',cTrade:'交易',cToken:'代币',cUser:'用户',cRev:'平台收益',
-  btc24:'24H BTC 变动',btcHold:'平台 BTC 存量',
-  vol24:'24H 交易总量',volAll:'历史总交易量',
-  new24:'24H 新发布',tokAll:'平台代币总数',
-  act24:'24H 交易笔数',userAll:'平台总注册账号',
-  rev24:'24H 平台抽成',revAll:'累计平台抽成',revNote:n=>'每笔 AMM 兑换 '+n+'% 归平台',
-  chart:'NOODL · 24 小时走势',chartNo:'24 小时内没有成交',
-  priceLab:'单价',volLab:'成交量',nowLab:'现在',
-  nMc:'市值',nPrice:'单价',
-  nHold:'持仓人数',nHold24:'24H 变化',
-  nPool:'池子总量',nPool24:'24H 变化',
-  nFee:'做市者累计收益',nApy:'加池子年化',
-  apyNote:'按过去 24 小时手续费简单年化',
   foot:'NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议，只有面条。🍜',
-  src:'来源 noodl.club',
   alt:d=>'NOODL 日报，数据抓取时间 '+d
  },
  en:{
@@ -125,31 +112,45 @@ const I18N={
   refresh:'Refresh',loading:'Reading odin.fun…',
   ready:t=>'captured '+t,
   err:'Could not reach the odin.fun API. It rate-limits and occasionally blocks non-browser traffic; try again in a minute.',
-  title:'NOODL DAILY',stamp:'captured',
-  cAsset:'Assets',cTrade:'Trading',cToken:'Tokens',cUser:'Users',cRev:'Platform revenue',
-  btc24:'24H BTC change',btcHold:'Platform BTC held',
-  vol24:'24H volume',volAll:'All-time volume',
-  new24:'Launched in 24H',tokAll:'Tokens on platform',
-  act24:'24H trades',userAll:'Registered accounts',
-  rev24:'24H platform cut',revAll:'All-time platform cut',revNote:n=>n+'% of every AMM swap',
-  chart:'NOODL · last 24 hours',chartNo:'no trades in the last 24 hours',
-  priceLab:'price',volLab:'volume',nowLab:'now',
-  nMc:'Market cap',nPrice:'Price',
-  nHold:'Holders',nHold24:'24H change',
-  nPool:'Pool size',nPool24:'24H change',
-  nFee:'Earned by providers',nApy:'LP fee APY',
-  apyNote:'simple, from the last 24h of fees',
   foot:'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles. 🍜',
-  src:'noodl.club',
   alt:d=>'NOODL daily report, captured '+d
  }
 };
+
+/* Poster copy, [中文, English]. Nothing in here reads `lang` — both halves are
+   always drawn, so the exported PNG reads the same to either audience. */
+const PL={
+  title:['NOODL 日报','NOODL DAILY REPORT'],
+  stamp:['数据抓取时间','captured'],
+  secPlat:['ODIN·FUN 平台数据','Platform stats'],
+  secNoodl:['NOODL 代币数据','Token stats'],
+  cAsset:['资产','Assets'],cTrade:['交易','Trading'],
+  cToken:['代币','Tokens'],cUser:['用户','Users'],cRev:['平台收益','Platform revenue'],
+  btc24:['24H BTC 变动','24H BTC change'],btcHold:['平台 BTC 存量','Platform BTC held'],
+  vol24:['24H 交易总量','24H volume'],volAll:['历史总交易量','All-time volume'],
+  new24:['24H 新发布','Launched in 24H'],tokAll:['平台代币总数','Tokens on platform'],
+  act24:['24H 交易笔数','24H trades'],userAll:['平台总注册账号','Registered accounts'],
+  rev24:['24H 平台抽成','24H platform cut'],revAll:['累计平台抽成','All-time platform cut'],
+  chart:['24 小时走势','Last 24 hours'],
+  chartNo:['24 小时内没有成交','no trades in the last 24 hours'],
+  volLab:['成交量','Volume'],nowLab:['现在','now'],
+  nMc:['市值','Market cap'],nPrice:['单价','Price'],
+  nHold:['持仓人数','Holders'],nPool:['池子总量','Pool size'],
+  nFee:['做市者累计收益','Earned by providers'],nApy:['加池子年化','LP fee APY'],
+  apyNote:['按过去 24 小时手续费简单年化','simple, from the last 24h of fees'],
+  foot:['NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议，只有面条。🍜',
+        'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles.'],
+  src:'noodl.club'
+};
+const revNote=n=>['每笔 AMM 兑换 '+n+'% 归平台',n+'% of every AMM swap'];
 let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
 if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
 let D=null;
 
 /* ================= helpers ================= */
-const nf=(v,d)=>Number(v).toLocaleString(lang==='zh'?'zh-CN':'en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+/* Pinned to one locale: every number here ends up on the bilingual poster, so
+   it must not shift with the page toggle. zh-CN and en-US group identically. */
+const nf=(v,d)=>Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
 function fmtUsd(v){
   const a=Math.abs(v);
   if(a>=1e6)return '$'+nf(v/1e6,2)+'M';
@@ -312,18 +313,19 @@ function rr(c,x,y,w,h,r){
 
 async function draw(){
   if(!D)return;
-  const ui=I18N[lang];
   const cv=$('#poster'),c=cv.getContext('2d');
   const P=26, GAP=12;
   const colW=(W-P*2-GAP)/2;
 
   /* Card heights are derived from what stat() actually draws rather than
-     guessed: a stat starting at offset o puts its label at o, the value at
-     o+30 and the sub at o+48, so the card has to reach o+56 or the sub is
-     clipped off the bottom edge. */
-  const S1=58, S2=128, SH=56;
-  const H_HEAD=96, H_CARD=S2+SH, H_REV=S1+SH, H_CHART=250, H_NSTAT=S2+SH+16, H_FOOT=100;
-  const H=P+H_HEAD+H_CARD+GAP+H_CARD+GAP+H_REV+GAP+H_CHART+GAP+H_NSTAT+H_FOOT+P;
+     guessed: a stat starting at offset o puts its 中文 label at o, the English
+     one at o+13, the value at o+38 and the sub at o+56, so the card has to
+     reach o+62 or the sub is clipped off the bottom edge. */
+  const S1=62, S2=140, SH=68;
+  const H_SEC=30;
+  const H_HEAD=104, H_CARD=S2+SH, H_REV=S1+SH, H_CHART=250, H_NSTAT=S2+SH+16, H_FOOT=110;
+  const H=P+H_HEAD+H_SEC+H_CARD+GAP+H_CARD+GAP+H_REV+GAP
+          +H_SEC+H_CHART+GAP+H_NSTAT+H_FOOT+P;
 
   const dpr=2;
   cv.width=W*dpr;cv.height=H*dpr;
@@ -337,9 +339,11 @@ async function draw(){
 
   // ---------- header ----------
   c.fillStyle='#fafafa';c.font=F(800,34);c.textAlign='left';
-  c.fillText('🍜 '+ui.title,P,y+34);
+  c.fillText('🍜 '+PL.title[0],P,y+34);
+  c.fillStyle='#6b6d7c';c.font=F(600,12);
+  c.fillText(PL.title[1],P+2,y+54);
   c.fillStyle='#6b6d7c';c.font=F(500,12);c.textAlign='right';
-  c.fillText(ui.stamp,W-P,y+18);
+  c.fillText(PL.stamp[0]+' · '+PL.stamp[1],W-P,y+18);
   c.fillStyle='#a8aab8';c.font=F(600,15);
   c.fillText(fmtStamp(D.stamp),W-P,y+40);
   c.textAlign='left';
@@ -348,56 +352,83 @@ async function draw(){
   c.beginPath();c.moveTo(P,y+.5);c.lineTo(W-P,y+.5);c.stroke();
   y+=20;
 
+  const bi=a=>a[0]+' · '+a[1];
+  /* Names the block the numbers below belong to, then rules out to the right
+     edge, so platform-wide figures can never be read as NOODL's own. */
+  const secHead=(yy,lab,accent)=>{
+    c.textAlign='left';
+    c.font=F(700,13);c.fillStyle=accent;
+    c.fillText(lab[0],P,yy);
+    const w1=c.measureText(lab[0]).width;
+    c.font=F(500,11.5);c.fillStyle='#565866';
+    c.fillText(lab[1],P+w1+10,yy);
+    const x2=P+w1+10+c.measureText(lab[1]).width+14;
+    c.strokeStyle='#27272a';c.lineWidth=1;
+    c.beginPath();c.moveTo(x2,yy-4.5);c.lineTo(W-P,yy-4.5);c.stroke();
+  };
+
   const card=(x,yy,w,h,title,accent)=>{
     c.fillStyle='#18181d';rr(c,x,yy,w,h,12);c.fill();
     c.strokeStyle='#27272a';c.lineWidth=1;rr(c,x+.5,yy+.5,w-1,h-1,12);c.stroke();
     c.fillStyle=accent||'#a8aab8';c.font=F(700,14);
-    c.fillText(title,x+16,yy+26);
+    c.textAlign='left';c.fillText(title,x+16,yy+26);
   };
-  // one figure inside a card: label, big value, optional sub
-  const stat=(x,yy,label,value,color,sub)=>{
-    c.fillStyle='#6b6d7c';c.font=F(600,11.5);
-    c.fillText(label,x,yy);
-    c.fillStyle=color||'#fafafa';c.font=F(700,25);
-    c.fillText(value,x,yy+30);
-    if(sub){c.fillStyle='#6b6d7c';c.font=F(500,11.5);c.fillText(sub,x,yy+48);}
+  // one figure inside a card: bilingual label, big value, optional sub
+  const stat=(x,yy,lab,value,color,sub)=>{
+    c.textAlign='left';
+    c.fillStyle='#6b6d7c';c.font=F(600,11.5);c.fillText(lab[0],x,yy);
+    c.fillStyle='#565866';c.font=F(500,10);c.fillText(lab[1],x,yy+13);
+    c.fillStyle=color||'#fafafa';c.font=F(700,25);c.fillText(value,x,yy+38);
+    if(sub){c.fillStyle='#6b6d7c';c.font=F(500,11.5);c.fillText(sub,x,yy+56);}
+  };
+  // a right-aligned two-line note, for the caveats that hang off a card header
+  const note=(x,yy,lab)=>{
+    c.textAlign='right';
+    c.fillStyle='#6b6d7c';c.font=F(500,11.5);c.fillText(lab[0],x,yy);
+    c.fillStyle='#565866';c.font=F(500,10);c.fillText(lab[1],x,yy+14);
+    c.textAlign='left';
   };
 
-  // ---------- platform 2x2 ----------
+  // ---------- ODIN·FUN platform ----------
+  secHead(y+14,PL.secPlat,'#00ffff');
+  y+=H_SEC;
+
   const p=D.plat;
   const L=P,R=P+colW+GAP;
-  card(L,y,colW,H_CARD,ui.cAsset);
-  stat(L+16,y+S1,ui.btc24,
+  card(L,y,colW,H_CARD,bi(PL.cAsset));
+  stat(L+16,y+S1,PL.btc24,
     p.btcDelta===null?'—':signNum(p.btcDelta,4)+' BTC',
     p.btcDelta===null?'#6b6d7c':(p.btcDelta>=0?'#3ddc84':'#ff6b6b'),
     p.btcDelta===null?'':sign(p.btcDelta)+fmtUsd(Math.abs(p.btcDelta)*D.btcUsd).replace('$','$'));
-  stat(L+16,y+S2,ui.btcHold,fmtBtc(p.btcNow)+' BTC','#fafafa',fmtUsd(p.btcNow*D.btcUsd));
+  stat(L+16,y+S2,PL.btcHold,fmtBtc(p.btcNow)+' BTC','#fafafa',fmtUsd(p.btcNow*D.btcUsd));
 
-  card(R,y,colW,H_CARD,ui.cTrade);
-  stat(R+16,y+S1,ui.vol24,fmtBtc(p.vol24)+' BTC','#fcd14f',fmtUsd(p.vol24*D.btcUsd));
-  stat(R+16,y+S2,ui.volAll,fmtBtc(p.volAll)+' BTC','#fafafa',fmtUsd(p.volAll*D.btcUsd));
+  card(R,y,colW,H_CARD,bi(PL.cTrade));
+  stat(R+16,y+S1,PL.vol24,fmtBtc(p.vol24)+' BTC','#fcd14f',fmtUsd(p.vol24*D.btcUsd));
+  stat(R+16,y+S2,PL.volAll,fmtBtc(p.volAll)+' BTC','#fafafa',fmtUsd(p.volAll*D.btcUsd));
   y+=H_CARD+GAP;
 
-  card(L,y,colW,H_CARD,ui.cToken);
-  stat(L+16,y+S1,ui.new24,nf(p.new24,0),'#fafafa');
-  stat(L+16,y+S2,ui.tokAll,nf(p.tokens,0),'#fafafa');
+  card(L,y,colW,H_CARD,bi(PL.cToken));
+  stat(L+16,y+S1,PL.new24,nf(p.new24,0),'#fafafa');
+  stat(L+16,y+S2,PL.tokAll,nf(p.tokens,0),'#fafafa');
 
-  card(R,y,colW,H_CARD,ui.cUser);
-  stat(R+16,y+S1,ui.act24,p.trades24===null?'—':nf(p.trades24,0),'#fafafa');
-  stat(R+16,y+S2,ui.userAll,nf(p.users,0),'#fafafa');
+  card(R,y,colW,H_CARD,bi(PL.cUser));
+  stat(R+16,y+S1,PL.act24,p.trades24===null?'—':nf(p.trades24,0),'#fafafa');
+  stat(R+16,y+S2,PL.userAll,nf(p.users,0),'#fafafa');
   y+=H_CARD+GAP;
 
   // ---------- platform revenue ----------
-  card(P,y,W-P*2,H_REV,ui.cRev,'#00ffff');
-  c.fillStyle='#6b6d7c';c.font=F(500,11.5);c.textAlign='right';
-  c.fillText(ui.revNote(nf(p.plPct,1)),W-P-16,y+26);c.textAlign='left';
-  stat(P+16,y+S1,ui.rev24,fmtUsd(p.rev24*D.btcUsd),'#00ffff',fmtBtc(p.rev24)+' BTC');
-  stat(P+16+(W-P*2)/2,y+S1,ui.revAll,fmtUsd(p.revAll*D.btcUsd),'#fafafa',fmtBtc(p.revAll)+' BTC');
+  card(P,y,W-P*2,H_REV,bi(PL.cRev),'#00ffff');
+  note(W-P-16,y+20,revNote(nf(p.plPct,1)));
+  stat(P+16,y+S1,PL.rev24,fmtUsd(p.rev24*D.btcUsd),'#00ffff',fmtBtc(p.rev24)+' BTC');
+  stat(P+16+(W-P*2)/2,y+S1,PL.revAll,fmtUsd(p.revAll*D.btcUsd),'#fafafa',fmtBtc(p.revAll)+' BTC');
   y+=H_REV+GAP;
 
-  // ---------- NOODL 24h chart ----------
-  card(P,y,W-P*2,H_CHART,ui.chart,'#fcd14f');
+  // ---------- NOODL ----------
+  secHead(y+14,PL.secNoodl,'#fcd14f');
+  y+=H_SEC;
+
   const n=D.noodl;
+  card(P,y,W-P*2,H_CHART,bi(PL.chart),'#fcd14f');
   c.textAlign='right';
   c.fillStyle=n.chg24>=0?'#3ddc84':'#ff6b6b';c.font=F(700,14);
   c.fillText(sign(n.chg24)+nf(Math.abs(n.chg24),1)+'%',W-P-16,y+26);
@@ -405,21 +436,20 @@ async function draw(){
   drawChart(c,P+16,y+42,W-P*2-32,H_CHART-58);
   y+=H_CHART+GAP;
 
-  // ---------- NOODL stats ----------
   card(P,y,W-P*2,H_NSTAT,'NOODL','#00ffff');
   const cw=(W-P*2-32)/4;
   const bx=P+16;
-  stat(bx,y+S1,ui.nMc,fmtBtc(n.mcBtc)+' BTC','#fafafa',fmtUsd(n.mcBtc*D.btcUsd));
-  stat(bx+cw,y+S1,ui.nPrice,fmtUsd(n.price/MS*D.btcUsd),'#fafafa',(n.price/MS).toExponential(2)+' BTC');
-  stat(bx+cw*2,y+S1,ui.nHold,nf(n.holders,0),'#fafafa',
-    ui.nHold24+' '+(n.holdersDelta===0?'0':signNum(n.holdersDelta,0)));
-  stat(bx+cw*3,y+S1,ui.nPool,fmtBtc(n.poolNow)+' BTC','#fcd14f',
-    ui.nPool24+' '+signNum(n.poolDelta,4));
-  stat(bx,y+S2,ui.nFee,fmtUsd(n.lpFeeAll*D.btcUsd),'#3ddc84',fmtBtc(n.lpFeeAll)+' BTC');
-  stat(bx+cw,y+S2,ui.nApy,nf(n.apy,1)+'%','#3ddc84',nf(n.lpPct,1)+'% → LP');
+  stat(bx,y+S1,PL.nMc,fmtBtc(n.mcBtc)+' BTC','#fafafa',fmtUsd(n.mcBtc*D.btcUsd));
+  stat(bx+cw,y+S1,PL.nPrice,fmtUsd(n.price/MS*D.btcUsd),'#fafafa',(n.price/MS).toExponential(2)+' BTC');
+  // "24H" carries the meaning in both languages, so the sub needs no label
+  stat(bx+cw*2,y+S1,PL.nHold,nf(n.holders,0),'#fafafa',
+    '24H '+(n.holdersDelta===0?'0':signNum(n.holdersDelta,0)));
+  stat(bx+cw*3,y+S1,PL.nPool,fmtBtc(n.poolNow)+' BTC','#fcd14f',
+    '24H '+signNum(n.poolDelta,4));
+  stat(bx,y+S2,PL.nFee,fmtUsd(n.lpFeeAll*D.btcUsd),'#3ddc84',fmtBtc(n.lpFeeAll)+' BTC');
+  stat(bx+cw,y+S2,PL.nApy,nf(n.apy,1)+'%','#3ddc84',nf(n.lpPct,1)+'% → LP');
   // parked in the empty right half of the second row, on its value baseline
-  c.fillStyle='#6b6d7c';c.font=F(500,11);c.textAlign='right';
-  c.fillText(ui.apyNote,W-P-16,y+S2+30);c.textAlign='left';
+  note(W-P-16,y+S2+24,PL.apyNote);
   y+=H_NSTAT;
 
   // ---------- footer ----------
@@ -428,19 +458,23 @@ async function draw(){
   y+=24;
   c.textAlign='center';
   c.fillStyle='#a8aab8';c.font=F(500,12.5);
-  c.fillText(ui.foot,W/2,y);
+  c.fillText(PL.foot[0],W/2,y);
+  c.fillStyle='#6b6d7c';c.font=F(500,11.5);
+  c.fillText(PL.foot[1],W/2,y+20);
   c.fillStyle='#00c9c9';c.font=F(600,12.5);
-  c.fillText(ui.src,W/2,y+22);
+  c.fillText(PL.src,W/2,y+44);
   c.textAlign='left';
 }
 
 /* Price line plus volume bars in one frame: volume owns the bottom third and
    is drawn first so the price line always sits on top of it. */
 function drawChart(c,x,y,w,h){
-  const ui=I18N[lang],s=D.series;
+  const s=D.series;
   if(!s||s.length<2){
     c.fillStyle='#6b6d7c';c.font=F(500,12);
-    c.fillText(ui.chartNo,x,y+h/2);return;
+    c.fillText(PL.chartNo[0],x,y+h/2-8);
+    c.fillStyle='#565866';c.font=F(500,11);
+    c.fillText(PL.chartNo[1],x,y+h/2+8);return;
   }
   const ps=s.map(d=>d.p),vs=s.map(d=>d.v);
   let lo=Math.min.apply(null,ps),hi=Math.max.apply(null,ps);
@@ -471,7 +505,7 @@ function drawChart(c,x,y,w,h){
   });
   // the volume scale label goes above its own band, clear of the axis row
   c.fillStyle='#6b6d7c';c.font=F(500,10);c.textAlign='left';
-  c.fillText(ui.volLab+' ≤ '+fmtBtc(vmax)+' BTC',x,y+h-volH-4);
+  c.fillText(PL.volLab[0]+' '+PL.volLab[1]+' ≤ '+fmtBtc(vmax)+' BTC',x,y+h-volH-4);
 
   // price area + line
   c.beginPath();
@@ -487,7 +521,7 @@ function drawChart(c,x,y,w,h){
   // time axis: two ends only, so nothing can collide in between
   c.fillStyle='#6b6d7c';c.font=F(500,10);c.textAlign='left';
   c.fillText('-24h',x,y+h+11);
-  c.textAlign='right';c.fillText(ui.nowLab,x+w-64,y+h+11);
+  c.textAlign='right';c.fillText(PL.nowLab[0]+' '+PL.nowLab[1],x+w-64,y+h+11);
   c.textAlign='left';
 }
 
