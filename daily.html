@@ -108,7 +108,7 @@ const I18N={
   vol24:'24H 交易总量',volAll:'历史总交易量',
   new24:'24H 新发布',tokAll:'平台代币总数',
   act24:'24H 交易笔数',userAll:'平台总注册账号',
-  rev24:'24H 平台抽成',revAll:'累计平台抽成',revNote:'每笔交易 0.7% 归平台',
+  rev24:'24H 平台抽成',revAll:'累计平台抽成',revNote:n=>'每笔 AMM 兑换 '+n+'% 归平台',
   chart:'NOODL · 24 小时走势',chartNo:'24 小时内没有成交',
   priceLab:'单价',volLab:'成交量',nowLab:'现在',
   nMc:'市值',nPrice:'单价',
@@ -131,7 +131,7 @@ const I18N={
   vol24:'24H volume',volAll:'All-time volume',
   new24:'Launched in 24H',tokAll:'Tokens on platform',
   act24:'24H trades',userAll:'Registered accounts',
-  rev24:'24H platform cut',revAll:'All-time platform cut',revNote:'0.7% of every swap',
+  rev24:'24H platform cut',revAll:'All-time platform cut',revNote:n=>n+'% of every AMM swap',
   chart:'NOODL · last 24 hours',chartNo:'no trades in the last 24 hours',
   priceLab:'price',volLab:'volume',nowLab:'now',
   nMc:'Market cap',nPrice:'Price',
@@ -390,7 +390,7 @@ async function draw(){
   // ---------- platform revenue ----------
   card(P,y,W-P*2,H_REV,ui.cRev,'#00ffff');
   c.fillStyle='#6b6d7c';c.font=F(500,11.5);c.textAlign='right';
-  c.fillText(ui.revNote,W-P-16,y+26);c.textAlign='left';
+  c.fillText(ui.revNote(nf(p.plPct,1)),W-P-16,y+26);c.textAlign='left';
   stat(P+16,y+S1,ui.rev24,fmtUsd(p.rev24*D.btcUsd),'#00ffff',fmtBtc(p.rev24)+' BTC');
   stat(P+16+(W-P*2)/2,y+S1,ui.revAll,fmtUsd(p.revAll*D.btcUsd),'#fafafa',fmtBtc(p.revAll)+' BTC');
   y+=H_REV+GAP;

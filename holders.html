@@ -1022,8 +1022,13 @@ function render(){
   let p=statHtml(ui.poolSize,fmtBtc(poolValBtc)+' <span class="cy">BTC</span>',
     fmtUsd(poolValBtc*S.btcUsd)+' · '+nf(mcBtc?poolValBtc/mcBtc*100:0,1)+'%');
   p+=statHtml(ui.vol24,fmtBtc(S.vol24Btc)+' <span class="cy">BTC</span>',fmtUsd(S.vol24Btc*S.btcUsd));
+  // both halves come from /settings, so the total cannot drift out of step with
+  // the platform's own numbers the way a hardcoded one would
+  const platFeePct=Number(S.set.swap_platform_fee)/1000;
+  const totFeePct=platFeePct+S.lpFeePct;
   p+=statHtml(ui.lpFee,nf(S.lpFeePct,1)+'%',
-    lang==='zh'?'平台 '+nf(Number(S.set.swap_platform_fee)/1000,1)+'%，合计 1%':'platform '+nf(Number(S.set.swap_platform_fee)/1000,1)+'%, 1% total');
+    lang==='zh'?'平台 '+nf(platFeePct,1)+'%，合计 '+nf(totFeePct,1)+'%'
+               :'platform '+nf(platFeePct,1)+'%, '+nf(totFeePct,1)+'% total');
   p+=statHtml(ui.apy,'<span class="'+(apy>0?'up':'')+'">'+nf(apy,1)+'%</span>',
     fmtBtc(lpFee24)+' BTC / '+(lang==='zh'?'天':'day'),null,
     lang==='zh'?'按过去 24 小时简单年化':'simple, from the last 24h');
