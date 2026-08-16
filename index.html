@@ -969,7 +969,7 @@ en:{
     whatFirstH:'Why "first" is the whole point',
     whatFirstP:'No ecosystem takes <b>first-is-first</b> more seriously than Bitcoin\'s. Bitcoin is the origin of the industry; CryptoPunks of NFT culture; ORDI of the inscriptions era. Each ecosystem\'s first became that ecosystem\'s totem, not because of the words "the first", but because it carries the earliest cultural memory of an era, and rises as high as the ecosystem itself grows. NOODL is v2-original: no history on v1, no replica to argue with. When v1\'s runes and communities migrate across, originals and copies will coexist under the same names, a war of legitimacy NOODL never has to fight.',
     tblH:'How far each "first" actually went',
-    tblLead:'Every wave in the Bitcoin ecosystem has been driven by its First. Around 90% of the returns inside an ecosystem settle into that First: when the First flies, the ecosystem rises; when the First fades, the ecosystem enters an irreversible downcycle. Here is the high-water mark each of them reached, and where NOODL stands today.',
+    tblLead:'Every wave in the Bitcoin ecosystem has been driven by the First of its track. Around 90% of the returns inside an ecosystem settle into that First: when the First flies, the ecosystem rises; when the First fades, the ecosystem enters an irreversible downcycle. Here is the high-water mark each of them reached, and where NOODL stands today.',
     thAsset:'Asset',thProto:'Protocol / venue',thStart:'Start',
     thPeak:'Peak price',thPeakMc:'Peak market cap',thX:'Multiple',
     tblFree:'free mint',tblAir:'airdrop',tblLaunch:'launch cap',
@@ -1082,7 +1082,7 @@ zh:{
     whatFirstH:'为什么「第一」就是全部',
     whatFirstP:'没有哪个生态比比特币更看重<b>first is first</b>。比特币是整个行业的起点，CryptoPunks 是 NFT 文化的起点，ORDI 是铭文生态的起点：每个生态的第一，最后都成了那个生态的图腾。原因不在「第一」这两个字，而在于它承载了一个时代最早的文化记忆，并随着生态本身长多高就被抬多高。NOODL 是 v2 原生：在 v1 没有历史，也就没有复制品要争。等 v1 的符文与社区迁移过来，同名的原版与复制版将在同一平台共存，而这场正统性之战，NOODL 从不需要打。',
     tblH:'每个「第一」最后长到了多大',
-    tblLead:'比特币生态的每一轮浪潮，都由生态 First 推动。生态内 90% 的收益也会沉淀至 First 项目，First 起飞，则生态崛起；First 没落，则生态不可逆地开启下行周期。下面是它们各自到过的最高点，以及 NOODL 今天所在的位置。',
+    tblLead:'比特币生态的每一轮浪潮，都由赛道 First 推动。生态内 90% 的收益也会沉淀至 First 项目，First 起飞，则生态崛起；First 没落，则生态不可逆地开启下行周期。下面是它们各自到过的最高点，以及 NOODL 今天所在的位置。',
     thAsset:'标的',thProto:'协议 / 平台',thStart:'起点',
     thPeak:'峰值单价',thPeakMc:'峰值市值',thX:'倍数',
     tblFree:'free mint',tblAir:'空投',tblLaunch:'发射市值',
@@ -1481,8 +1481,10 @@ const FIRSTS=[
   {a:'DIESEL',    p:'Alkanes',          s:'$21K',  sK:'free',pp:'$35.46',   mc:'$55.4M',x:'2,638×'},
   {a:'NodeMonkes',p:'Ordinals',         s:'$21K',  sK:'free',pp:'$55,890',ppS:'0.83 BTC',mc:'$559M',x:'26,614×'},
   {a:'NAT',       p:'DMT',              s:'$21K',  sK:'free',pp:'$3.93e-7', mc:'$152M', x:'7,257×'},
-  {a:'RSIC',      p:'Runes',            s:null,    sK:'air', pp:'$0.0193',  mc:'$406M', x:null},
-  {a:'ODINDOG',   p:'ODIN·FUN test',    s:'$3,000',sK:'cap', pp:'$1.67',    mc:'$35M',  x:'11,667×'},
+  {a:'RSIC',      p:'Runes',            s:'$21K',  sK:'air', pp:'$0.0193',  mc:'$406M', x:'19,329×'},
+  // launched off the same odin.fun curve as NOODL, so its start is the same
+  // 0.211 BTC and its multiple has to be struck at the live rate too
+  {a:'ODINDOG',   p:'ODIN·FUN test',    sBtc:0.211,sK:'cap', pp:'$1.67',    mc:'$35M',  mcNum:35e6},
   {a:'NOODL',     p:'ODIN·FUN Official',live:true}
 ];
 
@@ -1526,6 +1528,7 @@ function renderCmp(){
   const startLab={free:ui.tblFree,air:ui.tblAir,cap:ui.tblLaunch};
   const sub=t=>t?'<span class="era">'+t+'</span>':'';
   const cell=v=>v==null?'—':v;
+  const btcUsd=state.btcUsd||0;
   tb.innerHTML=FIRSTS.map(r=>{
     if(r.live){
       bumpAth(state.mc);
@@ -1540,12 +1543,16 @@ function renderCmp(){
     }
     return '<tr><td class="asset">'+r.a+'</td>'
       +'<td class="proto">'+r.p+'</td>'
-      // with no figure of its own the label carries the cell, so it reads as a
-      // statement rather than a blank someone forgot to fill in
-      +'<td class="start">'+(r.s?r.s+sub(startLab[r.sK]):startLab[r.sK])+'</td>'
+      // a BTC-denominated start is struck at the live rate, so its multiple is
+      // computed here rather than baked in
+      +'<td class="start">'+(r.sBtc
+          ?(btcUsd?fmtUsd(r.sBtc*btcUsd):'—')+sub(r.sBtc+' BTC')
+          :r.s+sub(startLab[r.sK]))+'</td>'
       +'<td class="num">'+cell(r.pp)+sub(r.ppS?r.ppS+' '+ui.tblFloor:'')+'</td>'
       +'<td class="mc">'+cell(r.mc)+'</td>'
-      +'<td class="x">'+cell(r.x)+'</td></tr>';
+      +'<td class="x">'+(r.sBtc
+          ?(btcUsd?Math.round(r.mcNum/(r.sBtc*btcUsd)).toLocaleString('en-US')+'×':'—')
+          :cell(r.x))+'</td></tr>';
   }).join('');
 }
 if('requestIdleCallback' in window)requestIdleCallback(()=>scanRecentAth(),{timeout:8000});
