@@ -135,9 +135,10 @@ const PL={
   chartNo:['24 小时内没有成交','no trades in the last 24 hours'],
   volLab:['成交量','Volume'],nowLab:['现在','now'],
   nMc:['市值','Market cap'],nPrice:['单价','Price'],
-  nHold:['持仓人数','Holders'],nPool:['池子总量','Pool size'],
-  nFee:['做市者累计收益','Earned by providers'],nApy:['加池子年化','LP fee APY'],
-  apyNote:['按过去 24 小时手续费简单年化','simple, from the last 24h of fees'],
+  nHold:['持仓人数','Holders'],nVol24:['24H 交易量','24H volume'],
+  nPool:['池子总量','Pool size'],
+  nFee:['做市者累计收益','Earned by providers'],nFee24:['做市者 24H 收益','Providers earned 24H'],
+  nApy:['加池子年化','LP fee APY'],
   foot:['NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议，只有面条。🍜',
         'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles.'],
   src:'noodl.club'
@@ -329,7 +330,7 @@ async function load(){
       chg24:price24?(price-price24)/price24*100:0,
       holders:holdersNow,holdersDelta:holdersDelta,
       poolNow:poolNow,poolDelta:poolNow-pool24,
-      lpFeeAll:lpFeeAll,apy:apy,lpPct:lpPct*100
+      vol24:vol24Noodl,lpFeeAll:lpFeeAll,lpFee24:vol24Noodl*lpPct,apy:apy,lpPct:lpPct*100
     },
     series:series
   };
@@ -482,12 +483,12 @@ async function draw(){
   // "24H" carries the meaning in both languages, so the sub needs no label
   stat(bx+cw*2,y+S1,PL.nHold,nf(n.holders,0),'#fafafa',
     '24H '+(n.holdersDelta===0?'0':signNum(n.holdersDelta,0)));
-  stat(bx+cw*3,y+S1,PL.nPool,fmtBtc(n.poolNow)+' BTC','#fcd14f',
+  stat(bx+cw*3,y+S1,PL.nVol24,fmtBtc(n.vol24)+' BTC','#fcd14f',fmtUsd(n.vol24*D.btcUsd));
+  stat(bx,y+S2,PL.nPool,fmtBtc(n.poolNow)+' BTC','#fcd14f',
     '24H '+signNum(n.poolDelta,4));
-  stat(bx,y+S2,PL.nFee,fmtUsd(n.lpFeeAll*D.btcUsd),'#3ddc84',fmtBtc(n.lpFeeAll)+' BTC');
-  stat(bx+cw,y+S2,PL.nApy,nf(n.apy,1)+'%','#3ddc84',nf(n.lpPct,1)+'% → LP');
-  // parked in the empty right half of the second row, on its value baseline
-  note(W-P-16,y+S2+24,PL.apyNote);
+  stat(bx+cw,y+S2,PL.nFee,fmtUsd(n.lpFeeAll*D.btcUsd),'#3ddc84',fmtBtc(n.lpFeeAll)+' BTC');
+  stat(bx+cw*2,y+S2,PL.nFee24,fmtUsd(n.lpFee24*D.btcUsd),'#3ddc84',fmtBtc(n.lpFee24)+' BTC');
+  stat(bx+cw*3,y+S2,PL.nApy,nf(n.apy,1)+'%','#3ddc84',nf(n.lpPct,1)+'% → LP');
   y+=H_NSTAT;
 
   // ---------- footer ----------
