@@ -162,6 +162,25 @@ a{color:inherit}
 .morph.on.join .p3{padding-left:0;border-top-left-radius:0;border-bottom-left-radius:0;border-left-width:0;border-left-color:transparent}
 /* no motion available — still show which letters NOODL is built from */
 .morph.still i.d{color:var(--dim)}
+/* First-narrative comparison. The table is wider than a phone, so it scrolls
+   inside its own box rather than pushing the page sideways. */
+.tblwrap{margin:20px 0 10px;overflow-x:auto;border:1px solid var(--line);border-radius:10px;
+  background:var(--panel);-webkit-overflow-scrolling:touch}
+table.cmp{border-collapse:collapse;width:100%;min-width:700px;font-size:12.5px}
+table.cmp th,table.cmp td{padding:10px 13px;text-align:left;white-space:nowrap;
+  border-bottom:1px solid var(--line)}
+table.cmp thead th{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.04em;
+  text-transform:uppercase;background:rgba(255,255,255,.02);position:sticky;top:0}
+table.cmp tbody tr:last-child td{border-bottom:0}
+table.cmp td.num{font-variant-numeric:tabular-nums;text-align:right}
+table.cmp td.asset{font-weight:600;color:var(--text)}
+table.cmp td.proto,table.cmp td.start{color:var(--dim);min-width:118px}
+table.cmp td.mc{font-variant-numeric:tabular-nums;text-align:right;color:var(--text)}
+table.cmp td.x{font-variant-numeric:tabular-nums;text-align:right;color:var(--noodle-y);font-weight:600}
+table.cmp tr.self td{background:rgba(0,255,255,.05)}
+table.cmp tr.self td.asset,table.cmp tr.self td.x{color:var(--cyan)}
+table.cmp .era{font-size:10.5px;color:var(--dim);display:block;font-weight:400;margin-top:2px}
+.tblnote{font-size:11.5px!important;color:var(--dim)!important;line-height:1.7!important;margin-top:10px!important}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0}
 .fact{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
 .fact b{display:block;font-size:19px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums;line-height:1.2}
@@ -722,6 +741,25 @@ footer a:hover{color:var(--cyan)}
 
       <h3 data-i="whatFirstH">Why "first" is the whole point</h3>
       <p data-i="whatFirstP">No ecosystem takes <b>first-is-first</b> more seriously than Bitcoin's. Bitcoin is the origin of the industry; CryptoPunks of NFT culture; ORDI of the inscriptions era. Each ecosystem's first became that ecosystem's totem, not because of the words "the first", but because it carries the earliest cultural memory of an era, and rises as high as the ecosystem itself grows. NOODL is v2-original: no history on v1, no replica to argue with. When v1's runes and communities migrate across, originals and copies will coexist under the same names, a war of legitimacy NOODL never has to fight.</p>
+      <h3 data-i="tblH">How far each "first" actually went</h3>
+      <p data-i="tblLead">Every era of Bitcoin issuance produced exactly one first. Here is what each of them reached at its peak, and where NOODL sits today.</p>
+      <div class="tblwrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th data-i="thAsset">Asset</th>
+              <th data-i="thProto">Protocol / venue</th>
+              <th data-i="thStart">Start</th>
+              <th data-i="thPeak">Peak price</th>
+              <th data-i="thPeakMc">Peak market cap</th>
+              <th data-i="thX">Max multiple</th>
+            </tr>
+          </thead>
+          <tbody id="cmpRows"></tbody>
+        </table>
+      </div>
+      <p class="tblnote" data-i="tblNote">Peak figures are the highest ever reached, not today's price. NOODL's row is read live from the odin.fun API and rises on its own if NOODL makes a new high.</p>
+
       <p class="quote" data-i="whatQuote">"The first is the first, forever: the only moat in this world that needs no maintenance."</p>
     </section>
 
@@ -927,6 +965,13 @@ en:{
     factFirst:"NOODL's launch position on v2, permanently",
     whatFirstH:'Why "first" is the whole point',
     whatFirstP:'No ecosystem takes <b>first-is-first</b> more seriously than Bitcoin\'s. Bitcoin is the origin of the industry; CryptoPunks of NFT culture; ORDI of the inscriptions era. Each ecosystem\'s first became that ecosystem\'s totem, not because of the words "the first", but because it carries the earliest cultural memory of an era, and rises as high as the ecosystem itself grows. NOODL is v2-original: no history on v1, no replica to argue with. When v1\'s runes and communities migrate across, originals and copies will coexist under the same names, a war of legitimacy NOODL never has to fight.',
+    tblH:'How far each "first" actually went',
+    tblLead:'Every wave of Bitcoin issuance produced exactly one first. Here is the high-water mark each of them reached, and where NOODL stands today.',
+    thAsset:'Asset',thProto:'Protocol / venue',thStart:'Start',
+    thPeak:'Peak price',thPeakMc:'Peak market cap',thX:'Max multiple',
+    tblFree:'Free mint',tblAir:'RSIC airdrop',tblLaunch:'launch cap',
+    tblFloor:'floor',tblLive:'live',
+    tblNote:'Peak figures are all-time highs, not today’s prices. For a free mint the start is the mint cost itself, roughly $1 per 1,000 tokens; a multiple is shown only where the starting point is well defined. NOODL’s row is read live from the odin.fun API, so it moves on its own if NOODL sets a new high.',
     whatQuote:'"The first is the first, forever: the only moat in this world that needs no maintenance."',
     kCulture:'02: Culture',
     cultH:'The culture in a bowl of noodles',
@@ -1033,6 +1078,13 @@ zh:{
     factFirst:'NOODL 在 v2 的发射序位：永久',
     whatFirstH:'为什么「第一」就是全部',
     whatFirstP:'没有哪个生态比比特币更看重<b>first is first</b>。比特币是整个行业的起点，CryptoPunks 是 NFT 文化的起点，ORDI 是铭文生态的起点：每个生态的第一，最后都成了那个生态的图腾。原因不在「第一」这两个字，而在于它承载了一个时代最早的文化记忆，并随着生态本身长多高就被抬多高。NOODL 是 v2 原生：在 v1 没有历史，也就没有复制品要争。等 v1 的符文与社区迁移过来，同名的原版与复制版将在同一平台共存，而这场正统性之战，NOODL 从不需要打。',
+    tblH:'每个「第一」最后长到了多大',
+    tblLead:'比特币的每一轮发行浪潮，都只留下一个第一。下面是它们各自到过的最高点，以及 NOODL 今天所在的位置。',
+    thAsset:'标的',thProto:'协议 / 平台',thStart:'起点',
+    thPeak:'峰值单价',thPeakMc:'峰值市值',thX:'最高倍数',
+    tblFree:'免费 mint',tblAir:'RSIC 空投',tblLaunch:'发射市值',
+    tblFloor:'地板',tblLive:'实时',
+    tblNote:'峰值均为历史最高点，不是现价。免费 mint 的起点按 mint 成本计，约 1 美元 1000 枚；起点不明确的不标倍数。NOODL 一行实时读取 odin.fun 接口，创出新高会自动更新。',
     whatQuote:'「第一就是第一，永远如此：这是世上唯一不需要维护的护城河。」',
     kCulture:'02：文化',
     cultH:'一碗面里的文化',
@@ -1412,10 +1464,84 @@ async function refresh(){
   }finally{refreshing=false;}
 }
 
+/* ============ first-narrative comparison ============
+   One row per protocol era's first asset, each at its own high-water mark.
+   Peaks are all-time highs, not current prices, so every row except NOODL's is
+   a fixed historical fact. Figures for ORDI, RSIC and NAT are the CoinGecko
+   all-time highs multiplied by supply; the rest are reported peaks.
+   `s:'free'` means the asset was a free mint, where the only cost was gas —
+   about $1 per 1,000 tokens, so a 21M-supply mint started life worth ~$21K. */
+const FIRSTS=[
+  {a:'ORDI',      p:'BRC-20',           s:'free',sm:'≈$21K',pp:'$95.52',  mc:'$2.01B',x:'≈95,500×'},
+  {a:'ATOM',      p:'Atomicals ARC-20', s:'free',sm:'≈$21K',pp:null,      mc:'$550M', x:'≈26,200×'},
+  {a:'Seal',      p:'RGB++',            s:null,  sm:null,   pp:null,      mc:'≈$20M', x:null},
+  {a:'DIESEL',    p:'Alkanes',          s:'free',sm:null,   pp:null,      mc:'$55.4M',x:null},
+  {a:'NodeMonkes',p:'Ordinals',         s:'free',sm:null,   pp:'0.83 BTC',ppK:'floor',mc:'$559M',x:null},
+  {a:'NAT',       p:'DMT',              s:'free',sm:null,   pp:'$3.93e-7',mc:'$152M', x:null},
+  {a:'RSIC',      p:'Runes',            s:'air', sm:null,   pp:'$0.0193', mc:'$406M', x:null},
+  {a:'ODINDOG',   p:'ODIN·FUN v1',      s:'cap', sm:'≈$3,000',pp:null,    mc:'$35M',  x:'≈11,700×'},
+  {a:'NOODL',     p:'ODIN·FUN v2',      live:true}
+];
+
+/* NOODL's peak only ever ratchets up, so it is the running maximum of a
+   full-history scan done once by hand, whatever this browser has seen live,
+   and a slice of the trade feed pulled after the page goes idle. */
+const NOODL_ATH_SEED=4.12188;                 // BTC, full 5,719-trade scan, 2026-08-14
+const NOODL_SUPPLY=21e6, NOODL_LAUNCH=0.211;  // BTC of launch market cap
+let athMc=NOODL_ATH_SEED;
+try{const v=Number(localStorage.getItem('noodl_ath'));if(Number.isFinite(v)&&v>athMc)athMc=v;}catch(e){}
+function bumpAth(v){
+  if(!Number.isFinite(v)||v<=athMc)return false;
+  athMc=v;
+  try{localStorage.setItem('noodl_ath',String(athMc));}catch(e){}
+  return true;
+}
+async function scanRecentAth(){
+  const j=await getJson(['https://api.odin.fun/v2/token/hjrg/trades?limit=1000',
+                         '/api/odin/token/hjrg/trades?limit=1000']);
+  const d=j&&j.data;
+  if(!d||!d.length)return;
+  let hi=0;
+  for(const t of d){const p=Number(t.price);if(p>hi)hi=p;}
+  if(bumpAth(hi/1e11*NOODL_SUPPLY))renderCmp();
+}
+
+function renderCmp(){
+  const tb=$('#cmpRows');
+  if(!tb)return;
+  const ui=I18N[lang].ui;
+  const startLab={free:ui.tblFree,air:ui.tblAir,cap:ui.tblLaunch};
+  const sub=t=>t?' <span class="era">'+t+'</span>':'';
+  const cell=v=>v==null?'—':v;
+  tb.innerHTML=FIRSTS.map(r=>{
+    if(r.live){
+      bumpAth(state.mc);
+      const sats=athMc/NOODL_SUPPLY*1e8;
+      const usd=state.btcUsd?' <span class="era">'+fmtUsd(athMc*state.btcUsd)+'</span>':'';
+      return '<tr class="self"><td class="asset">NOODL</td>'
+        +'<td class="proto">ODIN·FUN v2</td>'
+        +'<td class="start">'+NOODL_LAUNCH+' BTC'+sub(ui.tblLaunch)+'</td>'
+        +'<td class="num">'+sats.toFixed(2)+' sats'+sub(ui.tblLive)+'</td>'
+        +'<td class="mc">'+fmtBtc(athMc)+' BTC'+usd+'</td>'
+        +'<td class="x">'+(athMc/NOODL_LAUNCH).toFixed(1)+'×</td></tr>';
+    }
+    const st=r.s?startLab[r.s]+sub(r.sm):cell(r.sm);
+    return '<tr><td class="asset">'+r.a+'</td>'
+      +'<td class="proto">'+r.p+'</td>'
+      +'<td class="start">'+st+'</td>'
+      +'<td class="num">'+cell(r.pp)+(r.pp&&r.ppK?sub(ui.tblFloor):'')+'</td>'
+      +'<td class="mc">'+cell(r.mc)+'</td>'
+      +'<td class="x">'+cell(r.x)+'</td></tr>';
+  }).join('');
+}
+if('requestIdleCallback' in window)requestIdleCallback(()=>scanRecentAth(),{timeout:8000});
+else setTimeout(scanRecentAth,5000);
+
 /* ================= render ================= */
 let lastLiveHtml='';
 function render(){
   const ui=I18N[lang].ui,f=fracOf(state.mc);
+  renderCmp();
   if(Math.abs(f-shownFrac)>0.0005)setProgress(f);else applyFrac(shownFrac);
   headLabelEl.textContent=(!state.live&&seeded)?'…':fmtBtc(state.mc)+' BTC';
   requestAnimationFrame(()=>{try{headLabelW=headLabelEl.getBBox().width+16;}catch(e){}placeLabels();});
