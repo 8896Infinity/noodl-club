@@ -169,6 +169,9 @@ a{color:inherit}
 table.cmp{border-collapse:collapse;width:100%;min-width:700px;font-size:12.5px}
 table.cmp th,table.cmp td{padding:10px 13px;text-align:left;white-space:nowrap;
   border-bottom:1px solid var(--line)}
+/* every row carries a two-line cell, so pinning the height keeps the ones
+   without a sub-line from sitting shorter than their neighbours */
+table.cmp tbody td{height:58px;vertical-align:middle}
 table.cmp thead th{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.04em;
   text-transform:uppercase;background:rgba(255,255,255,.02);position:sticky;top:0}
 table.cmp tbody tr:last-child td{border-bottom:0}
@@ -966,12 +969,12 @@ en:{
     whatFirstH:'Why "first" is the whole point',
     whatFirstP:'No ecosystem takes <b>first-is-first</b> more seriously than Bitcoin\'s. Bitcoin is the origin of the industry; CryptoPunks of NFT culture; ORDI of the inscriptions era. Each ecosystem\'s first became that ecosystem\'s totem, not because of the words "the first", but because it carries the earliest cultural memory of an era, and rises as high as the ecosystem itself grows. NOODL is v2-original: no history on v1, no replica to argue with. When v1\'s runes and communities migrate across, originals and copies will coexist under the same names, a war of legitimacy NOODL never has to fight.',
     tblH:'How far each "first" actually went',
-    tblLead:'Every wave of Bitcoin issuance produced exactly one first. Here is the high-water mark each of them reached, and where NOODL stands today.',
+    tblLead:'Every wave in the Bitcoin ecosystem has been driven by its First. Around 90% of the returns inside an ecosystem settle into that First: when the First flies, the ecosystem rises; when the First fades, the ecosystem enters an irreversible downcycle. Here is the high-water mark each of them reached, and where NOODL stands today.',
     thAsset:'Asset',thProto:'Protocol / venue',thStart:'Start',
-    thPeak:'Peak price',thPeakMc:'Peak market cap',thX:'Max multiple',
-    tblFree:'Free mint',tblAir:'RSIC airdrop',tblLaunch:'launch cap',
-    tblFloor:'floor',tblLive:'live',
-    tblNote:'Peak figures are all-time highs, not today’s prices. For a free mint the start is the mint cost itself, roughly $1 per 1,000 tokens; a multiple is shown only where the starting point is well defined. NOODL’s row is read live from the odin.fun API, so it moves on its own if NOODL sets a new high.',
+    thPeak:'Peak price',thPeakMc:'Peak market cap',thX:'Multiple',
+    tblFree:'free mint',tblAir:'airdrop',tblLaunch:'launch cap',
+    tblFloor:'floor',
+    tblNote:'Live data. If NOODL sets a new high, it updates on its own.',
     whatQuote:'"The first is the first, forever: the only moat in this world that needs no maintenance."',
     kCulture:'02: Culture',
     cultH:'The culture in a bowl of noodles',
@@ -1079,12 +1082,12 @@ zh:{
     whatFirstH:'为什么「第一」就是全部',
     whatFirstP:'没有哪个生态比比特币更看重<b>first is first</b>。比特币是整个行业的起点，CryptoPunks 是 NFT 文化的起点，ORDI 是铭文生态的起点：每个生态的第一，最后都成了那个生态的图腾。原因不在「第一」这两个字，而在于它承载了一个时代最早的文化记忆，并随着生态本身长多高就被抬多高。NOODL 是 v2 原生：在 v1 没有历史，也就没有复制品要争。等 v1 的符文与社区迁移过来，同名的原版与复制版将在同一平台共存，而这场正统性之战，NOODL 从不需要打。',
     tblH:'每个「第一」最后长到了多大',
-    tblLead:'比特币的每一轮发行浪潮，都只留下一个第一。下面是它们各自到过的最高点，以及 NOODL 今天所在的位置。',
+    tblLead:'比特币生态的每一轮浪潮，都由生态 First 推动。生态内 90% 的收益也会沉淀至 First 项目，First 起飞，则生态崛起；First 没落，则生态不可逆地开启下行周期。下面是它们各自到过的最高点，以及 NOODL 今天所在的位置。',
     thAsset:'标的',thProto:'协议 / 平台',thStart:'起点',
-    thPeak:'峰值单价',thPeakMc:'峰值市值',thX:'最高倍数',
-    tblFree:'免费 mint',tblAir:'RSIC 空投',tblLaunch:'发射市值',
-    tblFloor:'地板',tblLive:'实时',
-    tblNote:'峰值均为历史最高点，不是现价。免费 mint 的起点按 mint 成本计，约 1 美元 1000 枚；起点不明确的不标倍数。NOODL 一行实时读取 odin.fun 接口，创出新高会自动更新。',
+    thPeak:'峰值单价',thPeakMc:'峰值市值',thX:'倍数',
+    tblFree:'free mint',tblAir:'空投',tblLaunch:'发射市值',
+    tblFloor:'地板',
+    tblNote:'数据实时更新，如果创出新高会自动更新。',
     whatQuote:'「第一就是第一，永远如此：这是世上唯一不需要维护的护城河。」',
     kCulture:'02：文化',
     cultH:'一碗面里的文化',
@@ -1472,15 +1475,15 @@ async function refresh(){
    `s:'free'` means the asset was a free mint, where the only cost was gas —
    about $1 per 1,000 tokens, so a 21M-supply mint started life worth ~$21K. */
 const FIRSTS=[
-  {a:'ORDI',      p:'BRC-20',           s:'free',sm:'≈$21K',pp:'$95.52',  mc:'$2.01B',x:'≈95,500×'},
-  {a:'ATOM',      p:'Atomicals ARC-20', s:'free',sm:'≈$21K',pp:null,      mc:'$550M', x:'≈26,200×'},
-  {a:'Seal',      p:'RGB++',            s:null,  sm:null,   pp:null,      mc:'≈$20M', x:null},
-  {a:'DIESEL',    p:'Alkanes',          s:'free',sm:null,   pp:null,      mc:'$55.4M',x:null},
-  {a:'NodeMonkes',p:'Ordinals',         s:'free',sm:null,   pp:'0.83 BTC',ppK:'floor',mc:'$559M',x:null},
-  {a:'NAT',       p:'DMT',              s:'free',sm:null,   pp:'$3.93e-7',mc:'$152M', x:null},
-  {a:'RSIC',      p:'Runes',            s:'air', sm:null,   pp:'$0.0193', mc:'$406M', x:null},
-  {a:'ODINDOG',   p:'ODIN·FUN v1',      s:'cap', sm:'≈$3,000',pp:null,    mc:'$35M',  x:'≈11,700×'},
-  {a:'NOODL',     p:'ODIN·FUN v2',      live:true}
+  {a:'ORDI',      p:'BRC-20',           s:'$21K',  sK:'free',pp:'$95.52',   mc:'$2.01B',x:'95,520×'},
+  {a:'ATOM',      p:'Atomicals ARC-20', s:'$21K',  sK:'free',pp:'$26.19',   mc:'$550M', x:'26,190×'},
+  {a:'Seal',      p:'RGB++',            s:'$21K',  sK:'free',pp:'$1.19',    mc:'$25.0M',x:'1,190×'},
+  {a:'DIESEL',    p:'Alkanes',          s:'$21K',  sK:'free',pp:'$35.46',   mc:'$55.4M',x:'2,638×'},
+  {a:'NodeMonkes',p:'Ordinals',         s:'$21K',  sK:'free',pp:'$55,890',ppS:'0.83 BTC',mc:'$559M',x:'26,614×'},
+  {a:'NAT',       p:'DMT',              s:'$21K',  sK:'free',pp:'$3.93e-7', mc:'$152M', x:'7,257×'},
+  {a:'RSIC',      p:'Runes',            s:null,    sK:'air', pp:'$0.0193',  mc:'$406M', x:null},
+  {a:'ODINDOG',   p:'ODIN·FUN test',    s:'$3,000',sK:'cap', pp:'$1.67',    mc:'$35M',  x:'11,667×'},
+  {a:'NOODL',     p:'ODIN·FUN Official',live:true}
 ];
 
 /* NOODL's peak only ever ratchets up, so it is the running maximum of a
@@ -1506,30 +1509,41 @@ async function scanRecentAth(){
   if(bumpAth(hi/1e11*NOODL_SUPPLY))renderCmp();
 }
 
+/* Dollars are the common unit across every row, so BTC-native figures are
+   converted and the BTC amount rides underneath as the sub-line. */
+function usdPrice(v){
+  const a=Math.abs(v);
+  if(a>=1000)return '$'+Math.round(v).toLocaleString('en-US');
+  if(a>=1)return '$'+v.toFixed(2);
+  if(a>=0.01)return '$'+v.toFixed(4);
+  if(a>=1e-6)return '$'+v.toFixed(8).replace(/0+$/,'');
+  return '$'+v.toExponential(2);
+}
 function renderCmp(){
   const tb=$('#cmpRows');
   if(!tb)return;
   const ui=I18N[lang].ui;
   const startLab={free:ui.tblFree,air:ui.tblAir,cap:ui.tblLaunch};
-  const sub=t=>t?' <span class="era">'+t+'</span>':'';
+  const sub=t=>t?'<span class="era">'+t+'</span>':'';
   const cell=v=>v==null?'—':v;
   tb.innerHTML=FIRSTS.map(r=>{
     if(r.live){
       bumpAth(state.mc);
-      const sats=athMc/NOODL_SUPPLY*1e8;
-      const usd=state.btcUsd?' <span class="era">'+fmtUsd(athMc*state.btcUsd)+'</span>':'';
+      const btc=state.btcUsd||0;
+      const priceBtc=athMc/NOODL_SUPPLY;
       return '<tr class="self"><td class="asset">NOODL</td>'
-        +'<td class="proto">ODIN·FUN v2</td>'
-        +'<td class="start">'+NOODL_LAUNCH+' BTC'+sub(ui.tblLaunch)+'</td>'
-        +'<td class="num">'+sats.toFixed(2)+' sats'+sub(ui.tblLive)+'</td>'
-        +'<td class="mc">'+fmtBtc(athMc)+' BTC'+usd+'</td>'
+        +'<td class="proto">ODIN·FUN Official</td>'
+        +'<td class="start">'+(btc?fmtUsd(NOODL_LAUNCH*btc):'—')+sub(NOODL_LAUNCH+' BTC')+'</td>'
+        +'<td class="num">'+(btc?usdPrice(priceBtc*btc):'—')+sub((priceBtc*1e8).toFixed(2)+' sats')+'</td>'
+        +'<td class="mc">'+(btc?fmtUsd(athMc*btc):'—')+sub(fmtBtc(athMc)+' BTC')+'</td>'
         +'<td class="x">'+(athMc/NOODL_LAUNCH).toFixed(1)+'×</td></tr>';
     }
-    const st=r.s?startLab[r.s]+sub(r.sm):cell(r.sm);
     return '<tr><td class="asset">'+r.a+'</td>'
       +'<td class="proto">'+r.p+'</td>'
-      +'<td class="start">'+st+'</td>'
-      +'<td class="num">'+cell(r.pp)+(r.pp&&r.ppK?sub(ui.tblFloor):'')+'</td>'
+      // with no figure of its own the label carries the cell, so it reads as a
+      // statement rather than a blank someone forgot to fill in
+      +'<td class="start">'+(r.s?r.s+sub(startLab[r.sK]):startLab[r.sK])+'</td>'
+      +'<td class="num">'+cell(r.pp)+sub(r.ppS?r.ppS+' '+ui.tblFloor:'')+'</td>'
       +'<td class="mc">'+cell(r.mc)+'</td>'
       +'<td class="x">'+cell(r.x)+'</td></tr>';
   }).join('');
