@@ -179,6 +179,33 @@ async function api(path){
   throw last||new Error('fetch failed '+path);
 }
 
+/* A true rolling 24 hours of platform BTC flow. The feed is newest-first and
+   capped at 100 rows a page, so each side is pulled until it reaches back past
+   the cutoff — a day is roughly one page of withdrawals and two of deposits.
+   Amounts here carry the same 1e11 scale as the rest of the trade data, which
+   was checked against the dashboard's own daily totals before being trusted. */
+async function netFlow24(cutoff){
+  const side=async action=>{
+    let rows=[],ok=false;
+    for(let p=1;p<=5;p++){
+      let x;
+      try{ x=await api('/activities?limit=100&page='+p+'&action='+action); }catch(e){ break; }
+      ok=true;
+      const d=(x&&x.data)||[];
+      rows=rows.concat(d);
+      if(d.length<100)break;
+      if(Date.parse(d[d.length-1].time)<cutoff)break;
+    }
+    // a failed fetch must not read as a quiet day, so it stays null
+    if(!ok)return null;
+    return rows.filter(a=>Date.parse(a.time)>=cutoff)
+               .reduce((s,a)=>s+Number(a.amount_btc||0),0)/MS;
+  };
+  const [dep,wd]=await Promise.all([side('deposit'),side('withdraw')]);
+  if(dep===null||wd===null)return {dep:null,wd:null,net:null};
+  return {dep:dep,wd:wd,net:dep-wd};
+}
+
 /* ================= data ================= */
 async function load(){
   const ui=I18N[lang];
@@ -215,10 +242,13 @@ async function load(){
   const plPct=Number(set.swap_platform_fee)/1000/100;
 
   // --- platform ---
-  const cb=dash.ckbtc_balance||[];
   const btcNow=Number(dash.ckbtc_balance_current)/SAT;
-  // the series is newest-first and its head is today, so yesterday is index 1
-  const btcPrev=cb.length>1?Number(cb[1].balance)/SAT:null;
+  /* The 24h move is deposits minus withdrawals off the timestamped activity
+     feed, not the difference between two entries of ckbtc_balance. That series
+     is bucketed at UTC midnight and its head is today's running figure, so
+     head-minus-yesterday measures however many hours have elapsed today: a
+     couple of minutes after midnight, nearly a full day just before it. */
+  const flow=await netFlow24(now-DAY);
   const acts=(dash.activities_30d||[])[0];
   const at=acts?acts.activity_types:null;
   const trades24=at?((at.buy&&at.buy.count||0)+(at.sell&&at.sell.count||0)):null;
@@ -279,7 +309,7 @@ async function load(){
   D={
     stamp:now,btcUsd:btcUsd,
     plat:{
-      btcNow:btcNow,btcDelta:btcPrev===null?null:btcNow-btcPrev,
+      btcNow:btcNow,btcDelta:flow.net,btcIn:flow.dep,btcOut:flow.wd,
       vol24:Number(dash.total_volume_24h)/MS,volAll:Number(dash.total_volume_all)/MS,
       new24:toks.filter(t=>now-Date.parse(t.created_time)<DAY).length,
       tokens:dash.tokens||toks.length,
