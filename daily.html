@@ -68,6 +68,7 @@ footer a:hover{color:var(--cyan)}
 
   <div class="tools">
     <button class="btn primary" id="save" type="button" disabled data-i="save">保存为图片</button>
+    <button class="btn" id="copy" type="button" disabled data-i="copy">复制图片</button>
     <button class="btn" id="reload" type="button" data-i="refresh">刷新数据</button>
     <span class="status" id="status"></span>
   </div>
@@ -101,6 +102,7 @@ const ODIN=['https://api.odin.fun/v2','/api/odin'];
 const I18N={
  zh:{
   back:'← 首页',board:'持仓看板',board2:'持仓看板',save:'保存为图片',saving:'生成中…',
+  copy:'复制图片',copyOk:'已复制 ✓',copyNo:'复制失败，请用保存',
   refresh:'刷新数据',loading:'正在读取 odin.fun…',
   ready:t=>'数据抓取时间 '+t,
   err:'连不上 odin.fun 接口。它有频率限制，偶尔也会拦非浏览器流量，过一分钟再试。',
@@ -109,6 +111,7 @@ const I18N={
  },
  en:{
   back:'← Home',board:'Holder board',board2:'Holder board',save:'Save as image',saving:'Rendering…',
+  copy:'Copy image',copyOk:'Copied ✓',copyNo:'Copy failed, use save',
   refresh:'Refresh',loading:'Reading odin.fun…',
   ready:t=>'captured '+t,
   err:'Could not reach the odin.fun API. It rate-limits and occasionally blocks non-browser traffic; try again in a minute.',
@@ -180,6 +183,25 @@ async function api(path){
   throw last||new Error('fetch failed '+path);
 }
 
+/* The token's own artwork, for the masthead. It is decoded from a fetched blob
+   rather than assigned to an <img src>: the image endpoint does not expose CORS
+   headers to the page, so a plain cross-origin <img> would taint the canvas and
+   toBlob() would throw — taking save and copy down with it. A blob decoded this
+   way carries no origin, so the canvas stays exportable. Verified before use. */
+let logoBmp=null;
+async function loadLogo(){
+  if(logoBmp)return logoBmp;
+  for(const base of ODIN){
+    try{
+      const r=await fetch(base+'/token/'+TOKEN+'/image',{cache:'force-cache'});
+      if(!r.ok)continue;
+      logoBmp=await createImageBitmap(await r.blob());
+      return logoBmp;
+    }catch(e){}
+  }
+  return null;                       // the masthead falls back to the emoji
+}
+
 /* A true rolling 24 hours of platform BTC flow. The feed is newest-first and
    capped at 100 rows a page, so each side is pulled until it reaches back past
    the cutoff — a day is roughly one page of withdrawals and two of deposits.
@@ -212,6 +234,7 @@ async function load(){
   const ui=I18N[lang];
   $('#status').textContent=ui.loading;
   $('#save').disabled=true;
+  $('#copy').disabled=true;
   $('#err').innerHTML='';
 
   const [dash,tok,cur,set,own]=await Promise.all([
@@ -336,8 +359,10 @@ async function load(){
   };
   $('#status').textContent=ui.ready(fmtStamp(now));
   $('#alt').textContent=ui.alt(fmtStamp(now));
+  await loadLogo();
   await draw();
   $('#save').disabled=false;
+  $('#copy').disabled=false;
 }
 
 /* ================= poster ================= */
@@ -376,16 +401,44 @@ async function draw(){
 
   let y=P;
 
-  // ---------- header ----------
-  c.fillStyle='#fafafa';c.font=F(800,34);c.textAlign='left';
-  c.fillText('🍜 '+PL.title[0],P,y+34);
-  c.fillStyle='#6b6d7c';c.font=F(600,12);
-  c.fillText(PL.title[1],P+2,y+54);
-  c.fillStyle='#6b6d7c';c.font=F(500,12);c.textAlign='right';
-  c.fillText(PL.stamp[0]+' · '+PL.stamp[1],W-P,y+18);
-  c.fillStyle='#a8aab8';c.font=F(600,15);
-  c.fillText(fmtStamp(D.stamp),W-P,y+40);
+  // ---------- masthead ----------
+  // a brand rule bled to both edges, the way a printed report opens
+  const bar=c.createLinearGradient(0,0,W,0);
+  bar.addColorStop(0,'#00ffff');bar.addColorStop(.55,'#fcd14f');bar.addColorStop(1,'#ef9530');
+  c.fillStyle=bar;c.fillRect(0,0,W,4);
+
+  const LG=54;
+  if(logoBmp){
+    c.save();rr(c,P,y,LG,LG,14);c.clip();
+    c.drawImage(logoBmp,P,y,LG,LG);c.restore();
+    c.strokeStyle='rgba(255,255,255,.10)';c.lineWidth=1;
+    rr(c,P+.5,y+.5,LG-1,LG-1,14);c.stroke();
+  }else{
+    c.fillStyle='#fafafa';c.font=F(800,40);c.textAlign='left';
+    c.fillText('🍜',P,y+40);
+  }
+  const tx=P+LG+16;
   c.textAlign='left';
+  c.fillStyle='#fafafa';c.font=F(800,31);
+  c.fillText(PL.title[0],tx,y+28);
+  c.fillStyle='#6b6d7c';c.font=F(600,11.5);
+  c.fillText(PL.title[1],tx+1,y+47);
+
+  // the capture time reads as a stamp, so it sits in a chip rather than loose
+  c.font=F(600,13);
+  const ds=fmtStamp(D.stamp), dw=c.measureText(ds).width;
+  c.font=F(500,10.5);
+  const ls=PL.stamp[0]+' · '+PL.stamp[1], lw=c.measureText(ls).width;
+  const chipW=Math.max(dw,lw)+26, chipH=48, chipX=W-P-chipW;
+  c.fillStyle='#18181d';rr(c,chipX,y+3,chipW,chipH,10);c.fill();
+  c.strokeStyle='#27272a';c.lineWidth=1;rr(c,chipX+.5,y+3.5,chipW-1,chipH-1,10);c.stroke();
+  c.textAlign='center';
+  c.fillStyle='#6b6d7c';c.font=F(500,10.5);
+  c.fillText(ls,chipX+chipW/2,y+21);
+  c.fillStyle='#fafafa';c.font=F(600,13);
+  c.fillText(ds,chipX+chipW/2,y+40);
+  c.textAlign='left';
+
   y+=H_HEAD-38;
   c.strokeStyle='#27272a';c.lineWidth=1;
   c.beginPath();c.moveTo(P,y+.5);c.lineTo(W-P,y+.5);c.stroke();
@@ -579,6 +632,24 @@ $('#langBtn').addEventListener('click',async()=>{
   lang=lang==='zh'?'en':'zh';
   try{localStorage.setItem('noodl_lang',lang);}catch(e){}
   applyLang();await draw();
+});
+/* Straight to the clipboard, so the report can be pasted into WeChat, QQ or
+   anywhere else without a round trip through the file system. The ClipboardItem
+   is built synchronously with a promise as its value: Safari rejects a write
+   whose item was constructed after an await, since by then the user gesture has
+   expired. Chrome is happy either way, so the stricter form is used for both. */
+$('#copy').addEventListener('click',async()=>{
+  const ui=I18N[lang],btn=$('#copy'),was=ui.copy;
+  const done=t=>{btn.textContent=t;setTimeout(()=>{btn.textContent=was;btn.disabled=false;},2200);};
+  if(!(navigator.clipboard&&navigator.clipboard.write&&window.ClipboardItem)){
+    btn.disabled=true;done(ui.copyNo);return;
+  }
+  btn.disabled=true;
+  try{
+    const item=new ClipboardItem({'image/png':new Promise(res=>$('#poster').toBlob(res,'image/png'))});
+    await navigator.clipboard.write([item]);
+    done(ui.copyOk);
+  }catch(e){ console.error(e); done(ui.copyNo); }
 });
 $('#reload').addEventListener('click',()=>{boot();});
 $('#save').addEventListener('click',()=>{
