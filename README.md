@@ -22,12 +22,22 @@ The spiral lights up as market cap grows (log scale), live from the Odin.Fun API
 
 Reached milestones glow; unreached ones stay grey.
 
+## Pages
+
+| Page | What it does |
+|---|---|
+| `index.html` | The noodle galaxy, the story, and a comparison of what every Bitcoin-ecosystem "first" reached at its peak |
+| `holders.html` | Live holder board — every holder's share, cost basis and unrealised P&L, the liquidity pool and its fee yield, NOODLER / CHEF titles, and price / volume / holder / pool charts |
+| `daily.html` | A daily report drawn on a single canvas, bilingual on one sheet, saveable as an image or copied straight to the clipboard for sharing |
+| `tweets.html` | Every #NOODL post collected so far, sorted by heat or by date |
+
 ## Stack
 
-- Single static `index.html` — no build step, no framework
-- Live data: `https://api.odin.fun/v2/token/hjrg` (marketcap in millisats ÷ 1e11 = BTC) + `/v2/currency/btc` for USD
+- Static HTML — no build step, no framework
+- Live data: `https://api.odin.fun/v2/token/hjrg` (amounts in millisats ÷ 1e11 = BTC) + `/v2/currency/btc` for USD.
+  Fee rates are read from `/v2/settings` rather than hardcoded
 - `vercel.json` provides a same-origin `/api/odin/*` proxy fallback in case CORS ever closes
-- EN / 中文 bilingual, `prefers-reduced-motion` friendly
+- EN / 中文 bilingual throughout, `prefers-reduced-motion` friendly
 
 ## Deploy
 
