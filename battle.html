@@ -129,7 +129,6 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:26px 20p
 .camp h2{font-size:14px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
 .camp.blue h2{color:var(--blue)}
 .camp.red h2{color:var(--red)}
-.camp .sub{font-size:11.5px;color:var(--dim);margin-top:6px;line-height:1.6}
 .roster{
   margin-top:12px;display:flex;flex-direction:column;gap:7px;
   max-height:326px;overflow-y:auto;scrollbar-width:thin;
@@ -225,13 +224,11 @@ footer a:hover{color:var(--cyan)}
 
   <div class="camps">
     <section class="camp blue">
-      <h2><span data-i="blueH">Blue camp · the pool</span><span class="count" id="blueN"></span></h2>
-      <p class="sub" data-i="blueSub"></p>
+      <h2><span data-i="blueH">Blue barracks</span><span class="count" id="blueN"></span></h2>
       <div class="roster" id="blueRoster"></div>
     </section>
     <section class="camp red">
-      <h2><span data-i="redH">Red camp</span><span class="count" id="redN"></span></h2>
-      <p class="sub" data-i="redSub"></p>
+      <h2><span data-i="redH">Red barracks</span><span class="count" id="redN"></span></h2>
       <div class="roster" id="redRoster"></div>
     </section>
   </div>
@@ -277,10 +274,8 @@ zh:{
   flPriceSub:s=>s+' sats / 枚',
   flForceSub:(b,s)=>'蓝 '+b+' · 红 '+s,
   sats:'sats',
-  blueH:'蓝方军营 · 池子基地',
-  blueSub:'加了池子的 Chef，以及前 20 大持有者里最近 7 天一枚没卖的人。标了「也卖了」的 Chef，最近 7 天也卖出过——做市和卖出并不冲突。',
+  blueH:'蓝方军营',
   redH:'红方军营',
-  redSub:'前 10 大持有者里，最近 7 天卖出过的人。卖得越多，红方推得越前。',
   chef:'CHEF',alsoSold:'也卖了',
   soldOut:v=>'7 天卖出 '+v,
   holds:v=>'持有 '+v,
@@ -310,10 +305,8 @@ en:{
   flPriceSub:s=>s+' sats each',
   flForceSub:(b,s)=>'blue '+b+' · red '+s,
   sats:'sats',
-  blueH:'Blue barracks · the pool',
-  blueSub:'Chefs providing liquidity, plus every top-20 holder who has not sold a single coin in seven days. A Chef marked ALSO SOLD has also sold inside the window — providing liquidity and selling are not exclusive.',
+  blueH:'Blue barracks',
   redH:'Red barracks',
-  redSub:'Top-10 holders who have sold within the last seven days. The more they sell, the further red pushes.',
   chef:'CHEF',alsoSold:'ALSO SOLD',
   soldOut:v=>'sold '+v+' in 7d',
   holds:v=>'holds '+v,
@@ -477,7 +470,7 @@ async function load(){
     const btc=Number(t.amount_btc)/MS;
     const c=classify(btc);
     return {
-      side:t.buy?'blue':'red',kind:c.kind,n:c.n,btc,
+      side:t.buy?'blue':'red',kind:c.kind,n:c.n,btc,price:Number(t.price)||0,
       name:t.user_username||t.user.slice(0,8),
       time:Date.parse(t.time)
     };
@@ -609,7 +602,10 @@ const engine=(function(){
   const AX=Math.cos(-0.6),AY=Math.sin(-0.6);           // base-to-base direction
   const BLUE={x:C-AX*R*0.74,y:C-AY*R*0.74};
   const RED ={x:C+AX*R*0.74,y:C+AY*R*0.74};
+  const DEATH=820;                                   // how long a man takes to fall
+  const HOLD=5200;                                   // how long the outcome is held
   let cv,g,dpr=1,box=0,units=[],t0=0,raf=0,front=0,loaded=null,stars=[];
+  let timeline=[],p0=0,tEnd=0,curPrice=0;
 
   function fit(){
     if(!cv)return;
@@ -628,32 +624,57 @@ const engine=(function(){
     }
   }
 
-  /* Sorties are laid out along the engagement, oldest first, and given a launch
-     time so the battle replays at a watchable pace rather than all at once. */
+  /* The engagement is resolved before a single frame is drawn. Sorties launch in
+     order, march at their own pace, and on arrival meet whatever the other side
+     is still holding: equal amounts of BTC destroy each other, so a 0.002 sell
+     wipes out a 0.001 buy and keeps 0.001 of itself on the field. Each sprite
+     therefore knows up front whether it dies and at what moment, which makes the
+     animation pure playback and the outcome identical every replay. */
   function load(s){
     loaded=s;
-    front=clamp(s.chg/18,-1,1)*R*0.30;
     units=[];
-    const SPACING=520;                        // ms between sorties on screen
-    /* With motion turned off there is no replay to watch, so the engagement is
-       laid out as a standing parade instead: every sortie is placed at a fixed
-       distance from its own base, in order, and nothing moves or fades. */
-    const N=Math.max(1,s.units.length-1);
+    const SPACING=300;                        // ms between sorties on screen
     s.units.forEach((u,i)=>{
       for(let k=0;k<u.n;k++){
+        const speed=u.kind==='plane'?1.55:u.kind==='tank'?0.95:1.15;
+        const born=i*SPACING+k*90;
         units.push({
-          side:u.side,kind:u.kind,name:u.name,btc:u.btc,
-          born:i*SPACING+k*90,
+          side:u.side,kind:u.kind,name:u.name,
+          btc:u.btc/u.n,remain:u.btc/u.n,     // each man carries his share of the order
+          born,dur:3400/speed,arrive:born+3400/speed,
           /* Each sortie takes its own lane across the front — the golden-ratio
              step keeps consecutive ones far apart instead of clustering — and the
              men inside a sortie fan out around it. */
           lane:((i*0.618)%1-0.5)*1.7+(k-(u.n-1)/2)*0.13,
-          speed:u.kind==='plane'?1.55:u.kind==='tank'?0.95:1.15,
-          sp:0.24+0.62*(i/N),                // where it stands when motion is off
-          label:k===0                          // only the lead unit carries the name
+          label:k===0,                         // only the lead man carries the name
+          deathAt:null,stack:0
         });
       }
     });
+
+    // ---- fight it out, in arrival order ----
+    const EPS=1e-12;
+    const standing={blue:[],red:[]};
+    units.slice().sort((a,b)=>a.arrive-b.arrive).forEach(sp=>{
+      const foe=standing[sp.side==='blue'?'red':'blue'];
+      let inc=sp.remain;
+      while(inc>EPS&&foe.length){            // the front rank falls first
+        const o=foe[0];
+        const kill=Math.min(inc,o.remain);
+        o.remain-=kill;inc-=kill;
+        if(o.remain<=EPS){o.deathAt=sp.arrive;foe.shift();}
+      }
+      if(inc<=EPS){sp.deathAt=sp.arrive;sp.remain=0;}
+      else{sp.remain=inc;sp.stack=standing[sp.side].length;standing[sp.side].push(sp);}
+    });
+
+    /* Where the line sits, and what it says, both come from the trade prices:
+       the label is the price of the last order to have launched, and the line
+       leans by how far that has moved from where the engagement started. */
+    timeline=s.units.map((u,i)=>({t:i*SPACING,price:u.price}));
+    p0=timeline.length&&timeline[0].price?timeline[0].price:s.price;
+    tEnd=units.reduce((m,u)=>Math.max(m,u.arrive),0)+DEATH+400;
+
     t0=performance.now();
     if(!raf)start();
     else frame(performance.now());
@@ -669,34 +690,50 @@ const engine=(function(){
   }
   function stop(){if(raf){cancelAnimationFrame(raf);raf=0;}}
 
-  function pos(u,age){
-    if(reduceMotion){
-      const sign=u.side==='blue'?1:-1;
-      const base=u.side==='blue'?BLUE:RED;
-      const mx=C+AX*front,my=C+AY*front;
-      const nx=-AY,ny=AX,spread=R*0.26*clamp(u.lane,-1,1);
-      return {x:base.x+(mx-base.x)*u.sp+nx*spread,
-              y:base.y+(my-base.y)*u.sp+ny*spread,
-              p:u.sp,sign,hit:false,fade:0};
-    }
-    /* Distance travelled from own base toward the line, capped at the line. A
-       unit that has arrived stays at the line and fades rather than walking on
-       through the enemy, which is what makes the line read as a line. */
-    const dur=4200/u.speed;
-    const p=clamp(age/dur,0,1);
+  function pos(u,t){
+    const age=t-u.born;
+    const p=clamp(age/u.dur,0,1);
     const sign=u.side==='blue'?1:-1;
     const base=u.side==='blue'?BLUE:RED;
-    const meetX=C+AX*front,meetY=C+AY*front;
-    const px=base.x+(meetX-base.x)*p,py=base.y+(meetY-base.y)*p;
-    const nx=-AY,ny=AX;                        // lateral unit vector
-    const spread=R*0.26*clamp(u.lane,-1,1);
-    return {x:px+nx*spread,y:py+ny*spread,p,sign,
-            hit:p>=1,fade:clamp((age-dur)/1100,0,1)};
+    const mx=C+AX*front,my=C+AY*front;
+    const nx=-AY,ny=AX,spread=R*0.26*clamp(u.lane,-1,1);
+    let x=base.x+(mx-base.x)*p,y=base.y+(my-base.y)*p;
+    /* Once a man arrives he does not walk on through the enemy: he holds, and
+       ranks up behind whoever got there before him, which is what turns a stream
+       of arrivals into a line that can be pushed. */
+    if(p>=1){
+      const back=22+Math.min(u.stack,11)*17;
+      x-=AX*sign*back;y-=AY*sign*back;
+    }
+    return {x:x+nx*spread,y:y+ny*spread,p,sign};
+  }
+
+  /* A man falling: he tips over and dims while the hit blooms off him. */
+  function drawDeath(x,y,kind,side,f,rot){
+    const col=side==='blue'?'#9ccdff':'#ffb0b0';
+    g.save();
+    g.globalAlpha=(1-f)*0.9;
+    drawUnit(g,x,y,kind,side,(kind==='soldier'?2:2.5)*(1-f*0.35),rot+f*1.5);
+    g.globalAlpha=(1-f)*0.75;
+    g.strokeStyle=col;g.lineWidth=2.4;
+    g.beginPath();g.arc(x,y,7+f*26,0,7);g.stroke();
+    g.fillStyle=col;
+    for(let i=0;i<5;i++){                       // debris
+      const a=i*1.257+f*1.2,d=6+f*30;
+      g.globalAlpha=(1-f)*0.65;
+      g.beginPath();g.arc(x+Math.cos(a)*d,y+Math.sin(a)*d,1.7,0,7);g.fill();
+    }
+    g.restore();
   }
 
   function frame(now){
     if(!g)return;
-    const t=now-t0;
+    /* With motion off there is nothing to watch unfold, so the frame is the end
+       of the battle: the fallen are gone and the survivors are holding the line. */
+    const t=reduceMotion?tEnd:(now-t0);
+    curPrice=p0;
+    for(let i=0;i<timeline.length;i++){if(timeline[i].t<=t)curPrice=timeline[i].price;else break;}
+    front=p0?clamp((curPrice/p0-1)/0.05,-1,1)*R*0.28:0;
     g.setTransform(dpr*box/W,0,0,dpr*box/W,0,0);
     g.clearRect(0,0,W,W);
 
@@ -722,23 +759,19 @@ const engine=(function(){
     }
     drawFront(t);
 
-    let live=0;
     units.forEach(u=>{
-      const age=t-u.born;
-      if(age<0&&!reduceMotion)return;
-      const q=pos(u,age);
-      if(q.fade>=1)return;
-      live++;
-      g.globalAlpha=1-q.fade;
+      if(t<u.born)return;                                  // not yet launched
+      const dead=u.deathAt!=null&&t>=u.deathAt;
+      const df=dead?(t-u.deathAt)/DEATH:0;
+      if(df>=1)return;                                     // fallen and cleared
+      const q=pos(u,dead?u.deathAt:t);
       const rot=Math.atan2(AY*q.sign,AX*q.sign);
-      drawUnit(g,q.x,q.y,u.kind,u.side,u.kind==='soldier'?1.5:1.8,rot);
-      if(q.hit)burst(q.x,q.y,u.side,q.fade);
-      /* The label rides with its unit until the approach, then gets out of the
-         way: at the line every sortie occupies the same strip and the names
-         would otherwise stack into an unreadable smear. */
-      if(u.label&&q.p<0.82){
-        const dim=clamp((0.82-q.p)/0.18,0,1);
-        g.globalAlpha=(1-q.fade)*0.9*dim;
+      if(dead){drawDeath(q.x,q.y,u.kind,u.side,df,rot);return;}
+      drawUnit(g,q.x,q.y,u.kind,u.side,u.kind==='soldier'?2:2.5,rot);
+      /* Names ride in with the sortie and stay on the front rank once it digs
+         in. Deeper ranks drop their labels or the line becomes a smear. */
+      if(u.label&&(q.p<0.86||u.stack<3)){
+        g.globalAlpha=0.9;
         g.font='600 15px "Work Sans",sans-serif';
         g.textAlign='center';
         const ty=q.y+(u.kind==='plane'?-16:20);
@@ -746,8 +779,8 @@ const engine=(function(){
         g.strokeText(u.name.slice(0,14),q.x,ty);
         g.fillStyle=u.side==='blue'?'#9ccdff':'#ffb0b0';
         g.fillText(u.name.slice(0,14),q.x,ty);
+        g.globalAlpha=1;
       }
-      g.globalAlpha=1;
     });
     g.restore();
 
@@ -757,8 +790,8 @@ const engine=(function(){
     g.strokeStyle='rgba(0,255,255,.16)';g.lineWidth=2;
     g.beginPath();g.arc(C,C,R-6,0,7);g.stroke();
 
-    // once every sortie has landed and faded, run the engagement again
-    if(!reduceMotion&&live===0&&units.length&&t>1500)t0=now;
+    // hold the outcome for a while, then fight it again
+    if(!reduceMotion&&units.length&&t>tEnd+HOLD)t0=now;
   }
 
   function drawTerritory(){
@@ -824,18 +857,31 @@ const engine=(function(){
     g.moveTo(mx+nx*half,my+ny*half);
     g.lineTo(mx-nx*half,my-ny*half);
     g.stroke();
+    g.setLineDash([]);
+
+    /* The line is the price, so it says so. The figure is the price of the last
+       order to have gone in, which means it moves the moment anyone trades. */
+    if(loaded&&curPrice){
+      const btc=curPrice/MS, usd=btc*loaded.btcUsd, sats=btc*1e8;
+      const lx=mx-nx*half*0.60, ly=my-ny*half*0.60;
+      const a=fmtUsd(usd), b=nf(sats,2)+' sats';
+      g.font='700 21px "Work Sans",sans-serif';
+      const w=Math.max(g.measureText(a).width,120)+28;
+      g.globalAlpha=.94;
+      g.fillStyle='rgba(11,11,17,.88)';
+      rr(g,lx-w/2,ly-27,w,54,10);g.fill();
+      g.strokeStyle='rgba(252,209,79,.5)';g.lineWidth=1.5;
+      rr(g,lx-w/2,ly-27,w,54,10);g.stroke();
+      g.textAlign='center';
+      g.fillStyle='#fcd14f';g.fillText(a,lx,ly-2);
+      g.font='500 13px "Work Sans",sans-serif';
+      g.fillStyle='rgba(252,209,79,.72)';g.fillText(b,lx,ly+17);
+      g.globalAlpha=1;
+    }
     g.restore();
   }
 
-  function burst(x,y,side,f){
-    g.save();
-    g.globalAlpha=(1-f)*0.9;
-    g.strokeStyle=side==='blue'?'#9ccdff':'#ffb0b0';
-    g.lineWidth=2;
-    const r=6+f*22;
-    g.beginPath();g.arc(x,y,r,0,7);g.stroke();
-    g.restore();
-  }
+
 
   return {
     init(){
