@@ -40,6 +40,8 @@ a{color:inherit}
   transition:border-color .15s,color .15s,background .15s;
 }
 .btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+/* the page you are on, lit the same way the other two pages light theirs */
+.btn.on{color:var(--cyan);border-color:rgba(0,255,255,.5);background:rgba(0,255,255,.08);font-weight:600}
 #langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
 
 h1{font-weight:800;font-size:clamp(26px,5.5vw,38px);line-height:1.06;letter-spacing:.01em}
@@ -190,8 +192,9 @@ footer a:hover{color:var(--cyan)}
   <header class="topbar">
     <a class="wordmark" href="index.html">🍜 NOODL·CLUB</a>
     <nav class="topnav">
-      <a class="btn" href="index.html" data-i="back">← Home</a>
-      <a class="btn" href="daily.html" data-i="daily">Daily</a>
+      <a class="btn" href="index.html" data-i="navHome">Home</a>
+      <a class="btn on" href="holders.html" aria-current="page" data-i="navBoard">Holder board</a>
+      <a class="btn" href="revelation.html" data-i="navRev">NOODL Revelation</a>
       <a class="btn" href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun ↗</a>
       <button class="btn" id="langBtn" type="button">中文</button>
     </nav>
@@ -273,6 +276,7 @@ footer a:hover{color:var(--cyan)}
   <footer>
     <span data-i="foot"></span><br>
     <a href="index.html">NOODL.club</a> ·
+    <a href="revelation.html" data-i="navRev">NOODL Revelation</a> ·
     <a href="tweets.html" data-i="footPosts">#NOODL posts</a> ·
     <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun/token/hjrg</a>
   </footer>
@@ -291,7 +295,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 /* ================= i18n ================= */
 const I18N={
  en:{
-  back:'← Home',daily:'Daily',title:'HOLDER BOARD',
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',title:'HOLDER BOARD',
   bMarket:'Market',bHolders:'Holders',bPool:'Liquidity pool',bFees:'Fees earned to date',
   bChart:'Trend',cHolders:'Holders',cPool:'Pool size',cWait:'loading…',
   tf:{'1m':'1m','5m':'5m','1h':'1h','4h':'4h','1d':'1D','1w':'1W'},
@@ -325,7 +329,7 @@ const I18N={
   footPosts:'#NOODL posts'
  },
  zh:{
-  back:'← 首页',daily:'日报',title:'NOODL 持仓看板',
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',title:'NOODL 持仓看板',
   bMarket:'行情',bHolders:'持有者',bPool:'流动性池',bFees:'累计手续费收入',
   bChart:'走势',cHolders:'持仓人数',cPool:'池子规模',cWait:'加载中…',
   tf:{'1m':'1分','5m':'5分','1h':'1时','4h':'4时','1d':'1日','1w':'1周'},

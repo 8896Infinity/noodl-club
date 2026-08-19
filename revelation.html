@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOODL 启示录 · NOODL.club</title>
+<meta name="description" content="NOODL 启示录：什么是 NOODL、面条里的文化、First is First、社区，以及通往超新星的规划。ODIN·FUN 平台第一枚代币的全部叙事。">
+<meta name="theme-color" content="#111117">
+<meta property="og:title" content="NOODL 启示录 · The NOODL Revelation">
+<meta property="og:description" content="What NOODL is, the culture it carries, why first is the whole point, the community, and the road to Nova.">
+<meta property="og:image" content="https://api.odin.fun/v2/token/hjrg/image">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Palette lifted from odin.fun's own computed styles so this reads as part of
+   the platform: Work Sans, near-black #111117, cyan accent, hairline borders. */
+:root{
+  --bg:#111117;
+  --panel:#18181d;
+  --line:#27272a;
+  --line-soft:#1f1f25;
+  --cyan:#00ffff;
+  --cyan-dim:#00c9c9;
+  --text:#fafafa;
+  --text-2:#a8aab8;
+  --dim:#6b6d7c;
+  --up:#00a329;
+  --down:#c40303;
+  --blue:#2b62e3;
+  /* the bowl artwork keeps its own warm tones — it is the brand illustration */
+  --bowl-navy:#1b1b24;
+  --cream:#e8e4d6;
+  --cream-bright:#fafafa;
+  --noodle-y:#fcd14f;
+  --noodle-o:#ef9530;
+  --noodle-deep:#e0762b;
+  --outline:#111117;
+  --teal:#00ffff;
+  --orange:#ee8435;
+  --brick:#a8492f;
+  --text-dim:#a8aab8;
+  --card-bg:#18181d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--cream);
+  font-family:'Work Sans','PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+html.modal,body.modal{overflow:hidden}
+a{color:inherit}
+
+/* ---------- starfield ---------- */
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+#stars i{position:absolute;border-radius:1.5px;animation:tw linear infinite}
+@keyframes tw{0%,100%{opacity:.12}50%{opacity:.95}}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:relative;z-index:5;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 22px;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);background:rgba(17,17,23,.85);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.wordmark{
+  font-weight:700;font-size:17px;letter-spacing:.14em;color:var(--cyan);
+  text-decoration:none;display:flex;align-items:center;gap:8px;
+}
+.toplinks{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.toplinks a,#langBtn{
+  font-family:inherit;font-weight:500;font-size:13px;letter-spacing:.02em;
+  color:var(--text-2);text-decoration:none;cursor:pointer;
+  border:1px solid var(--line);border-radius:6px;
+  padding:6px 12px;background:transparent;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.toplinks a:hover,#langBtn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+#langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
+
+/* ---------- section nav ---------- */
+.secnav{
+  position:sticky;top:0;z-index:6;
+  display:flex;justify-content:center;gap:6px;flex-wrap:wrap;
+  padding:9px 14px;border-bottom:1px solid var(--line);
+  background:rgba(17,17,23,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.secnav a{
+  font-weight:500;font-size:12.5px;letter-spacing:.02em;color:var(--text-2);
+  text-decoration:none;padding:6px 13px;border:1px solid var(--line);border-radius:6px;
+  transition:border-color .15s,color .15s,background .15s;white-space:nowrap;
+}
+.secnav a:hover,.secnav a:focus-visible{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+/* the board is a page, not a section of this one, so it is tinted to say so
+   rather than sitting in the anchor list pretending to scroll you somewhere */
+.secnav a.page{color:var(--noodle-y);border-color:rgba(252,209,79,.35)}
+.secnav a.page:hover,.secnav a.page:focus-visible{border-color:var(--noodle-y);color:var(--noodle-y);background:rgba(252,209,79,.09)}
+
+
+/* the three pages of the site. One row, always the same three, current one lit */
+.secnav a.tab{font-weight:600;font-size:13px;padding:7px 15px}
+.secnav a.tab.on{color:var(--cyan);border-color:rgba(0,255,255,.5);background:rgba(0,255,255,.08)}
+
+/* Two stacked bars: pages on top, sections under them. They travel together, so
+   they are stuck as one block and .sec's scroll-margin clears both of them. */
+.navwrap{position:sticky;top:0;z-index:6}
+.navwrap .secnav{position:static}
+.subnav{
+  display:flex;justify-content:center;gap:6px;flex-wrap:wrap;
+  padding:8px 14px;border-bottom:1px solid var(--line);
+  background:rgba(17,17,23,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.subnav a{
+  font-weight:500;font-size:12.5px;letter-spacing:.02em;color:var(--text-2);
+  text-decoration:none;padding:5px 12px;border:1px solid var(--line-soft);border-radius:6px;
+  transition:border-color .15s,color .15s,background .15s;white-space:nowrap;
+}
+.subnav a:hover,.subnav a:focus-visible{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+.subnav a.on{color:var(--cyan);border-color:rgba(0,255,255,.4)}
+.rev-head{max-width:760px;margin:0 auto;padding:34px 20px 6px;text-align:center}
+.rev-head h1{font-size:clamp(26px,6vw,42px);font-weight:800;color:var(--text);letter-spacing:.02em;line-height:1.15}
+.rev-head p{margin-top:12px;font-size:14px;color:var(--text-2);line-height:1.8}
+
+/* ---------- long-form sections ---------- */
+/* Full-width opaque band over the fixed starfield: stars belong to the hero,
+   not behind body copy, where they read as dirt on the text. */
+.sec-wrap{position:relative;z-index:2;background:var(--bg);border-top:1px solid var(--line-soft)}
+.sections{max-width:760px;margin:0 auto;padding:8px 20px 0}
+.sec{scroll-margin-top:64px;padding:44px 0 8px;border-top:1px solid var(--line-soft)}
+.sec:first-child{border-top:none}
+.sec-k{font-size:10.5px;font-weight:600;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase;margin-bottom:10px}
+.sec h2{font-size:clamp(24px,5vw,34px);font-weight:700;color:var(--text);line-height:1.2;letter-spacing:.01em}
+.sec h3{font-size:16px;font-weight:600;color:var(--text);margin:26px 0 8px;letter-spacing:.01em}
+.sec p{color:var(--text-2);font-size:14.5px;line-height:1.85;margin:12px 0}
+.sec p b,.sec p strong{color:var(--text);font-weight:600}
+.sec .lead{font-size:16px;color:var(--text);line-height:1.8}
+.sec figure{margin:22px 0}
+.sec figure img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.sec figure.sq img{max-width:190px;margin:0 auto}
+.sec figcaption{font-size:11.5px;color:var(--dim);text-align:center;margin-top:9px;line-height:1.5}
+/* NEW · ODIN · HODL → NOODL.
+   The three capsules physically dock into one: the inner paddings and margins
+   close, the inner corners square off and the inner hairlines retract to zero
+   width. The merged state is therefore geometrically identical to a real
+   single NOODL pill (measured: same total width, same glyph x-positions) —
+   it is a real merge, not a crossfade between two layers.
+   The radius is written as the literal half-height, NOT 999px: the used value
+   of 999px is clamped to half the box height, so interpolating the specified
+   value sits frozen and then snaps in the final few ms. */
+/* vertical-align:top is load-bearing — with font-size:0 the wrapper has no
+   in-flow text, so its baseline would fall to its bottom margin edge and the
+   parent's strut would add ~14px of descender space under the row. The 1px
+   bottom margin then replaces the descender space the old baseline-aligned
+   pills contributed, so the row keeps its original 28px height and nothing
+   below it moves. */
+.morph{display:inline-block;vertical-align:top;white-space:nowrap;font-size:0;margin-bottom:1px}
+.morph-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.pill{
+  display:inline-block;box-sizing:border-box;vertical-align:top;
+  height:21px;line-height:19px;padding:0 10px;margin:0 6px 6px 0;
+  font-size:11px;font-weight:600;letter-spacing:.06em;
+  color:var(--cyan);border:1px solid rgba(0,255,255,.35);border-radius:10.5px;
+  transition:padding .5s cubic-bezier(.4,0,.2,1),margin .5s cubic-bezier(.4,0,.2,1),
+             border-width .5s cubic-bezier(.4,0,.2,1),
+             border-radius .26s cubic-bezier(.4,0,.2,1),border-color .22s linear;
+}
+.pill i{
+  display:inline-block;vertical-align:top;overflow:hidden;white-space:pre;font-style:normal;
+  transition:width .45s cubic-bezier(.4,0,.2,1),opacity .3s linear,color .25s linear;
+}
+.morph.on i{width:var(--w)}
+/* beat 1 — the letters NOODL does not use are demoted, then leave */
+.morph.on.shed i.d{width:0;opacity:0;color:var(--dim)}
+/* beat 2 — the three capsules dock. Corners square off and the inner
+   hairlines fade faster than the gap closes, so the capsules never touch
+   while still rounded (that leaves visible notches at the joins). */
+.morph.on.join .pill{margin-right:0}
+.morph.on.join .p1{padding-right:0;border-top-right-radius:0;border-bottom-right-radius:0;border-right-width:0;border-right-color:transparent}
+.morph.on.join .p2{padding-left:0;padding-right:0;border-radius:0;border-left-width:0;border-right-width:0;border-left-color:transparent;border-right-color:transparent}
+.morph.on.join .p3{padding-left:0;border-top-left-radius:0;border-bottom-left-radius:0;border-left-width:0;border-left-color:transparent}
+/* no motion available — still show which letters NOODL is built from */
+.morph.still i.d{color:var(--dim)}
+/* First-narrative comparison. The table is wider than a phone, so it scrolls
+   inside its own box rather than pushing the page sideways. */
+.tblwrap{margin:20px 0 10px;overflow-x:auto;border:1px solid var(--line);border-radius:10px;
+  background:var(--panel);-webkit-overflow-scrolling:touch}
+table.cmp{border-collapse:collapse;width:100%;min-width:700px;font-size:12.5px}
+table.cmp th,table.cmp td{padding:10px 13px;text-align:left;white-space:nowrap;
+  border-bottom:1px solid var(--line)}
+/* every row carries a two-line cell, so pinning the height keeps the ones
+   without a sub-line from sitting shorter than their neighbours */
+table.cmp tbody td{height:58px;vertical-align:middle}
+table.cmp thead th{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.04em;
+  text-transform:uppercase;background:rgba(255,255,255,.02);position:sticky;top:0}
+table.cmp tbody tr:last-child td{border-bottom:0}
+table.cmp td.num{font-variant-numeric:tabular-nums;text-align:right}
+table.cmp td.asset{font-weight:600;color:var(--text)}
+table.cmp td.proto,table.cmp td.start{color:var(--dim);min-width:118px}
+table.cmp td.mc{font-variant-numeric:tabular-nums;text-align:right;color:var(--text)}
+table.cmp td.x{font-variant-numeric:tabular-nums;text-align:right;color:var(--noodle-y);font-weight:600}
+table.cmp tr.self td{background:rgba(0,255,255,.05)}
+table.cmp tr.self td.asset,table.cmp tr.self td.x{color:var(--cyan)}
+table.cmp .era{font-size:10.5px;color:var(--dim);display:block;font-weight:400;margin-top:2px}
+.tblnote{font-size:11.5px!important;color:var(--dim)!important;line-height:1.7!important;margin-top:10px!important}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0}
+.fact{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
+.fact b{display:block;font-size:19px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums;line-height:1.2}
+.fact span{display:block;font-size:11.5px;color:var(--dim);margin-top:4px;line-height:1.45}
+.quote{
+  border-left:2px solid var(--cyan);padding:2px 0 2px 16px;margin:22px 0;
+  color:var(--text);font-size:15px;line-height:1.75;font-style:italic;
+}
+/* the site's closing line: it ends the last section, so it is set as a statement
+   rather than the footnote the old roadmap disclaimer was */
+.coda{
+  margin:30px 0 4px;padding-top:22px;border-top:1px solid var(--line);
+  color:var(--text);font-size:clamp(15px,2.6vw,18px);font-weight:500;
+  line-height:1.85;letter-spacing:.01em;text-align:center;text-wrap:balance;
+}
+
+/* ---------- v1 → v2 fold: two mirrored noodle bowls ----------
+   ONE strand, sampled as a polyline and wound twice. The left half spirals from
+   the v1 bowl's rim inward to its centre and then out to the figure's centre C;
+   the right half is that same half point-reflected through C, so the left
+   bowl's last point IS the right bowl's first point and the whole curve is
+   continuous. buildFold() asserts the reflection rather than trusting it.
+   Deliberately no animated stroke-dasharray on the geometry: that is what broke
+   this project twice in WebKit. The only dash that moves is a decorative
+   overlay, and the figure is already correct without it.
+   Claim grammar, carried by the drawing:
+     v1 spiral   solid cyan      happened
+     v2 lit arc  solid gold      measured, bound to the live market cap
+     v2 rest     dashed gold     argued, never a forecast */
+.mirror{margin:24px 0 6px}
+.mir-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px}
+.mir-side{min-width:0}
+.mir-side.r{text-align:right}
+.mir-side b{display:block;font-size:17px;font-weight:700;line-height:1.2;
+  font-variant-numeric:tabular-nums;color:var(--cyan-dim)}
+.mir-side.r b{color:var(--noodle-y)}
+.mir-side span{display:block;font-size:11px;color:var(--dim);margin-top:3px;line-height:1.4}
+.mir-svg{display:block;width:100%;height:auto;overflow:visible}
+.fold-bowl{fill:none;stroke:rgba(0,201,201,.12);stroke-width:1}
+.fold-bowl.r{stroke:rgba(252,209,79,.12)}
+.fold-real{fill:none;stroke:url(#foldGrad);stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+.fold-ghost{fill:none;stroke:rgba(252,209,79,.3);stroke-width:3.2;stroke-linecap:round;
+  stroke-linejoin:round;stroke-dasharray:6 9}
+/* the travelling capital. Positive dashoffset only, decreasing to zero: negative
+   offsets are the other half of the WebKit dash bug this file has already paid for */
+.fold-flow{fill:none;stroke:url(#foldGrad);stroke-width:5;stroke-linecap:round;
+  stroke-dasharray:3 46;opacity:.85}
+.mirror.run .fold-flow{animation:foldFlow 2.9s linear infinite}
+@keyframes foldFlow{from{stroke-dashoffset:49}to{stroke-dashoffset:0}}.mirror figcaption{font-size:11.5px;color:var(--dim);text-align:center;margin-top:6px;line-height:1.6}
+/* ---------- roadmap ---------- */
+/* A noodle strand runs down a left gutter and threads every stage marker, the
+   same metaphor as the hero spiral: it fills as the live market cap climbs the
+   0.211 → 5 → 50 → 500 → 5000 BTC ladder. The gutter exists because the cards
+   are opaque — a strand drawn behind them would simply be invisible.
+   Its top/height and the fill are set from measured marker centres in JS, since
+   card heights vary with the copy and with the language. */
+.road{position:relative;margin:22px 0 8px;padding-left:40px}
+.road-steps{display:flex;flex-direction:column;gap:11px}
+/* above .step: the 4px strand never overlaps a card horizontally, but the live
+   market-cap tag hangs off it to the right and has to float over one */
+.rail{position:absolute;left:14px;width:4px;transform:translateX(-50%);border-radius:2px;
+      background:var(--line);z-index:2;pointer-events:none}
+.rail i{
+  position:absolute;left:0;right:0;top:0;height:0;border-radius:2px;
+  background:linear-gradient(180deg,var(--noodle-y),var(--noodle-o));
+  box-shadow:0 0 10px rgba(252,209,79,.35);
+  transition:height 1.1s cubic-bezier(.22,1,.36,1);
+}
+/* the travelling head, echoing the spiral's */
+.rail i::after{
+  content:'';position:absolute;left:50%;bottom:0;width:10px;height:10px;
+  transform:translate(-50%,50%);border-radius:50%;background:var(--noodle-y);
+  box-shadow:0 0 0 2px var(--bg),0 0 9px rgba(252,209,79,.75);
+}
+.rail b{
+  position:absolute;left:14px;bottom:0;transform:translateY(50%);
+  font-size:10px;font-weight:600;font-style:normal;white-space:nowrap;
+  color:var(--noodle-y);background:var(--bg);border:1px solid rgba(252,209,79,.3);
+  border-radius:5px;padding:2px 6px;font-variant-numeric:tabular-nums;
+  box-shadow:0 3px 12px rgba(0,0,0,.6);
+}
+/* .step deliberately has no z-index: giving it one would open a stacking
+   context and trap .step-i below the strand. Paint order is card < rail < marker. */
+.step{
+  position:relative;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px 16px;
+}
+.step-i{
+  position:absolute;left:-40px;top:14px;z-index:3;
+  width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;
+  background:var(--line);color:var(--dim);
+  box-shadow:0 0 0 3px var(--bg);
+}
+.step.done{border-color:rgba(0,255,255,.4)}
+.step.done .step-i{background:var(--cyan);color:#06060a}
+.step.now{border-color:rgba(0,255,255,.75);box-shadow:0 0 0 1px rgba(0,255,255,.18)}
+.step.now .step-i{background:var(--cyan);color:#06060a;animation:stepPulse 1.8s ease-in-out infinite}
+@keyframes stepPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,255,.5)}50%{box-shadow:0 0 0 6px rgba(0,255,255,0)}}
+/* z-index:1 keeps the copy above the seal, which is an absolutely positioned
+   ::before and would otherwise paint over it. Order stays card < seal < copy <
+   rail < marker < the tearing light. */
+.step-b{min-width:0;flex:1;position:relative;z-index:1}
+.step-t{font-size:14.5px;font-weight:600;color:var(--text);line-height:1.35}
+.step-d{font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:5px}
+.step-s{font-size:10.5px;font-weight:600;letter-spacing:.08em;color:var(--cyan);margin-top:7px;text-transform:uppercase}
+/* the title of a locked stage is legible: it is the promise being made, and a
+   blurred promise is just decoration. Only the detail stays sealed. */
+.step.locked .step-t{color:var(--text-2)}
+.step.locked .step-d{filter:blur(4px);user-select:none}
+.step.locked .step-s{color:var(--dim)}
+/* The seal is an overlay, not the card's own background: a background cannot be
+   masked away on its own while the panel colour underneath stays put, and the
+   tear has to remove the hatching without touching the card. Sealed and tearing
+   draw the identical pixels, so the ceremony only subtracts. */
+.step.locked::before,.step.breaking::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:repeating-linear-gradient(135deg,transparent,transparent 9px,#15151b 9px,#15151b 18px);
+}
+.lockbar{
+  display:flex;align-items:center;gap:8px;margin-top:10px;
+  font-size:11.5px;font-weight:600;color:var(--dim);letter-spacing:.03em;
+}
+.lockbar .goal{color:var(--text-2);font-variant-numeric:tabular-nums}
+.lockbar .bar{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden;min-width:50px}
+.lockbar .bar i{display:block;height:100%;background:var(--cyan);border-radius:2px;transition:width 1s cubic-bezier(.22,1,.36,1)}
+.step.unlocked{filter:none}
+.step.unlocked .step-t,.step.unlocked .step-d{filter:none}
+.step.unlocked{border-color:rgba(0,255,255,.4)}
+.step.unlocked .step-i{background:var(--cyan);color:#06060a}
+
+/* ---------- the reveal a milestone opens ---------- */
+.rv{margin-top:6px}
+.rv-a{
+  font-size:13.5px;font-weight:600;color:var(--text);line-height:1.5;
+  letter-spacing:.01em;font-variant-numeric:tabular-nums;
+}
+.rv-a em{font-style:normal;font-weight:400;color:var(--cyan);padding:0 7px}
+.rv-l{font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:7px}
+
+/* ---------- milestone unlock ceremony ----------
+   The seal tears off under a travelling light. Both are driven by the SAME
+   300%-wide gradient stepped from position 100% to 0% with the same easing and
+   timing, so the bright band sits exactly on the mask's own 50% boundary
+   instead of merely near it: with size 3n and offset p, the boundary lands at
+   1.5 - 2p of the card either way. */
+.step.breaking{border-color:rgba(0,255,255,.4);animation:sealGlow 1.5s cubic-bezier(.3,0,.2,1) .3s backwards}
+.step.breaking::before{
+  -webkit-mask-image:linear-gradient(100deg,transparent 0 33.33%,rgba(0,0,0,.55) 50%,#000 66.67%,#000 100%);
+          mask-image:linear-gradient(100deg,transparent 0 33.33%,rgba(0,0,0,.55) 50%,#000 66.67%,#000 100%);
+  -webkit-mask-size:300% 100%;mask-size:300% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:100% 0;mask-position:100% 0;
+  animation:sealTear .8s cubic-bezier(.42,0,.24,1) .22s forwards;
+}
+.step.breaking::after{
+  content:'';position:absolute;inset:-1px;z-index:4;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(100deg,transparent 0 40%,rgba(0,255,255,.14) 47%,rgba(0,255,255,.6) 50%,rgba(0,255,255,.14) 53%,transparent 60% 100%);
+  background-size:300% 100%;background-position:100% 0;background-repeat:no-repeat;opacity:0;
+  animation:sealTear .8s cubic-bezier(.42,0,.24,1) .22s forwards,
+            scanFade .8s linear .22s forwards;
+}
+@keyframes sealTear{to{-webkit-mask-position:0% 0;mask-position:0% 0;background-position:0% 0}}
+@keyframes scanFade{0%{opacity:0}12%{opacity:1}84%{opacity:1}100%{opacity:0}}
+@keyframes sealGlow{
+  0%{box-shadow:0 0 0 0 rgba(0,255,255,0)}
+  24%{box-shadow:0 0 0 1px rgba(0,255,255,.7),0 0 30px rgba(0,255,255,.26)}
+  100%{box-shadow:0 0 0 0 rgba(0,255,255,0)}
+}
+/* the lock gives: a shudder, then it pops open into its number */
+.step.breaking .step-i{animation:lockPop .95s cubic-bezier(.2,1.5,.32,1) forwards}
+@keyframes lockPop{
+  0%,30%{transform:translateX(0)}
+  6%{transform:translateX(-2px)}12%{transform:translateX(2px)}
+  18%{transform:translateX(-2px)}24%{transform:translateX(1.5px)}
+  48%{transform:scale(1.34)}100%{transform:scale(1)}
+}
+/* absolutely positioned so the grid-centred number never shifts */
+.step.breaking .step-i::after{
+  content:'';position:absolute;inset:-3px;border-radius:50%;
+  border:1.5px solid var(--cyan);
+  animation:lockRing .8s cubic-bezier(.2,.7,.3,1) .2s 2 forwards;
+}
+@keyframes lockRing{from{transform:scale(.7);opacity:.85}to{transform:scale(2.6);opacity:0}}
+/* the copy comes into focus behind the tear, not with it */
+.step.breaking .step-d,.step.breaking .rv,.step.breaking .step-s{
+  animation:sealFocus .62s cubic-bezier(.3,0,.2,1) .5s backwards;
+}
+/* .55 and blur(4px) are the sealed card's own look, so swapping the seal copy
+   for the reveal at t=0 happens underneath a blur nobody can read through. */
+@keyframes sealFocus{
+  from{filter:blur(4px);opacity:.55;transform:translateY(3px)}
+  to{filter:blur(0);opacity:1;transform:none}
+}
+/* the lines settle in turn, but never fade from nothing: the copy was under the
+   seal the whole time, so an opacity ramp here would blank the card mid-tear */
+.step.breaking .rv>*{animation:rvIn .55s cubic-bezier(.22,1,.36,1) backwards}
+.step.breaking .rv>*:nth-child(1){animation-delay:.56s}
+.step.breaking .rv>*:nth-child(2){animation-delay:.66s}
+.step.breaking .rv>*:nth-child(3){animation-delay:.76s}
+@keyframes rvIn{from{transform:translateY(4px)}to{transform:none}}
+/* the noodle pulling up to the freed marker needs no rule of its own: .rail i
+   already transitions its height, so the surge comes for free with placeRail */
+@media (prefers-reduced-motion:reduce){
+  .step.breaking::before,.step.breaking::after,.step.breaking .step-i::after{display:none}
+  .step.breaking,.step.breaking *{animation:none!important;transition:none!important}
+}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* after the section rules, so it wins over their 64px: an anchor has to clear
+   both sticky bars, whose height changes with the viewport and the language */
+.sec{scroll-margin-top:calc(var(--navh, 86px) + 12px)}
+/* ---------- footer ---------- */
+footer{
+  position:relative;z-index:1;text-align:center;color:var(--dim);font-weight:400;
+  font-size:12px;padding:40px 20px 26px;letter-spacing:.01em;line-height:1.9;
+  border-top:1px solid var(--line-soft);margin-top:36px;
+}
+footer a{color:var(--text-2);text-decoration:none}
+footer a:hover{color:var(--cyan)}
+
+@media (max-width:600px){
+  .toplinks a{display:none}
+  .topbar{padding:12px 16px}
+  .subnav{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .subnav::-webkit-scrollbar{display:none}
+  /* narrower noodle gutter so the stage cards keep their width on a phone */
+  .road{padding-left:32px}
+  .rail{left:11px}
+  .step-i{left:-32px;width:22px;height:22px;font-size:10.5px}
+  .rail b{left:11px;font-size:9.5px;padding:1px 5px}
+}
+@media (prefers-reduced-motion:reduce){
+  #stars i{animation:none !important}
+  .pill,.pill i{transition:none !important}
+  .mirror.run .fold-flow{animation:none !important}
+}
+</style>
+</head>
+<body>
+<div id="stars" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="wordmark" href="index.html">🍜 NOODL·CLUB</a>
+  <nav class="toplinks">
+    <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener" data-i="linkToken">Odin.Fun ↗</a>
+    <a href="https://odin.fun/c/7ij3h-flwdx-jncgk-765tf-qyu7w-cr77f-wjvqt-bvapu-tgx56-aydty-bqe?r=u1jr4b658e" target="_blank" rel="noopener" data-i="linkCommunity">Community ↗</a>
+    <a href="https://deliveroo.co.uk/menu/london/temple/noodle-nova" target="_blank" rel="noopener" data-i="linkNoodle">Noodle Nova 🍜 ↗</a>
+    <button id="langBtn" type="button">中文</button>
+  </nav>
+</header>
+
+<div class="navwrap">
+<nav class="secnav" aria-label="Pages">
+  <a class="tab" href="index.html" data-i="navHome">Home</a>
+  <a class="tab" href="holders.html" data-i="navBoard">Holder board</a>
+  <a class="tab on" href="revelation.html" aria-current="page" data-i="navRev">NOODL Revelation</a>
+</nav>
+<nav class="subnav" aria-label="Sections">
+  <a href="#what" data-i="navWhat">What is NOODL</a>
+  <a href="#culture" data-i="navCulture">Culture</a>
+  <a href="#first" data-i="navFirst">First is First</a>
+  <a href="#community" data-i="navCommunity">Community</a>
+  <a href="#roadmap" data-i="navRoadmap">Roadmap</a>
+</nav>
+</div>
+
+<main>
+  <div class="rev-head">
+    <h1 data-i="revH">The NOODL Revelation</h1>
+    <p data-i="revLead"></p>
+  </div>
+
+  <div class="sec-wrap"><div class="sections">
+
+    <!-- ============ WHAT IS NOODL ============ -->
+    <section class="sec" id="what">
+      <div class="sec-k" data-i="kWhat">01: What is NOODL?</div>
+      <h2 data-i="whatH">The first token of the new Odin</h2>
+      <p class="lead" data-i="whatLead">NOODL (Noodle Nova) is the first token ever launched on ODIN·FUN v2, the Bitcoin-native launchpad that came back online in July 2026 after nearly a year offline. On 13 July it graduated from its bonding curve into the AMM pool.</p>
+
+      <figure class="sq">
+        <img src="img/noodl-odin.png" alt="NOODL, a bowl of noodle galaxy" loading="lazy" width="1000" height="1000">
+        <figcaption data-i="capNoodl">NOODL, a bowl of noodle galaxy</figcaption>
+      </figure>
+
+      <h3 data-i="whatWhyH">Why Bitcoin needed a launchpad like this</h3>
+      <p data-i="whatWhyP">Bitcoin traded the third leg of the blockchain trilemma for decentralisation and security: ten-minute blocks, no smart contracts, no pools. However lively inscriptions and runes became, trading still meant order books: you eat whatever someone happened to list, one large ask crushes the tape, and a sell order may simply never find a buyer. ODIN·FUN keeps assets and settlement on Bitcoin while matching moves to a two-second-finality, zero-gas fast layer, with pools instead of order books.</p>
+
+      <h3 data-i="whatV1H">What happened to v1, and what changed</h3>
+      <p data-i="whatV1P">v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was pace: the ecosystem grew faster than its security infrastructure, a mechanism upgrade shipped with a flaw in it, attackers found the gap, and a security incident followed. The car was fine and the road was fine, the brakes simply had not caught up with the horsepower.</p>
+      <p data-i="whatV2P">v2 rebuilt the answer to each of those, item by item: deposits sit under <b>threshold-signature (TSS) custody</b>, the vault key is split across independent parties, and no single party, the team included, can move funds. Contract upgrades now pass a <b>4-of-7 multisig DAO</b> in which the team holds only two seats; platform revenue flows to a <b>3-of-5 treasury DAO</b> where the team holds none. Individual accounts add 2FA and an instant session padlock. Withdrawals to Bitcoin mainnet are batched, ten minutes at most.</p>
+
+      <div class="facts">
+        <div class="fact"><b>1,000+</b><span data-i="factBtc">BTC of volume in v1's first month, the demand was always real</span></div>
+        <div class="fact"><b>4 / 7</b><span data-i="factDao">Multisig DAO required to change v2 code (team holds 2)</span></div>
+        <div class="fact"><b>~2s</b><span data-i="factSpeed">Trade finality, zero gas, pools not order books</span></div>
+        <div class="fact"><b>#1</b><span data-i="factFirst">NOODL's launch position on v2, permanently</span></div>
+      </div>
+
+    </section>
+
+    <!-- ============ CULTURE ============ -->
+    <section class="sec" id="culture">
+      <div class="sec-k" data-i="kCulture">02: Culture</div>
+      <h2 data-i="cultH">The culture in a bowl of noodles</h2>
+      <p class="lead" data-i="cultLead">NOODL reads as <b>New Odin HODL</b>, the new Odin; hold, don't sell. Probably an accident of the deployer, and that is exactly where the magic sits.</p>
+
+      <div><span class="morph-sr">NEW ODIN HODL</span><span class="morph" id="morph" aria-hidden="true"><span class="pill p1"><i class="k">N</i><i class="d">E</i><i class="d">W</i></span><span class="pill p2"><i class="k">O</i><i class="d">D</i><i class="d">I</i><i class="d">N</i></span><span class="pill p3"><i class="d">H</i><i class="k">O</i><i class="k">D</i><i class="k">L</i></span></span></div>
+
+      <h3 data-i="cultBridgeH">One word, two cultures</h3>
+      <p data-i="cultBridgeP">NOODLE literally means noodles. In Chinese culture noodles stand for what lasts: longevity noodles on birthdays. The West has pasta in endless shapes, yet nobody there ever connected noodles with <i>lasting long</i>. Until Bitcoin handed them the word HODL. NOODL splices the two worlds together: a Westerner reads New Odin HODL instantly, and following that one strand of noodle, understands for the first time that noodles can mean forever.</p>
+      <p data-i="cultMianP">The wordplay runs deeper in Chinese, where 面 (mián) means both noodles and face: <b>体面</b> ti-mian, dignity · <b>场面</b> chang-mian, appearances · <b>情面</b> qing-mian, mutual regard. Three bowls of mian in a life.</p>
+
+      <h3 data-i="cultHodlH">HODL as long-termism</h3>
+      <p data-i="cultHodlP">HODL is one of crypto's most important pieces of heritage, a word misspelled in the 2013 bear market that became a generation's creed. Most people arrive to get rich fast; after every cycle rinses through, the communities that remain are the ones willing to build for the long haul. NOODL welded that word into its own name, which gives it a shot at being v2's cultural core: hold on, and accompany the rebirth.</p>
+      <p class="quote" data-i="cultQuote">"The cultural density of this coin runs far higher than its market cap."</p>
+
+      <h3 data-i="cultRealH">1 NOODL = 1 noodle</h3>
+      <p data-i="cultRealP">The culture is not only symbolic. One NOODL corresponds to one bowl of ramen, roughly £15, at Noodle Nova in central London: a token anchored, however playfully, to something you can actually eat.</p>
+    </section>
+
+    <!-- ============ FIRST IS FIRST ============ -->
+    <section class="sec" id="first">
+      <div class="sec-k" data-i="kFirst">03: First is First</div>
+      <h2 data-i="whatFirstH">Why "first" is the whole point</h2>
+      <p class="lead" data-i="whatFirstP">No ecosystem takes <b>first-is-first</b> more seriously than Bitcoin's. Bitcoin is the origin of the industry; CryptoPunks of NFT culture; ORDI of the inscriptions era. Each ecosystem's first became that ecosystem's totem, not because of the words "the first", but because it carries the earliest cultural memory of an era, and rises as high as the ecosystem itself grows. NOODL is v2-original: no history on v1, no replica to argue with. When v1's runes and communities migrate across, originals and copies will coexist under the same names, a war of legitimacy NOODL never has to fight.</p>
+      <h3 data-i="tblH">How far each "first" actually went</h3>
+      <p data-i="tblLead">Every era of Bitcoin issuance produced exactly one first. Here is what each of them reached at its peak, and where NOODL sits today.</p>
+      <div class="tblwrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th data-i="thAsset">Asset</th>
+              <th data-i="thProto">Protocol / venue</th>
+              <th data-i="thStart">Start</th>
+              <th data-i="thPeak">Peak price</th>
+              <th data-i="thPeakMc">Peak market cap</th>
+              <th data-i="thX">Max multiple</th>
+            </tr>
+          </thead>
+          <tbody id="cmpRows"></tbody>
+        </table>
+      </div>
+      <p class="tblnote" data-i="tblNote">Peak figures are the highest ever reached, not today's price. NOODL's row is read live from the odin.fun API and rises on its own if NOODL makes a new high.</p>
+
+      <p class="quote" data-i="whatQuote">"The first is the first, forever: the only moat in this world that needs no maintenance."</p>
+
+      <h3 data-i="ecoH">The empty slot on the biggest chain</h3>
+      <p data-i="ecoLead">Every large chain eventually produced one meme that came to stand for the whole thing.</p>
+
+      <h3 data-i="ecoWhyH">Why the oldest chain never got one</h3>
+      <p data-i="ecoWhyP">It was never a shortage of tokens. Bitcoin's ecosystem has produced countless of them: coloured coins, Genesis spells, rare pepes, Counterparty, Ordinals, BRC-20, Runes. That is more than ten years of issuing things on Bitcoin. What was missing was a venue where a Bitcoin asset could trade at lightning speed. Ten-minute blocks and order books are a fine way to settle a treasury and a poor way to run a punchline: you eat whatever someone happened to list, and a sell order may never find a buyer at all. The other half is temperament. Bitcoin's culture was built on refusing to be a casino, so the tokens that did appear got treated as protocol artefacts to be collected rather than jokes to be repeated. ORDI comes closest to a defining Bitcoin-ecosystem asset, and it is a claim on a standard rather than a culture with a punchline attached. Ten years, seven token eras, no totem.</p>
+
+      <div class="facts">
+        <div class="fact"><b>0</b><span data-i="ecoF1">chain-defining memes Bitcoin has produced in more than ten years of tokens</span></div>
+        <div class="fact"><b>7</b><span data-i="ecoF2">token eras from coloured coins to Runes, not one of them left a totem</span></div>
+        <div class="fact"><b>0.211 BTC</b><span data-i="ecoF3">sold along the bonding curve before a token ascends into the AMM</span></div>
+        <div class="fact"><b id="ecoHolders">227</b><span data-i="ecoF4">holders NOODL has today, every sentence here sits beside this number</span></div>
+      </div>
+
+      <h3 data-i="ecoVenueH">A meme is downstream of its venue</h3>
+      <p data-i="ecoVenueP">Odin describes itself as the fastest way to trade tokens on Bitcoin, and the mechanics are specific enough to check line by line. A layer called Valhalla gives two-second finality and no gas fees at all; deposits cross a bridge called Bifrost under threshold signatures, the same mechanism family used by tBTC, Arch and ICP. Tokens open on a bonding curve, sell 80% of supply along it for 0.211 BTC, and then ascend, the remaining fifth plus 0.2 BTC drops into an AMM pool. Creating one costs 3,333 sats: small enough to be nothing, large enough to make spam tedious. None of that is decisive on its own; pump.fun proved a bonding curve is easy to copy. What is harder to copy is the part that decides whether a venue is still there in three years, contract upgrades need a 4-of-7 multisig in which the team holds two seats, and revenue sits in a 3-of-5 treasury multisig in which it holds none. A coin meant to be held for years cannot outlive the place it trades. Those numbers are either the foundation of the whole argument or entirely beside the point, depending on whether anyone ever comes to care about them.</p>
+
+      <h3 data-i="ecoSlotH">What the slot is actually shaped like</h3>
+      <p data-i="ecoPatternP">The chain-defining memes follow a pattern, and it is not that the best token wins. SHIB arrived on the back of DOGE's cultural slipstream and Ethereum's retail wave. BONK launched in December 2023 into the post-FTX trough, framed from day one as a gift to a demoralised community, and became the ticker people bought when they wanted to express a view on Solana itself rather than on any project; WIF followed it. BNB Chain, for all its volume, never produced a lasting one, and TRON's SUNDOG stayed local. Two things recur. These tokens show up at a chain's low point or its comeback moment rather than at its peak, at a peak there is nothing left to express, because everyone already agrees. And they win by turning into shorthand for the chain's story rather than equity in a product.</p>
+      <p data-i="ctxPendulumP">The pendulum of flow has swung this way before. In January 2025 the TRUMP coin marked the climax of the pump.fun era, and one week after it topped, Odin v1 was announced, receiving the capital that went looking for somewhere to build. In July 2026 Robinhood's own chain went live and was promptly occupied by memes, until noxa, the launchpad behind three quarters of its deployments, went dark for two days and the community erupted in soft-rug accusations. Same pendulum, same position, and Odin v2 restarted at precisely that moment.</p>
+
+      <figure>
+        <img src="img/falcon-heavy.jpg" alt="Falcon Heavy boosters landing" loading="lazy" width="900" height="600">
+        <figcaption data-i="capFalcon">Comebacks are rare, which is why they are the favourite plot: the company that kept exploding later taught its rockets to come home</figcaption>
+      </figure>
+
+      <p data-i="ecoNoodlP">Everything above is pattern-matching, and pattern-matching is not evidence. "It rhymes with BONK" is a sentence that will be true of twelve tokens on Odin within a year and false of eleven of them. With that said: NOODL is the first token on v2, and v2 is itself a rebuild after an incident, structurally the low point the pattern asks for. Being first is a fact rather than a claim on attention, but it is a fact that cannot be revised later. Its name is an argument rather than an animal: New Odin HODL, a thesis you can say in one breath. And it is food, which travels: noodles already mean longevity in Chinese, HODL supplies the same idea in English, so the joke survives translation, which is the one thing a chain-defining meme has to do. None of that is demand. NOODL is still very early. Every chain-defining coin was small once, and so were the several hundred that stayed small.</p>
+      <p data-i="ecoRoomP">What makes the thesis worth stating at all is the size of the room rather than the size of the token. A filled slot on a small chain is worth whatever that chain is worth. An empty slot on the largest chain is a bigger room, but only if it is empty for want of a venue, and not because Bitcoin's holders looked at the seat and decided they never wanted anyone in it. What would close that distance is not price. It is a change in what the ticker gets used for.</p>
+
+      <h3 data-i="ecoFalsifyH">What would have to be true</h3>
+      <p data-i="ecoFalsifyP">Odin has to become the default venue for Bitcoin memes rather than one of several, which is a distribution problem no token can solve on the platform's behalf. NOODL's holder base has to grow by orders of magnitude while behaving like holders, and the culture has to be carried by people who were not there at the start, a meme only its earliest owners can explain is a private joke. What would falsify it: another token on Odin becoming the community's chosen way to express the chain, which is the ordinary outcome rather than the exception. A rival Bitcoin venue with better distribution taking the slot instead. Another security incident, after which none of the above matters. Or the quietest case, which is also the base case: most memes on most chains stay roughly where they are forever. One asymmetry is worth ending on: nobody has ever chosen a chain-defining coin on purpose. SHIB and BONK were anointed by crowds after the fact. A website cannot do it, a team cannot do it, and a holder count this size is not a crowd.</p>
+    </section>
+
+    <!-- ============ COMMUNITY ============ -->
+    <section class="sec" id="community">
+      <div class="sec-k" data-i="kCommunity">04: Community</div>
+      <h2 data-i="commH">One coordinate, one consensus</h2>
+      <p class="lead" data-i="commLead">v2's biggest opportunity is not the technical upgrade: it is the chance to re-gather communities that used to be scattered.</p>
+
+      <h3 data-i="commSplitH">The lesson of a divided house</h3>
+      <p data-i="commSplitP">The v1 era had a real problem: on-chain players held on-chain consensus, off-chain communities held their own, and different camps backed different assets. Original ODINDOG versus FORSETISCN, the dog and the scales, is the clearest example: both sides were Odin believers, yet the strength never pulled in one direction. Before the ecosystem had grown up, the household had divided.</p>
+
+      <h3 data-i="commTurnH">A healthy rotation of chips</h3>
+      <p data-i="commTurnP">NOODL's community took one full rotation to form. The earliest few dozen came only to farm the launch, flip it for a few hundred dollars and leave; when the bonding curve graduated, that crowd took the money and dissolved. The chips rotated into genuinely convicted hands, and what gathered afterwards reads like a roll call of the v1 era. Veterans who each fought alone back then, converging on one coordinate.</p>
+      <p data-i="commValP">A project's greatest value was never just its code, but how many people's convictions are willing to gather in one place. Backgrounds and styles differ sharply: some believe in the technology, some in the ecosystem, some in the first narrative, some simply in long-term holding, yet everyone sat down at the same table for the same faith. A strong community is never everyone thinking identically; it is a direction commonly believed, grown among entirely different people.</p>
+
+      <h3 data-i="commTeamH">The team that never ran</h3>
+      <p data-i="commTeamP">The first cornerstone of rebuilt trust is people. Through eight months offline the team never went dark: founder Bob Bodily said plainly on the day of the incident that the company treasury could not cover the losses, then worked with OKX and Binance to freeze stolen funds, cooperated with law enforcement on both sides of the Pacific, commissioned an external audit, and honoured deposits 1:1 at relaunch. The plan after two thefts was not to dump the hole onto users, but to restart, raise fees, and repay v1's losses out of the platform's own earnings. The community's nickname for him, <i>the Legendary Theft-Proof King</i>, is affectionate and exhausted in equal measure.</p>
+      <p class="quote" data-i="commQuote">"In an industry where running away costs nothing, a team that doesn't run is itself the scarcest asset."</p>
+    </section>
+
+    <!-- ============ ROADMAP ============ -->
+    <section class="sec" id="roadmap">
+      <div class="sec-k" data-i="kRoadmap">05: Roadmap</div>
+      <h2 data-i="roadH">The road to Nova</h2>
+      <p class="lead" data-i="roadLead">Everything below unlocks by market cap. Later stages stay sealed until the milestone is actually reached, no promises made in advance.</p>
+
+      <figure class="mirror" id="mirror">
+        <div class="mir-head">
+          <div class="mir-side"><b>≈5000 BTC</b><span data-i="mirV1">ODIN·FUN v1, every token combined, before the incident stopped it</span></div>
+          <div class="mir-side r"><b id="mirNow">1.57 BTC</b><span data-i="mirNow">NOODL today, measured live</span></div>
+        </div>
+        <svg class="mir-svg" id="mirSvg" viewBox="0 0 600 260" aria-hidden="true"></svg>
+        <figcaption data-i="mirCap">One strand, wound twice. The left bowl is v1's realised market cap, roughly 5000 BTC, a community estimate, and its spiral ends exactly where the right one begins. The right bowl is NOODL's road to 5000 BTC: solid as far as the live market cap has actually travelled, dashed the rest of the way, because that part is an argument and not a forecast. Distance along that road is measured in orders of magnitude, the same scale as the spiral at the top of this page, not as a share of 5000.</figcaption>
+      </figure>
+
+      <div class="road">
+        <span class="rail" id="roadRail"><i id="roadFill"><b id="roadTag"></b></i></span>
+        <div class="road-steps" id="roadList"></div>
+      </div>
+      <!-- the tear is silent for anyone who cannot see it, so it is announced -->
+      <p class="sr-only" id="unlockSr" role="status" aria-live="polite"></p>
+
+      <p class="coda" data-i="roadNote">First it was a token. Then it became a culture. Finally, it became a movement.</p>
+    </section>
+
+  </div></div>
+</main>
+
+<footer>
+  <span data-i="footer">NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles.</span> 🍜<br>
+  <span data-i="footerLinks">© 2026 NOODL.club ·</span>
+  <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun/token/hjrg</a>
+</footer>
+
+<noscript><p style="text-align:center;padding:20px">NOODL · enable JavaScript for the live figures. Token: <a href="https://odin.fun/token/hjrg">odin.fun/token/hjrg</a></p></noscript>
+
+<script>
+'use strict';
+/* ================= constants ================= */
+const LAUNCH_MC=0.211, FINAL_MC=5000;
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const $=s=>document.querySelector(s);
+/* Distance along the road is order-of-magnitude, the same ruler the hero spiral
+   on the home page uses, so the two never disagree about how far NOODL has got. */
+const fracOf=mc=>clamp((Math.log10(mc)-Math.log10(LAUNCH_MC))/(Math.log10(FINAL_MC)-Math.log10(LAUNCH_MC)),0,1);
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Roadmap copy is authored in this file, never fetched, but it is still escaped
+   on the way into innerHTML: the rule is the rule, and copy gets edited. */
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+/* ================= i18n ================= */
+const I18N={
+en:{
+  ui:{
+    kWhat:'01: What is NOODL?',
+    whatH:'The first token of the new Odin',
+    whatLead:'NOODL (Noodle Nova) is the first token ever launched on ODIN·FUN v2, the Bitcoin-native launchpad that came back online in July 2026 after nearly a year offline. On 13 July it graduated from its bonding curve into the AMM pool.',
+    capNoodl:'NOODL, a bowl of noodle galaxy',
+    whatWhyH:'Why Bitcoin needed a launchpad like this',
+    whatWhyP:'Bitcoin traded the third leg of the blockchain trilemma for decentralisation and security: ten-minute blocks, no smart contracts, no pools. However lively inscriptions and runes became, trading still meant order books: you eat whatever someone happened to list, one large ask crushes the tape, and a sell order may simply never find a buyer. ODIN·FUN keeps assets and settlement on Bitcoin while matching moves to a two-second-finality, zero-gas fast layer, with pools instead of order books.',
+    whatV1H:'What happened to v1, and what changed',
+    whatV1P:'v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was pace: the ecosystem grew faster than its security infrastructure, a mechanism upgrade shipped with a flaw in it, attackers found the gap, and a security incident followed. The car was fine and the road was fine, the brakes simply had not caught up with the horsepower.',
+    whatV2P:'v2 rebuilt the answer to each of those, item by item: deposits sit under <b>threshold-signature (TSS) custody</b>, the vault key is split across independent parties, and no single party, the team included, can move funds. Contract upgrades now pass a <b>4-of-7 multisig DAO</b> in which the team holds only two seats; platform revenue flows to a <b>3-of-5 treasury DAO</b> where the team holds none. Individual accounts add 2FA and an instant session padlock. Withdrawals to Bitcoin mainnet are batched, ten minutes at most.',
+    factBtc:"BTC of volume in v1's first month, the demand was always real",
+    factDao:'Multisig DAO required to change v2 code (team holds 2)',
+    factSpeed:'Trade finality, zero gas, pools not order books',
+    factFirst:"NOODL's launch position on v2, permanently",
+    whatFirstH:'Why "first" is the whole point',
+    whatFirstP:'No ecosystem takes <b>first-is-first</b> more seriously than Bitcoin\'s. Bitcoin is the origin of the industry; CryptoPunks of NFT culture; ORDI of the inscriptions era. Each ecosystem\'s first became that ecosystem\'s totem, not because of the words "the first", but because it carries the earliest cultural memory of an era, and rises as high as the ecosystem itself grows. NOODL is v2-original: no history on v1, no replica to argue with. When v1\'s runes and communities migrate across, originals and copies will coexist under the same names, a war of legitimacy NOODL never has to fight.',
+    tblH:'How far each "first" actually went',
+    tblLead:'Every wave in the Bitcoin ecosystem has been driven by the First of its track. Around 90% of the returns inside an ecosystem settle into that First: when the First flies, the ecosystem rises; when the First fades, the ecosystem enters an irreversible downcycle. Here is the high-water mark each of them reached, and where NOODL stands today.',
+    thAsset:'Asset',thProto:'Protocol / venue',thStart:'Start',
+    thPeak:'Peak price',thPeakMc:'Peak market cap',thX:'Multiple',
+    tblFree:'free mint',tblAir:'airdrop',tblLaunch:'launch cap',
+    tblFloor:'floor',
+    tblNote:'Live data. If NOODL sets a new high, it updates on its own.',
+    whatQuote:'"The first is the first, forever: the only moat in this world that needs no maintenance."',
+    kCulture:'02: Culture',
+    cultH:'The culture in a bowl of noodles',
+    cultLead:'NOODL reads as <b>New Odin HODL</b>, the new Odin; hold, don\'t sell. Probably an accident of the deployer, and that is exactly where the magic sits.',
+    cultBridgeH:'One word, two cultures',
+    cultBridgeP:'NOODLE literally means noodles. In Chinese culture noodles stand for what lasts: longevity noodles on birthdays. The West has pasta in endless shapes, yet nobody there ever connected noodles with <i>lasting long</i>. Until Bitcoin handed them the word HODL. NOODL splices the two worlds together: a Westerner reads New Odin HODL instantly, and following that one strand of noodle, understands for the first time that noodles can mean forever.',
+    cultMianP:'The wordplay runs deeper in Chinese, where 面 (mián) means both noodles and face: <b>体面</b> ti-mian, dignity · <b>场面</b> chang-mian, appearances · <b>情面</b> qing-mian, mutual regard. Three bowls of mian in a life.',
+    cultHodlH:'HODL as long-termism',
+    cultHodlP:"HODL is one of crypto's most important pieces of heritage, a word misspelled in the 2013 bear market that became a generation's creed. Most people arrive to get rich fast; after every cycle rinses through, the communities that remain are the ones willing to build for the long haul. NOODL welded that word into its own name, which gives it a shot at being v2's cultural core: hold on, and accompany the rebirth.",
+    cultQuote:'"The cultural density of this coin runs far higher than its market cap."',
+    cultRealH:'1 NOODL = 1 noodle',
+    cultRealP:'The culture is not only symbolic. One NOODL corresponds to one bowl of ramen, roughly £15, at Noodle Nova in central London: a token anchored, however playfully, to something you can actually eat.',
+    kCommunity:'04: Community',
+    commH:'One coordinate, one consensus',
+    commLead:"v2's biggest opportunity is not the technical upgrade: it is the chance to re-gather communities that used to be scattered.",
+    commSplitH:'The lesson of a divided house',
+    commSplitP:'The v1 era had a real problem: on-chain players held on-chain consensus, off-chain communities held their own, and different camps backed different assets. Original ODINDOG versus FORSETISCN, the dog and the scales, is the clearest example: both sides were Odin believers, yet the strength never pulled in one direction. Before the ecosystem had grown up, the household had divided.',
+    commTurnH:'A healthy rotation of chips',
+    commTurnP:"NOODL's community took one full rotation to form. The earliest few dozen came only to farm the launch, flip it for a few hundred dollars and leave; when the bonding curve graduated, that crowd took the money and dissolved. The chips rotated into genuinely convicted hands, and what gathered afterwards reads like a roll call of the v1 era. Veterans who each fought alone back then, converging on one coordinate.",
+    commValP:"A project's greatest value was never just its code, but how many people's convictions are willing to gather in one place. Backgrounds and styles differ sharply: some believe in the technology, some in the ecosystem, some in the first narrative, some simply in long-term holding, yet everyone sat down at the same table for the same faith. A strong community is never everyone thinking identically; it is a direction commonly believed, grown among entirely different people.",
+    commTeamH:'The team that never ran',
+    commTeamP:'The first cornerstone of rebuilt trust is people. Through eight months offline the team never went dark: founder Bob Bodily said plainly on the day of the incident that the company treasury could not cover the losses, then worked with OKX and Binance to freeze stolen funds, cooperated with law enforcement on both sides of the Pacific, commissioned an external audit, and honoured deposits 1:1 at relaunch. The plan after two thefts was not to dump the hole onto users, but to restart, raise fees, and repay v1\'s losses out of the platform\'s own earnings. The community\'s nickname for him, <i>the Legendary Theft-Proof King</i>, is affectionate and exhausted in equal measure.',
+    commQuote:'"In an industry where running away costs nothing, a team that doesn\'t run is itself the scarcest asset."',
+    kFirst:'03: First is First',
+    ecoH:'The empty slot on the biggest chain',
+    ecoLead:'Every large chain eventually produced one meme that came to stand for the whole thing. Ethereum got SHIB, Solana got BONK, Base got BRETT. Bitcoin never did: the oldest chain, the largest, the one carrying the most cultural weight in the industry. This section starts there, with the absence, and not with NOODL.',
+    ecoWhyH:'Why the oldest chain never got one',
+    ecoWhyP:"It was never a shortage of tokens. Bitcoin's ecosystem has produced countless of them: coloured coins, Genesis spells, rare pepes, Counterparty, Ordinals, BRC-20, Runes. That is more than ten years of issuing things on Bitcoin. What was missing was a venue where a Bitcoin asset could trade at lightning speed. Ten-minute blocks and order books are a fine way to settle a treasury and a poor way to run a punchline: you eat whatever someone happened to list, and a sell order may never find a buyer at all. The other half is temperament. Bitcoin's culture was built on refusing to be a casino, so the tokens that did appear got treated as protocol artefacts to be collected rather than jokes to be repeated. ORDI comes closest to a defining Bitcoin-ecosystem asset, and it is a claim on a standard rather than a culture with a punchline attached. Ten years, seven token eras, no totem.",
+    ecoF1:'chain-defining memes Bitcoin has produced in more than ten years of tokens',
+    ecoF2:'token eras from coloured coins to Runes, not one of them left a totem',
+    ecoF3:'sold along the bonding curve before a token ascends into the AMM',
+    ecoF4:'holders NOODL has today, every sentence here sits beside this number',
+    ecoVenueH:'A meme is downstream of its venue',
+    ecoVenueP:'Odin describes itself as the fastest way to trade tokens on Bitcoin, and the mechanics are specific enough to check line by line. A layer called Valhalla gives two-second finality and no gas fees at all; deposits cross a bridge called Bifrost under threshold signatures, the same mechanism family used by tBTC, Arch and ICP. Tokens open on a bonding curve, sell 80% of supply along it for 0.211 BTC, and then ascend, the remaining fifth plus 0.2 BTC drops into an AMM pool. Creating one costs 3,333 sats: small enough to be nothing, large enough to make spam tedious. None of that is decisive on its own; pump.fun proved a bonding curve is easy to copy. What is harder to copy is the part that decides whether a venue is still there in three years, contract upgrades need a 4-of-7 multisig in which the team holds two seats, and revenue sits in a 3-of-5 treasury multisig in which it holds none. A coin meant to be held for years cannot outlive the place it trades. Those numbers are either the foundation of the whole argument or entirely beside the point, depending on whether anyone ever comes to care about them.',
+    ecoSlotH:'What the slot is actually shaped like',
+    ecoPatternP:"The chain-defining memes follow a pattern, and it is not that the best token wins. SHIB arrived on the back of DOGE's cultural slipstream and Ethereum's retail wave. BONK launched in December 2023 into the post-FTX trough, framed from day one as a gift to a demoralised community, and became the ticker people bought when they wanted to express a view on Solana itself rather than on any project; WIF followed it. BNB Chain, for all its volume, never produced a lasting one, and TRON's SUNDOG stayed local. Two things recur. These tokens show up at a chain's low point or its comeback moment rather than at its peak, at a peak there is nothing left to express, because everyone already agrees. And they win by turning into shorthand for the chain's story rather than equity in a product.",
+    ecoNoodlP:'Everything above is pattern-matching, and pattern-matching is not evidence. "It rhymes with BONK" is a sentence that will be true of twelve tokens on Odin within a year and false of eleven of them. With that said: NOODL is the first token on v2, and v2 is itself a rebuild after an incident, structurally the low point the pattern asks for. Being first is a fact rather than a claim on attention, but it is a fact that cannot be revised later. Its name is an argument rather than an animal: New Odin HODL, a thesis you can say in one breath. And it is food, which travels: noodles already mean longevity in Chinese, HODL supplies the same idea in English, so the joke survives translation, which is the one thing a chain-defining meme has to do. None of that is demand. NOODL is still very early. Every chain-defining coin was small once, and so were the several hundred that stayed small.',
+    ecoRoomP:"What makes the thesis worth stating at all is the size of the room rather than the size of the token. A filled slot on a small chain is worth whatever that chain is worth. An empty slot on the largest chain is a bigger room, but only if it is empty for want of a venue, and not because Bitcoin's holders looked at the seat and decided they never wanted anyone in it. What would close that distance is not price. It is a change in what the ticker gets used for.",
+    ecoFalsifyH:'What would have to be true',
+    ecoFalsifyP:"Odin has to become the default venue for Bitcoin memes rather than one of several, which is a distribution problem no token can solve on the platform's behalf. NOODL's holder base has to grow by orders of magnitude while behaving like holders, and the culture has to be carried by people who were not there at the start, a meme only its earliest owners can explain is a private joke. What would falsify it: another token on Odin becoming the community's chosen way to express the chain, which is the ordinary outcome rather than the exception. A rival Bitcoin venue with better distribution taking the slot instead. Another security incident, after which none of the above matters. Or the quietest case, which is also the base case: most memes on most chains stay roughly where they are forever. One asymmetry is worth ending on: nobody has ever chosen a chain-defining coin on purpose. SHIB and BONK were anointed by crowds after the fact. A website cannot do it, a team cannot do it, and a holder count this size is not a crowd.",
+    kRoadmap:'05: Roadmap',
+    roadH:'The road to Nova',
+    roadLead:'Everything below unlocks by market cap. Later stages stay sealed until the milestone is actually reached, no promises made in advance.',
+    roadNote:'First it was a token. Then it became a culture. Finally, it became a movement.',
+    ctxPendulumP:"The pendulum of flow has swung this way before. In January 2025 the TRUMP coin marked the climax of the pump.fun era, and one week after it topped, Odin v1 was announced, receiving the capital that went looking for somewhere to build. In July 2026 Robinhood's own chain went live and was promptly occupied by memes, until noxa, the launchpad behind three quarters of its deployments, went dark for two days and the community erupted in soft-rug accusations. Same pendulum, same position, and Odin v2 restarted at precisely that moment.",
+    capFalcon:'Comebacks are rare, which is why they are the favourite plot: the company that kept exploding later taught its rockets to come home',
+    mirV1:'ODIN·FUN v1, every token combined, before the incident stopped it',
+    mirNow:'NOODL today, measured live',
+    mirCap:"One strand, wound twice. The left bowl is v1's realised market cap, roughly 5000 BTC, a community estimate, and its spiral ends exactly where the right one begins. The right bowl is NOODL's road to 5000 BTC: solid as far as the live market cap has actually travelled, dashed the rest of the way, because that part is an argument and not a forecast. Distance along that road is measured in orders of magnitude, the same scale as the spiral at the top of this page, not as a share of 5000.",
+    roadReached:'Reached',roadNow:'In testing',roadUnlocked:'Unlocked',
+    unlockSr:n=>'Milestone unlocked: '+n+' BTC.',
+    road:[
+      {t:'Launch: ascended into the AMM',d:"Odin sells 80% of a token's supply along the bonding curve for 0.211 BTC; clearing that threshold is what deposits the remaining supply plus 0.2 BTC into the AMM. NOODL cleared it in mid-July 2026, which is what opened everything below."},
+      {t:'ODIN·FUN v1 → v2 migration',d:"v1's runes and communities migrate to the official v2 platform, bringing the original funds, chips and holders across."},
+      {t:'Staking & unlocking',d:'Staking and unlocking arrive on the platform, giving holders a reason to hold rather than rotate.'},
+      {t:'From HODL to NOODL',d:'This stage stays sealed until NOODL’s market cap reaches 5 BTC.',
+       open:{rows:[['Bitcoin','Bitcoiner'],['NOODL','NOODLER']],line:'The birth of a new Bitcoin-native culture.'}},
+      {t:'From DEX to CEX',d:'This stage stays sealed until NOODL’s market cap reaches 50 BTC.'},
+      {t:'The NOODL Layer of Bitcoin',d:'This stage stays sealed until NOODL’s market cap reaches 500 BTC.'},
+      {t:'From Bitcoin Pizza to Bitcoin NOODL',d:'The final milestone. Sealed until the noodle leaves the bowl.'}
+    ],
+    navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',
+    navWhat:'What is NOODL',navCulture:'Culture',navFirst:'First is First',navCommunity:'Community',navRoadmap:'Roadmap',
+    linkToken:'Odin.Fun ↗',linkCommunity:'Community ↗',linkNoodle:'Noodle Nova 🍜 ↗',
+    revH:'The NOODL Revelation',
+    revLead:'Everything NOODL is, in five parts: what it is, the culture it carries, why being first is the whole point, the community that gathered, and the road it is on.',
+    footer:'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles.',
+    footerLinks:'© 2026 NOODL.club ·'
+  }
+},
+zh:{
+  ui:{
+    kWhat:'01：什么是 NOODL',
+    whatH:'新 Odin 的第一枚代币',
+    whatLead:'NOODL（Noodle Nova）是 ODIN·FUN v2 平台上发射的第一枚代币。ODIN·FUN 是比特币生态的原生发射台，在停摆近一年后于 2026 年 7 月重新上线；7 月 13 日，NOODL 从绑定曲线毕业进入 AMM 池。',
+    capNoodl:'NOODL：一碗面条星系',
+    whatWhyH:'比特币生态为什么需要这样一个发射台',
+    whatWhyP:'比特币用区块链不可能三角的第三条腿，换取了去中心化与安全：十分钟一个块、没有智能合约、没有池子。所以无论铭文和符文多热闹，交易仍然只能靠订单簿：买入只能吃别人挂的量，一张大卖单就砸穿盘口；卖出更难受，没有池子接盘，挂单可能永远等不到买家。ODIN·FUN 的解法是：资产与结算留在比特币，撮合搬到两秒终局、零 gas 的快速层，用池子取代订单簿。',
+    whatV1H:'v1 发生了什么，以及 v2 改了什么',
+    whatV1P:'v1 不是死于没有市场。上线首月成交超过 1,000 BTC、覆盖三万七千个地址，首枚代币 ODINDOG 从几千美元市值一路走到 3,500 万美元。真正击穿它的是节奏：生态跑得比安全基建更快，一次机制升级带着漏洞上线，被黑客抓住，于是发生了安全事故。车没问题，路也没问题：是刹车没跟上马力。',
+    whatV2P:'v2 针对每一条逐项重建：存入资金由<b>门限签名（TSS）托管</b>：金库密钥被拆分给多个独立方持有，包括团队自己在内，没有任何单方能动用资金。合约升级须经<b>4/7 多签 DAO</b>，其中团队只占两席；平台收入进入<b>3/5 多签国库 DAO</b>，团队一席不占。个人账户层面则加了两步验证与即时会话锁。提现到比特币主网按批处理，最多十分钟。',
+    factBtc:'v1 上线首月成交 BTC：需求从来都是真的',
+    factDao:'修改 v2 代码所需多签（团队仅占 2 席）',
+    factSpeed:'交易终局时间，零 gas，池子而非订单簿',
+    factFirst:'NOODL 在 v2 的发射序位：永久',
+    whatFirstH:'为什么「第一」就是全部',
+    whatFirstP:'没有哪个生态比比特币更看重<b>first is first</b>。比特币是整个行业的起点，CryptoPunks 是 NFT 文化的起点，ORDI 是铭文生态的起点：每个生态的第一，最后都成了那个生态的图腾。原因不在「第一」这两个字，而在于它承载了一个时代最早的文化记忆，并随着生态本身长多高就被抬多高。NOODL 是 v2 原生：在 v1 没有历史，也就没有复制品要争。等 v1 的符文与社区迁移过来，同名的原版与复制版将在同一平台共存，而这场正统性之战，NOODL 从不需要打。',
+    tblH:'每个「第一」最后长到了多大',
+    tblLead:'比特币生态的每一轮浪潮，都由赛道 First 推动。生态内 90% 的收益也会沉淀至 First 项目，First 起飞，则生态崛起；First 没落，则生态不可逆地开启下行周期。下面是它们各自到过的最高点，以及 NOODL 今天所在的位置。',
+    thAsset:'标的',thProto:'协议 / 平台',thStart:'起点',
+    thPeak:'峰值单价',thPeakMc:'峰值市值',thX:'倍数',
+    tblFree:'free mint',tblAir:'空投',tblLaunch:'发射市值',
+    tblFloor:'地板',
+    tblNote:'数据实时更新，如果创出新高会自动更新。',
+    whatQuote:'「第一就是第一，永远如此：这是世上唯一不需要维护的护城河。」',
+    kCulture:'02：文化',
+    cultH:'一碗面里的文化',
+    cultLead:'NOODL 读作 <b>New Odin HODL</b>：新的 Odin；拿住，别卖。这大概是部署者的一次偶然，而魔力恰恰在此。',
+    cultBridgeH:'一个词，两种文化',
+    cultBridgeP:'NOODLE 的字面意思是面条。在中国文化里，面条代表长久：生日要吃长寿面。西方有形态万千的意面，却从没有人把面条和「长久」联系起来，直到比特币给了他们 HODL 这个词。NOODL 把两个世界接在了一起：西方人一眼读出 New Odin HODL，并顺着这根面条第一次理解到：面，可以意味着永远。',
+    cultMianP:'这层双关在中文里更深，因为「面」既是面条也是脸面：<b>体面</b>、<b>场面</b>、<b>情面</b>，人生三碗面。',
+    cultHodlH:'HODL 即长期主义',
+    cultHodlP:'HODL 是加密文化最重要的遗产之一：一个在 2013 年熊市里拼错的单词，成了一代人的信条。多数人为暴富而来；每轮周期冲刷之后，留下的都是愿意长期建设、相信平台能再度伟大的社区。NOODL 把这个词焊进了自己的名字，因而有机会成为 v2 的文化内核：拿住，陪它重生。',
+    cultQuote:'「这枚币的文化密度，远高于它的市值。」',
+    cultRealH:'1 NOODL = 1 碗面',
+    cultRealP:'这份文化不只是符号。一枚 NOODL 对应伦敦市中心 Noodle Nova 的一碗拉面（约 £15）：一枚真的能「吃」的代币，哪怕这份锚定带着玩心。',
+    kCommunity:'04：社区',
+    commH:'一个坐标，一个共识',
+    commLead:'v2 最大的机会其实不是技术升级，而是把过去散落各处的社区重新聚拢的机会。',
+    commSplitH:'分家的教训',
+    commSplitP:'v1 时代有个真问题：链上玩家有链上的共识，链下社区有链下的共识，不同阵营各自押注不同资产。最典型的就是原版 ODINDOG 与 FORSETISCN（天平）之争：两边都是 Odin 的信仰者，力气却始终没往一处使。生态还没长大，家先分了。',
+    commTurnH:'一次健康的筹码换手',
+    commTurnP:'NOODL 的社区是经过一整轮换手才成形的。最早来的几十个人只想打新，赚几百美元就走；绑定曲线真正毕业时，这批人拿钱离场、群也散了。筹码轮到了真正有信念的手里，之后聚起来的，几乎就是 v1 时代的那批老面孔。当年各自为战的老兵，正在向同一个坐标汇合。',
+    commValP:'一个项目最大的价值从来不只是代码，而是有多少人的信念愿意聚在同一个地方。这些人的背景与风格差异极大，有人信技术，有人信生态，有人信第一叙事，有人只信长期持有，但最终都为同一个信念坐到了同一张桌前。真正强的社区从来不是所有人想法一致，而是一个被共同相信的方向，长在完全不同的人身上。',
+    commTeamH:'没有跑路的团队',
+    commTeamP:'重建信任的第一块基石是人。停摆八个月，团队一天都没有失联：创始人 Bob Bodily 在事发当天直言公司金库不足以覆盖损失，随后与 OKX、币安协作冻结被盗资金、配合太平洋两岸执法机构、委托外部安全审计，并承诺重启时按 1:1 兑付存款。两次被盗之后，他给出的方案不是把窟窿甩给用户，而是重启 v2、提高费率，用平台自身收入偿还 v1 的损失。社区给他起的外号，「传奇防盗王」，一半是亲切，一半是心累。',
+    commQuote:'「在一个跑路零成本的行业里，一支不跑的团队本身就是最稀缺的资产。」',
+    kFirst:'03：First is First',
+    ecoH:'空着的那个位置',
+    ecoLead:'每条大公链最后都长出了一枚代表它自己的币：以太坊有 SHIB，Solana 有 BONK，Base 有 BRETT。比特币没有。最老、最大、文化包袱最重的那一条，至今没有。常见的解释是文化问题，更朴素的解释是机制问题，所以这篇的起点不是 NOODL，而是这个一直空着的位置。',
+    ecoWhyH:'最老的链为什么反而没有',
+    ecoWhyP:'不是因为没发过币。比特币生态曾经产生过无数代币：彩色币、Genesis spells、rare pepes、Counterparty、铭文、BRC-20、符文，在比特币上发资产这件事已经有十几年历史。缺的是场子：一个能让比特币资产用闪电的速度成交的地方。十分钟一个块加订单簿，用来结算国库很好，用来跑 meme 很糟：买只能吃别人挂的量，卖则可能永远等不到接盘。另一半原因是脾气。比特币的文化建立在「我们不是赌场」之上，于是真出现的那些代币，都被当成协议产物去收藏，而不是当成段子去复述。ORDI 已经是最接近「比特币生态代表资产」的东西，但它本质是对一个标准的押注，不是一种带梗的文化。十年，七套标准，一个大奇迹币都没有。',
+    ecoF1:'比特币十几年代币史里，长出的大奇迹币数量',
+    ecoF2:'从彩色币到符文的七个代币时代，没有一个留下图腾',
+    ecoF3:'沿联合曲线卖完 80% 供应、代币毕业进 AMM 的金额',
+    ecoF4:'NOODL 当前持币地址：上面每一句话都得跟这个数字并排站着',
+    ecoVenueH:'先有机器，再有神话',
+    ecoVenueP:'Odin 对自己的定义是「在比特币上交易代币最快的方式」，而这套机制可以逐条核对：底层叫 Valhalla，两秒终局、完全没有 gas；充值经由 Bifrost 桥，托管用门限签名（TSS），与 tBTC、Arch、ICP 属于同一套机制家族。代币先在联合曲线上开盘，80% 的供应沿曲线卖出 0.211 BTC 即告毕业，剩下 20% 连同 0.2 BTC 一起注入 AMM 池。发一枚币要 3,333 聪：小到不构成门槛，又大到让批量刷币变得麻烦。这些单拎出来都不足以定胜负：pump.fun 早就证明联合曲线很容易被抄。真正难抄的是另一半，是决定一个场子三年后还在不在的那部分：合约升级要过 4/7 多签，团队只占两席；平台收入进 3/5 国库多签，团队一席不占。一枚指望被拿很多年的币，活不过它交易的那个地方。这两个数字要么是整个论证的地基，要么完全不重要：取决于最后有没有人真的在意它。',
+    ecoSlotH:'这个空位到底长什么形状',
+    ecoPatternP:'大奇迹币的出现是有规律的，而且规律不是「最好的币赢」。SHIB 踩着 DOGE 的文化余波和以太坊那波散户起来；BONK 发在 2023 年 12 月，FTX 之后社区最灰心的时候，一开始就把自己写成送给受伤社区的礼物，后来变成了「你想表达对 Solana 本身的看法时买的那个代码」，WIF 跟在它后面。BNB Chain 交易量再大也始终没长出一枚能留下来的，TRON 的 SUNDOG 也只在本地热闹。两条共性反复出现。它们出现在一条链的低点或翻身时刻，而不是高点：高点没有表达的空间，大家已经同意了。它们能赢，是因为最后变成了那条链叙事的代名词，而不是某个产品的股票。',
+    ecoNoodlP:'上面全部是在找规律，而找规律不等于证据。「这个跟 BONK 很像」这句话，一年之内会对 Odin 上十二个代币成立，然后对其中十一个是错的。话说回来：NOODL 是 v2 的第一枚代币，而 v2 本身就是一次事故之后的重建，正是上面那个模板要求的时点。第一名不是护城河，它只是一个事后无法改写的事实。它的名字本身就是一句主张，而不是一只动物：New Odin HODL，一口气能说完的论点。它还是吃的，而吃的东西过得了国境：面在中文里本来就是长久，HODL 在英文里补上了同一个意思，梗翻译之后还活着，这恰恰是大奇迹币必须做到的一件事。以上都不是需求。NOODL 还处在非常早期的阶段。那些最终代表了一条链的币都曾经很小，但还有几百枚同样很小的，一直小到了最后。',
+    ecoRoomP:'这个推论值得写出来，靠的不是这枚币现在多大，而是这个房间有多大。小链上一个已经被占掉的位置，值多少取决于那条链值多少；最大那条链上一个空着的位置，盘子更大，但前提是它空着是因为一直缺一个场子，而不是因为比特币的持有者看了一眼那把椅子，决定永远不让任何人坐上去。能把这段距离走完的不是价格，而是人们拿这个代码来表达什么，变了。',
+    ecoFalsifyH:'哪些条件必须成立',
+    ecoFalsifyP:'Odin 得成为比特币 meme 的默认场子，而不是选项之一：这是分发问题，任何一枚代币都无法代替平台解决。NOODL 的持有者规模得涨上几个数量级，而且涨上来的人还得真的拿得住；文化得由不在场的人接着传下去：一个只有最早那批持有者讲得清的梗，那叫内部笑话。什么会让这篇推论作废：Odin 上另一枚代币成了社区表达这条链的方式（这是常态，不是例外）；另一个分发能力更强的比特币场子先占了这个位置；再来一次安全事故，之后以上全都不重要。或者最安静的那种情况，也是基准情况：大多数链上的大多数 meme，最后都停在原地。最后还有一个不对称值得写在这里：从来没有人「安排」出过一枚大奇迹币，SHIB 和 BONK 都是事后被人群追认的。网站做不到，团队做不到，现在这个持有者规模也不是人群。',
+    kRoadmap:'05：规划',
+    roadH:'通往超新星之路',
+    roadLead:'以下所有阶段按市值解锁。后续阶段在里程碑真正达成前保持封存，不提前承诺任何事。',
+    roadNote:'起初，它只是一个代币；后来，它成为一种文化；最终，它成为一场运动。',
+    ctxPendulumP:'流量的钟摆此前就这样摆过一次。2025 年 1 月，TRUMP 币标志着 pump.fun 时代的高潮；它见顶一周后，Odin v1 官宣：承接了那批四处寻找建设之地的资金。2026 年 7 月，Robinhood 自己的链上线，随即被 meme 占领，直到承接了该链四分之三部署量的发射台 noxa 网站连续两天打不开、社区爆发软跑路指控。同一个钟摆，同一个位置，而 Odin v2 恰好在这一刻重启。',
+    capFalcon:'王者归来之所以是最受欢迎的剧本，正因为它罕见：那家不断炸火箭的公司，后来教会了火箭这样回家',
+    mirV1:'ODIN·FUN v1 全生态代币合计，事故打断之前',
+    mirNow:'NOODL 现在，实时读数',
+    mirCap:'一根面条，绕了两个碗。左边是 v1 已经实现过的市值，约 5000 BTC，社区估算，它的螺旋终点正好是右边的起点。右边是 NOODL 通往 5000 BTC 的那条路：实时市值真正走到的地方画成实线，余下画成虚线，因为那一段是论点，不是预测。路上的距离按数量级来量，和本页顶部那条螺旋同一把尺子，不是按占 5000 的比例。',
+    roadReached:'已达成',roadNow:'测试中',roadUnlocked:'已解锁',
+    unlockSr:n=>'里程碑已解锁：'+n+' BTC。',
+    road:[
+      {t:'发射：上升进入 AMM',d:'Odin 的代币先在联合曲线上交易，80% 供应量卖满 0.211 BTC 即「上升」毕业，剩余 20% 供应与 0.2 BTC 一并注入 AMM 池。NOODL 于 2026 年 7 月中旬跨过这道门槛：下面这些阶段之所以开启，正是因为它已经达成。'},
+      {t:'ODIN·FUN v1 → v2 迁移',d:'v1 的符文与社区迁移至官方 v2 平台，原始资金、筹码与持有者一并带入。'},
+      {t:'质押解锁功能',d:'平台质押与解锁功能上线，让持有者有理由长期持有而非轮动。'},
+      {t:'From HODL to NOODL',d:'该阶段在 NOODL 市值达到 5 BTC 前保持封存。',
+       open:{rows:[['Bitcoin','Bitcoiner'],['NOODL','NOODLER']],line:'一种比特币原生文化的诞生。'}},
+      {t:'From DEX to CEX：从链上社区走向全球市场',d:'该阶段在 NOODL 市值达到 50 BTC 前保持封存。'},
+      {t:'The NOODL Layer of Bitcoin：比特币上的 NOODL 文化层',d:'该阶段在 NOODL 市值达到 500 BTC 前保持封存。'},
+      {t:'From Bitcoin Pizza to Bitcoin NOODL：从比特币披萨到比特币面条',d:'最终里程碑。在面条冲出碗外之前保持封存。'}
+    ],
+    navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',
+    navWhat:'什么是 NOODL',navCulture:'文化',navFirst:'First is First',navCommunity:'社区',navRoadmap:'规划',
+    linkToken:'Odin.Fun ↗',linkCommunity:'社区 ↗',linkNoodle:'Noodle Nova 🍜 ↗',
+    revH:'NOODL 启示录',
+    revLead:'关于 NOODL 的全部：它是什么、它承载的文化、为什么「第一」是全部重点、聚起来的社区，以及它正在走的那条路。',
+    footer:'NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议，只有面条。',
+    footerLinks:'© 2026 NOODL.club ·'
+  }
+}
+};
+let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
+if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
+
+/* ================= starfield ================= */
+(function(){
+  const box=$('#stars'),colors=['#f4ead0','#f5a86a','#8fd0c8','#ffffff','#e06a2b'];
+  for(let i=0;i<110;i++){
+    const s=document.createElement('i'),w=(1.5+Math.random()*3).toFixed(1);
+    s.style.cssText='left:'+(Math.random()*100).toFixed(2)+'%;top:'+(Math.random()*100).toFixed(2)+
+      '%;width:'+w+'px;height:'+w+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+
+      ';animation-delay:-'+(Math.random()*8).toFixed(2)+'s;animation-duration:'+(3+Math.random()*5).toFixed(2)+'s';
+    box.appendChild(s);
+  }
+})();
+
+/* ================= data ================= */
+const DEFAULTS={mc:0.7707,btcUsd:61982,holders:104,live:false};
+let state=Object.assign({},DEFAULTS);
+let seeded=true; // true until we have real data (cache or live) — never present DEFAULTS as facts
+try{
+  const cached=JSON.parse(localStorage.getItem('noodl_cache')||'null');
+  if(cached&&Number.isFinite(Number(cached.mc))&&Number(cached.mc)>0){
+    state=Object.assign({},DEFAULTS,{
+      mc:Number(cached.mc),
+      btcUsd:Number(cached.btcUsd)>0?Number(cached.btcUsd):DEFAULTS.btcUsd,
+      holders:Number.isFinite(Number(cached.holders))&&Number(cached.holders)>0?Math.floor(Number(cached.holders)):DEFAULTS.holders
+    });
+    seeded=false;
+  }
+}catch(e){}
+
+function fmtBtc(v){return v<1?v.toFixed(3):v<100?v.toFixed(2):Math.round(v).toLocaleString('en-US');}
+function fmtUsd(v){return v<1e6?'$'+(v/1e3).toFixed(1)+'K':'$'+(v/1e6).toFixed(2)+'M';}
+
+async function getJson(urls){
+  for(const u of urls){
+    try{const r=await fetch(u,{cache:'no-store'});if(r.ok)return await r.json();}catch(e){}
+  }
+  return null;
+}
+let refreshing=false;
+async function refresh(){
+  if(refreshing)return;
+  refreshing=true;
+  try{
+    const tok=await getJson(['https://api.odin.fun/v2/token/hjrg','/api/odin/token/hjrg']);
+    const mcVal=tok?Number(tok.marketcap)/1e11:NaN;
+    if(Number.isFinite(mcVal)&&mcVal>0){
+      const cur=await getJson(['https://api.odin.fun/v2/currency/btc','/api/odin/currency/btc']);
+      state.mc=mcVal;
+      const usd=cur?Number(cur.amount):NaN;
+      if(Number.isFinite(usd)&&usd>0)state.btcUsd=usd;
+      const h=Number(tok.holder_count);
+      if(Number.isFinite(h)&&h>0)state.holders=Math.floor(h);
+      state.live=true;seeded=false;
+      try{localStorage.setItem('noodl_cache',JSON.stringify({mc:state.mc,btcUsd:state.btcUsd,holders:state.holders}));}catch(e){}
+    }else{
+      state.live=false;
+    }
+    render();
+  }finally{refreshing=false;}
+}
+
+/* ============ first-narrative comparison ============
+   One row per protocol era's first asset, each at its own high-water mark.
+   Peaks are all-time highs, not current prices, so every row except NOODL's is
+   a fixed historical fact. Figures for ORDI, RSIC and NAT are the CoinGecko
+   all-time highs multiplied by supply; the rest are reported peaks.
+   `s:'free'` means the asset was a free mint, where the only cost was gas —
+   about $1 per 1,000 tokens, so a 21M-supply mint started life worth ~$21K. */
+const FIRSTS=[
+  {a:'ORDI',      p:'BRC-20',           s:'$21K',  sK:'free',pp:'$95.52',   mc:'$2.01B',x:'95,520×'},
+  {a:'ATOM',      p:'Atomicals ARC-20', s:'$21K',  sK:'free',pp:'$26.19',   mc:'$550M', x:'26,190×'},
+  {a:'Seal',      p:'RGB++',            s:'$21K',  sK:'free',pp:'$1.19',    mc:'$25.0M',x:'1,190×'},
+  {a:'DIESEL',    p:'Alkanes',          s:'$21K',  sK:'free',pp:'$35.46',   mc:'$55.4M',x:'2,638×'},
+  {a:'NodeMonkes',p:'Ordinals',         s:'$21K',  sK:'free',pp:'$55,890',ppS:'0.83 BTC',mc:'$559M',x:'26,614×'},
+  {a:'NAT',       p:'DMT',              s:'$21K',  sK:'free',pp:'$3.93e-7', mc:'$152M', x:'7,257×'},
+  {a:'RSIC',      p:'Runes',            s:'$21K',  sK:'air', pp:'$0.0193',  mc:'$406M', x:'19,329×'},
+  // launched off the same odin.fun curve as NOODL, so its start is the same
+  // 0.211 BTC and its multiple has to be struck at the live rate too
+  {a:'ODINDOG',   p:'ODIN·FUN test',    sBtc:0.211,sK:'cap', pp:'$1.67',    mc:'$35M',  mcNum:35e6},
+  {a:'NOODL',     p:'ODIN·FUN Official',live:true}
+];
+
+/* NOODL's peak only ever ratchets up, so it is the running maximum of a
+   full-history scan done once by hand, whatever this browser has seen live,
+   and a slice of the trade feed pulled after the page goes idle. */
+const NOODL_ATH_SEED=4.12188;                 // BTC, full 5,719-trade scan, 2026-08-14
+const NOODL_SUPPLY=21e6, NOODL_LAUNCH=0.211;  // BTC of launch market cap
+let athMc=NOODL_ATH_SEED;
+try{const v=Number(localStorage.getItem('noodl_ath'));if(Number.isFinite(v)&&v>athMc)athMc=v;}catch(e){}
+function bumpAth(v){
+  if(!Number.isFinite(v)||v<=athMc)return false;
+  athMc=v;
+  try{localStorage.setItem('noodl_ath',String(athMc));}catch(e){}
+  return true;
+}
+async function scanRecentAth(){
+  const j=await getJson(['https://api.odin.fun/v2/token/hjrg/trades?limit=1000',
+                         '/api/odin/token/hjrg/trades?limit=1000']);
+  const d=j&&j.data;
+  if(!d||!d.length)return;
+  let hi=0;
+  for(const t of d){const p=Number(t.price);if(p>hi)hi=p;}
+  if(bumpAth(hi/1e11*NOODL_SUPPLY))renderCmp();
+}
+
+/* Dollars are the common unit across every row, so BTC-native figures are
+   converted and the BTC amount rides underneath as the sub-line. */
+function usdPrice(v){
+  const a=Math.abs(v);
+  if(a>=1000)return '$'+Math.round(v).toLocaleString('en-US');
+  if(a>=1)return '$'+v.toFixed(2);
+  if(a>=0.01)return '$'+v.toFixed(4);
+  if(a>=1e-6)return '$'+v.toFixed(8).replace(/0+$/,'');
+  return '$'+v.toExponential(2);
+}
+function renderCmp(){
+  const tb=$('#cmpRows');
+  if(!tb)return;
+  const ui=I18N[lang].ui;
+  const startLab={free:ui.tblFree,air:ui.tblAir,cap:ui.tblLaunch};
+  const sub=t=>t?'<span class="era">'+t+'</span>':'';
+  const cell=v=>v==null?'—':v;
+  const btcUsd=state.btcUsd||0;
+  tb.innerHTML=FIRSTS.map(r=>{
+    if(r.live){
+      bumpAth(state.mc);
+      const btc=state.btcUsd||0;
+      const priceBtc=athMc/NOODL_SUPPLY;
+      return '<tr class="self"><td class="asset">NOODL</td>'
+        +'<td class="proto">ODIN·FUN Official</td>'
+        +'<td class="start">'+(btc?fmtUsd(NOODL_LAUNCH*btc):'—')+sub(NOODL_LAUNCH+' BTC')+'</td>'
+        +'<td class="num">'+(btc?usdPrice(priceBtc*btc):'—')+sub((priceBtc*1e8).toFixed(2)+' sats')+'</td>'
+        +'<td class="mc">'+(btc?fmtUsd(athMc*btc):'—')+sub(fmtBtc(athMc)+' BTC')+'</td>'
+        +'<td class="x">'+(athMc/NOODL_LAUNCH).toFixed(1)+'×</td></tr>';
+    }
+    return '<tr><td class="asset">'+r.a+'</td>'
+      +'<td class="proto">'+r.p+'</td>'
+      // a BTC-denominated start is struck at the live rate, so its multiple is
+      // computed here rather than baked in
+      +'<td class="start">'+(r.sBtc
+          ?(btcUsd?fmtUsd(r.sBtc*btcUsd):'—')+sub(r.sBtc+' BTC')
+          :r.s+sub(startLab[r.sK]))+'</td>'
+      +'<td class="num">'+cell(r.pp)+sub(r.ppS?r.ppS+' '+ui.tblFloor:'')+'</td>'
+      +'<td class="mc">'+cell(r.mc)+'</td>'
+      // a fixed multiple wins over the live one: it means both ends were struck
+      // in the same unit, so there is no rate to re-strike it at
+      +'<td class="x">'+(r.x?r.x:(r.sBtc
+          ?(btcUsd?Math.round(r.mcNum/(r.sBtc*btcUsd)).toLocaleString('en-US')+'×':'—')
+          :'—'))+'</td></tr>';
+  }).join('');
+}
+if('requestIdleCallback' in window)requestIdleCallback(()=>scanRecentAth(),{timeout:8000});
+else setTimeout(scanRecentAth,5000);
+
+/* ================= render =================
+   Everything on this page that is bound to live data goes through here: the
+   NOODL row of the comparison table, the holder count in the essay, the live
+   end of the folded strand, and the roadmap's own progress. */
+function render(){
+  renderCmp();
+  const hf=$('#ecoHolders');if(hf)hf.textContent=state.holders;
+  const mn=$('#mirNow');if(mn)mn.textContent=fmtBtc(state.mc)+' BTC';
+  if(window.__foldLive)window.__foldLive(state.mc);
+  checkUnlocks();
+  buildRoad();
+  armUnlock();
+}
+
+/* ================= i18n apply ================= */
+function applyLang(){
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  const ui=I18N[lang].ui;
+  // Section copy carries inline <b>/<i> emphasis, so those keys go in as HTML.
+  // The strings are authored here in this file — never user or API data.
+  // every key whose value carries inline <b>/<i>; miss one and the reader
+  // sees the tag itself. Audited against the dictionary, not eyeballed.
+  const RICH=/^(whatV2P|whatFirstP|cultLead|cultBridgeP|cultMianP|commTeamP)$/;
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const k=el.dataset.i,v=ui[k];
+    if(typeof v!=='string')return;
+    if(RICH.test(k))el.innerHTML=v;else el.textContent=v;
+  });
+  $('#langBtn').textContent=lang==='en'?'中文':'EN';
+  document.dispatchEvent(new Event('noodl:navh'));
+  render();
+}
+$('#langBtn').addEventListener('click',()=>{
+  lang=lang==='en'?'zh':'en';
+  try{localStorage.setItem('noodl_lang',lang);}catch(e){}
+  applyLang();
+});
+
+/* ================= section nav ================= */
+(function(){
+  const wrap=document.querySelector('.navwrap');
+  const links=[...document.querySelectorAll('.subnav a')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  if(!wrap||secs.length!==links.length)return;
+
+  // The two bars change height with the viewport and with the language, so the
+  // anchors' scroll-margin is measured off them rather than guessed.
+  const setH=()=>document.documentElement.style.setProperty('--navh',Math.round(wrap.getBoundingClientRect().height)+'px');
+
+  /* The section being read is the last one whose top has passed the bars. The
+     24px of slack is load-bearing: an anchor click lands the target's top a
+     scroll-margin (12px) BELOW the bars, so a rule measured exactly at the bars
+     credits the section above the one that was just asked for. Measured on the
+     bottom edge instead has the same off-by-one the other way, since a
+     section's bottom IS the next section's top. */
+  /* Throttled with a timer rather than rAF: this is one class toggle on five
+     links, not per-frame work, and rAF never fires in a tab that is not being
+     painted — which also makes the rule untestable in a headless check. */
+  let queued=0;
+  function mark(){
+    queued=0;
+    const y=wrap.getBoundingClientRect().bottom+24;
+    let k=0;
+    for(let i=0;i<secs.length;i++){if(secs[i].getBoundingClientRect().top<=y)k=i;}
+    links.forEach((a,i)=>a.classList.toggle('on',i===k));
+  }
+  const onScroll=()=>{if(!queued)queued=setTimeout(mark,60);};
+
+  setH();mark();
+  addEventListener('scroll',onScroll,{passive:true});
+  addEventListener('resize',()=>{setH();onScroll();});
+  document.addEventListener('noodl:navh',()=>{setH();onScroll();});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{setH();mark();});
+})();
+
+/* ============ v1 → v2 fold: two mirrored noodle bowls ============
+   One strand, no join. The left half unwinds from the v1 bowl's centre, opens
+   outward, and leaves along its widest turn heading for the figure's centre C;
+   the right half is that half reflected through C, so it arrives on v2's widest
+   turn and winds inward to its centre. Written so the handoff is invisible:
+     r(t) = D·t^P          radius grows from 0 to exactly D
+     θ(t) = -Θ·(1-t)^S     angular speed decays to nothing as t → 1
+   At t=1 the point is B1+(D,0) = C and the tangent is almost pure +x, and
+   because the second half is the point reflection walked backwards its tangent
+   at C is identical, so the curve is smooth through the fold rather than glued.
+   Both facts are asserted below rather than assumed. */
+(function(){
+  const svg=$('#mirSvg'),fig=$('#mirror');
+  if(!svg||!fig)return;
+  const W=600,H=260,CX=W/2,CY=H/2;
+  // v1 bowl, and the sweep that leaves it. The bowl is offset off-axis so the
+  // hand-off reads as an S rather than a bar laid between two coins.
+  const B1X=150,B1Y=100,R=84,TURNS=2.35,EXIT=-45*Math.PI/180;
+  const NS_=0,NA=300,NB=170;
+  const TH=TURNS*2*Math.PI;
+  const NS='http://www.w3.org/2000/svg';
+  const mk=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const d=p=>p.map((q,i)=>(i?'L':'M')+q[0].toFixed(2)+' '+q[1].toFixed(2)).join('');
+
+  // 1. the bowl: an even spiral unwinding from the centre outward
+  const half=[];
+  for(let i=0;i<=NA;i++){
+    const u=i/NA,r=R*u,a=EXIT-TH*(1-u);
+    half.push([B1X+r*Math.cos(a),B1Y+r*Math.sin(a)]);
+  }
+  // 2. the sweep: a cubic whose START tangent is the spiral's own tangent, so the
+  //    two are C1 continuous by construction rather than glued, and whose END
+  //    tangent is horizontal, which the reflected half then continues exactly.
+  const Q=half[NA],Qp=half[NA-1];
+  let tx=Q[0]-Qp[0],ty=Q[1]-Qp[1];
+  const tl=Math.hypot(tx,ty)||1;tx/=tl;ty/=tl;
+  // The arrival tangent at C is deliberately NOT forced horizontal: the point
+  // reflection makes the two halves C1-continuous for ANY arrival direction, so
+  // forcing one only bent the curve back on itself. c2 sits along the incoming
+  // chord, which keeps the sweep a single unhurried diagonal.
+  const chx=CX-Q[0],chy=CY-Q[1],ch=Math.hypot(chx,chy)||1;
+  const c1=[Q[0]+tx*ch*0.5,Q[1]+ty*ch*0.5];
+  const c2=[CX-chx/ch*ch*0.32,CY-chy/ch*ch*0.32];
+  for(let i=1;i<=NB;i++){
+    const u=i/NB,v=1-u;
+    half.push([
+      v*v*v*Q[0]+3*v*v*u*c1[0]+3*v*u*u*c2[0]+u*u*u*CX,
+      v*v*v*Q[1]+3*v*v*u*c1[1]+3*v*u*u*c2[1]+u*u*u*CY
+    ]);
+  }
+  const N=half.length-1;
+  const refl=p=>[2*CX-p[0],2*CY-p[1]];
+  const full=half.slice();
+  for(let i=half.length-2;i>=0;i--)full.push(refl(half[i]));
+
+  // the two claims the drawing makes about itself
+  let err=0;
+  for(let i=0;i<full.length;i++){
+    const m=refl(full[full.length-1-i]);
+    err=Math.max(err,Math.abs(m[0]-full[i][0]),Math.abs(m[1]-full[i][1]));
+  }
+  err=Math.max(err,Math.abs(half[N][0]-CX),Math.abs(half[N][1]-CY));
+  fig.dataset.parityError=err.toFixed(4);
+  const tan=[half[N][0]-half[N-1][0],half[N][1]-half[N-1][1]];
+  fig.dataset.foldTangent=(Math.atan2(tan[1],tan[0])*180/Math.PI).toFixed(2);  // ~0° = smooth
+
+  // cumulative length over the whole strand, so the real/argued cut can be made
+  // by distance instead of by index
+  const cum=[0];
+  for(let i=1;i<full.length;i++)cum.push(cum[i-1]+Math.hypot(full[i][0]-full[i-1][0],full[i][1]-full[i-1][1]));
+  const TOT=cum[cum.length-1],HALF_LEN=cum[N];
+
+  const defs=mk('defs',{});
+  // one gradient down the strand: the colour change is what removes the seam,
+  // while solid-versus-dashed still carries which part actually happened
+  const grad=mk('linearGradient',{id:'foldGrad',x1:'0',y1:'0',x2:'1',y2:'0'});
+  [['0%','#00c9c9'],['38%','#00c9c9'],['58%','#fcd14f'],['100%','#fcd14f']]
+    .forEach(([o,c])=>grad.appendChild(mk('stop',{offset:o,'stop-color':c})));
+  defs.appendChild(grad);
+  svg.appendChild(defs);
+
+  svg.appendChild(mk('circle',{class:'fold-bowl',cx:B1X,cy:B1Y,r:R+11}));
+  svg.appendChild(mk('circle',{class:'fold-bowl r',cx:2*CX-B1X,cy:2*CY-B1Y,r:R+11}));
+  const ghost=mk('path',{class:'fold-ghost',d:''});svg.appendChild(ghost);
+  const real=mk('path',{class:'fold-real',d:''});svg.appendChild(real);
+  svg.appendChild(mk('path',{class:'fold-flow',d:d(full)}));
+
+  const cut=(a,b)=>{
+    const out=[];
+    for(let i=0;i<full.length;i++){
+      if(cum[i]<a)continue;
+      if(cum[i]>b)break;
+      out.push(full[i]);
+    }
+    return out.length>1?d(out):'';
+  };
+  // v1 happened in full; on v2 only the distance the live cap has actually
+  // travelled is solid. Distance is order-of-magnitude, same scale as the hero
+  // spiral, and the caption says so.
+  window.__foldLive=(mc)=>{
+    const done=HALF_LEN+(TOT-HALF_LEN)*fracOf(mc);
+    real.setAttribute('d',cut(0,done));
+    ghost.setAttribute('d',cut(done,TOT));
+  };
+
+  const mq=matchMedia('(prefers-reduced-motion: reduce)');
+  const halted=new Set();
+  const play=()=>{if(!halted.size&&!mq.matches)fig.classList.add('run');};
+  const halt=k=>{halted.add(k);fig.classList.remove('run');};
+  const go=k=>{halted.delete(k);play();};
+  new IntersectionObserver(e=>{e[0].isIntersecting?go('off'):halt('off');},{threshold:0}).observe(fig);
+  fig.addEventListener('pointerenter',()=>halt('hover'));   // WCAG 2.2.2
+  fig.addEventListener('pointerleave',()=>go('hover'));
+  document.addEventListener('visibilitychange',()=>document.hidden?halt('tab'):go('tab'));
+  const onMQ=()=>{fig.classList.remove('run');play();};
+  mq.addEventListener?mq.addEventListener('change',onMQ):mq.addListener(onMQ);
+})();
+
+/* ================= roadmap ================= */
+// Every stage is gated on live market cap, including the first three: they are
+// open because the 0.211 BTC launch threshold (Odin's bonding-curve ascend) has
+// been cleared. `state` only decides the wording on an already-reached stage.
+// Locked copy stays deliberately vague: it is blurred out until the milestone
+// lands, so it must never read as a promise.
+const ROAD=[
+  {at:LAUNCH_MC,state:'done'},
+  {at:LAUNCH_MC,state:'now'},
+  {at:LAUNCH_MC,state:'now'},
+  {at:5},{at:50},{at:500},{at:5000}
+];
+const roadEl=$('#roadList');
+const railEl=$('#roadRail'),railFillEl=$('#roadFill'),railTagEl=$('#roadTag');
+
+/* ---- milestone unlock ceremony ----
+   A sealed milestone is opened exactly once per browser, and the ceremony is
+   queued rather than fired: if the roadmap is off-screen when the cap crosses,
+   nothing gets played to an empty room. It waits until the card is in view.
+   Once a browser has witnessed a crossing the stage stays open even if the cap
+   later slips back under it, because crossing 5 BTC is an event that happened,
+   not a current reading, and a card that re-seals itself on every wobble around
+   the threshold is just flicker. */
+const UKEY=i=>'noodl.unlock.'+i;
+const seenUnlock=i=>{try{return localStorage.getItem(UKEY(i))==='1'}catch(e){return false}};
+const markUnlock=i=>{try{localStorage.setItem(UKEY(i),'1')}catch(e){}};
+let pendingIdx=-1,ceremony=-1,ceremonyLang='',unlockIO=null;
+
+function checkUnlocks(){
+  if(seeded)return;                     // DEFAULTS are a placeholder, not a reading: never unseal on them
+  if(ceremony>=0||pendingIdx>=0)return;
+  const fresh=[];
+  for(let i=0;i<ROAD.length;i++){
+    if(ROAD[i].at<=LAUNCH_MC)continue;      // the launch stages were never sealed
+    if(state.mc>=ROAD[i].at&&!seenUnlock(i))fresh.push(i);
+  }
+  if(!fresh.length)return;
+  // Arriving already past several milestones must not queue several ceremonies:
+  // the lower ones are simply recorded, and only the highest one is played.
+  const top=fresh.pop();
+  fresh.forEach(markUnlock);
+  if(reduceMotion){markUnlock(top);return;}
+  pendingIdx=top;
+}
+
+function armUnlock(){
+  if(unlockIO){unlockIO.disconnect();unlockIO=null;}
+  if(pendingIdx<0)return;
+  const card=roadEl.children[pendingIdx];
+  if(!card)return;
+  unlockIO=new IntersectionObserver(es=>{
+    if(!es.some(e=>e.isIntersecting))return;
+    unlockIO.disconnect();unlockIO=null;
+    playUnlock();
+  },{threshold:.45});
+  unlockIO.observe(card);
+}
+
+function playUnlock(){
+  const i=pendingIdx;if(i<0)return;
+  pendingIdx=-1;ceremony=i;ceremonyLang=lang;
+  buildRoad();                                    // re-renders card i as .unlocked.breaking
+  $('#unlockSr').textContent=I18N[lang].ui.unlockSr(ROAD[i].at);
+  clearTimeout(playUnlock.t);
+  playUnlock.t=setTimeout(endUnlock,1900);
+}
+function endUnlock(){
+  if(ceremony<0)return;
+  clearTimeout(playUnlock.t);
+  markUnlock(ceremony);ceremony=-1;
+  buildRoad();
+}
+
+function revealHtml(o){
+  return '<div class="rv">'
+    +o.rows.map(p=>'<div class="rv-a">'+esc(p[0])+'<em>→</em>'+esc(p[1])+'</div>').join('')
+    +'<div class="rv-l">'+esc(o.line)+'</div>'
+  +'</div>';
+}
+
+function buildRoad(){
+  // never wipe a ceremony out from under itself; a language switch aborts it
+  // instead, since half the card would otherwise be left in the old language
+  if(ceremony>=0){
+    if(ceremonyLang===lang&&roadEl.querySelector('.breaking')){placeRail();return;}
+    if(ceremonyLang!==lang){endUnlock();return;}
+  }
+  const ui=I18N[lang].ui,R=ui.road;
+  roadEl.innerHTML=ROAD.map((s,i)=>{
+    const r=R[i];
+    const sealed=s.at>LAUNCH_MC;                 // the four stages that start blurred
+    // The three launch stages still open on the seed, or they would flash locked
+    // on every cold load; a sealed milestone waits for a real reading.
+    const unlocked=i!==pendingIdx&&((state.mc>=s.at&&!(sealed&&seeded))||seenUnlock(i));
+    const cls=i===ceremony?'unlocked breaking':unlocked?(s.state||'unlocked'):'locked';
+    const pct=clamp(state.mc/s.at*100,0,100);
+    const label=s.state==='done'?ui.roadReached:s.state==='now'?ui.roadNow:ui.roadUnlocked;
+    const badge=unlocked
+      ? '<div class="step-s"><span class="goal">'+s.at+' BTC</span> · '+label+'</div>'
+      : '<div class="lockbar">🔒 <span class="goal">'+s.at+' BTC</span>'
+        +'<span class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></span>'
+        +'<span>'+pct.toFixed(0)+'%</span></div>';
+    // `d` on a sealed stage is only the wax on the envelope, so once the stage is
+    // open it is replaced by the reveal, or by nothing at all where the reveal
+    // has not been written yet: better silent than echoing its own seal.
+    const body=(!unlocked||!sealed)?'<div class="step-d">'+esc(r.d)+'</div>'
+              :r.open?revealHtml(r.open):'';
+    return '<div class="step '+cls+'">'
+      +'<span class="step-i">'+(unlocked?(i+1):'🔒')+'</span>'
+      +'<div class="step-b">'
+        +'<div class="step-t">'+esc(r.t)+'</div>'
+        +body
+        +badge
+      +'</div></div>';
+  }).join('');
+  placeRail();
+}
+
+// The strand spans marker centre to marker centre, so both ends have to be
+// measured — card heights change with the copy, the language and the viewport.
+function placeRail(){
+  const marks=[...roadEl.querySelectorAll('.step-i')];
+  if(marks.length<2||!roadEl.offsetHeight){railEl.style.display='none';return;}
+  railEl.style.display='';
+  const top=railEl.parentElement.getBoundingClientRect().top;
+  const mid=el=>{const r=el.getBoundingClientRect();return r.top-top+r.height/2;};
+  const c=marks.map(mid),first=c[0],span=c[c.length-1]-first;
+  railEl.style.top=first.toFixed(1)+'px';
+  railEl.style.height=span.toFixed(1)+'px';
+
+  // how far the noodle has been pulled: whole steps reached, plus a log-scale
+  // part-segment toward the next milestone (the same scale as the hero spiral)
+  let k=-1;
+  for(let i=0;i<ROAD.length;i++)if(state.mc>=ROAD[i].at)k=i;
+  let fill=0;
+  if(k>=ROAD.length-1)fill=span;
+  else if(k>=0){
+    const lo=Math.log10(ROAD[k].at),hi=Math.log10(ROAD[k+1].at);
+    const p=hi>lo?clamp((Math.log10(Math.max(state.mc,ROAD[k].at))-lo)/(hi-lo),0,1):1;
+    fill=(c[k]-first)+p*(c[k+1]-c[k]);
+  }
+  railFillEl.style.height=fill.toFixed(1)+'px';
+  railTagEl.textContent=fmtBtc(state.mc)+' BTC';
+  railTagEl.style.display=k<0?'none':'';
+}
+addEventListener('resize',()=>{clearTimeout(placeRail.t);placeRail.t=setTimeout(placeRail,180);});
+
+/* ============ NEW·ODIN·HODL → NOODL ============
+   All motion is CSS transitions; this only sequences the beats. A timeout
+   chain rather than @keyframes because the beat lengths then stay readable
+   and hand-editable, and because the loop has to be stoppable on demand.
+   The galaxy rAF keeps running underneath — measured cost of the docking
+   tween alongside it: p90 17ms/frame, one dropped frame at the start. */
+(function(){
+  const row=$('#morph'); if(!row) return;
+  const host=row.parentElement;
+  const mq=matchMedia('(prefers-reduced-motion: reduce)');
+
+  // [state, ms] — ms includes that state's own transition time
+  const STEPS=[['base',2200],['shed',1100],['join',3400],['shed',900]];
+
+  let i=0,timer=null,running=false,ok=false,hostW=-1;
+  const halts=new Set();
+
+  const apply=s=>{row.classList.toggle('shed',s!=='base');row.classList.toggle('join',s==='join');};
+
+  function step(){
+    const [s,ms]=STEPS[i];
+    apply(s);
+    timer=setTimeout(()=>{i=(i+1)%STEPS.length;step();},ms);
+  }
+  function stop(){running=false;clearTimeout(timer);timer=null;}
+  function play(){if(!running&&ok&&!mq.matches&&!halts.size){running=true;step();}}
+  // off-screen rewinds so every visit tells the whole story from the top;
+  // hover/tab just freeze in place
+  function halt(k,rewind){halts.add(k);stop();if(rewind){i=0;apply('base');}}
+  function go(k){halts.delete(k);play();}
+
+  // Measured with .on removed so the letters report their natural width, and
+  // refused outright if the row ever wraps — the merge is a single-line idea.
+  function measure(){
+    stop();
+    row.classList.remove('on','shed','join');
+    void row.offsetWidth;
+    const pills=[...row.children],tops=pills.map(p=>p.getBoundingClientRect().top);
+    if(!row.offsetWidth||Math.max.apply(null,tops)-Math.min.apply(null,tops)>.5){ok=false;return false;}
+    row.querySelectorAll('i').forEach(c=>c.style.setProperty('--w',c.getBoundingClientRect().width.toFixed(2)+'px'));
+    row.classList.add('on');
+    hostW=host.clientWidth;ok=true;return true;
+  }
+  function init(){if(measure()){row.classList.toggle('still',mq.matches);play();}}
+
+  new IntersectionObserver(e=>{e[0].isIntersecting?go('off'):halt('off',true);},{threshold:0}).observe(row);
+  row.addEventListener('pointerenter',()=>halt('hover'));   // WCAG 2.2.2: a way to stop it
+  row.addEventListener('pointerleave',()=>go('hover'));
+  document.addEventListener('visibilitychange',()=>document.hidden?halt('tab'):go('tab'));
+  const onMQ=()=>{stop();i=0;apply('base');row.classList.toggle('still',mq.matches);play();};
+  mq.addEventListener?mq.addEventListener('change',onMQ):mq.addListener(onMQ);
+
+  // host width, not row width — the row's own width changes with the animation
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(host.clientWidth!==hostW)init();},200);});
+  addEventListener('load',()=>{if(host.clientWidth!==hostW)init();});
+  document.fonts.ready.then(init);
+})();
+
+/* ================= boot ================= */
+applyLang();
+refresh();
+setInterval(refresh,45000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+</script>
+</body>
+</html>

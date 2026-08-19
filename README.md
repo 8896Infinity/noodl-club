@@ -24,12 +24,15 @@ Reached milestones glow; unreached ones stay grey.
 
 ## Pages
 
+Three pages, and the row of tabs under the header is the whole navigation.
+
 | Page | What it does |
 |---|---|
-| `index.html` | The noodle galaxy, the story, and a comparison of what every Bitcoin-ecosystem "first" reached at its peak |
-| `holders.html` | Live holder board — every holder's share, cost basis and unrealised P&L, the liquidity pool and its fee yield, NOODLER / CHEF titles, and price / volume / holder / pool charts |
-| `daily.html` | A daily report drawn on a single canvas, bilingual on one sheet, saveable as an image or copied straight to the clipboard for sharing |
+| `index.html` | **Home.** The noodle galaxy on top, and under it the daily report — drawn on a single canvas, bilingual on one sheet, saveable as an image or copied straight to the clipboard for sharing |
+| `holders.html` | **Holder board.** Every holder's share, cost basis and unrealised P&L, the liquidity pool and its fee yield, NOODLER / CHEF titles, and price / volume / holder / pool charts |
+| `revelation.html` | **The NOODL Revelation.** The long read, in five parts: what NOODL is, the culture in a bowl of noodles, First is First (including what every Bitcoin-ecosystem "first" reached at its peak), the community, and the road to Nova |
 | `tweets.html` | Every #NOODL post collected so far, sorted by heat or by date |
+| `daily.html` | Redirects to the report's new home on the front page, so links shared before the move still land |
 
 ## Stack
 
