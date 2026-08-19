@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOODL 战场 · NOODL.club</title>
+<meta name="description" content="NOODL 战场：把 odin.fun 上每一笔 NOODL 买卖画成一场星际战争。买是蓝方，卖是红方，池子是蓝方基地，战线就是当前单价与市值。">
+<meta name="theme-color" content="#111117">
+<meta property="og:title" content="NOODL 战场 · NOODL Battlefield">
+<meta property="og:description" content="Every NOODL trade on odin.fun, drawn as an interstellar battle. Buys advance in blue, sells push back in red, the front line is the live price.">
+<meta property="og:image" content="https://api.odin.fun/v2/token/hjrg/image">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Palette lifted from odin.fun's own computed styles, same as the rest of the
+   site. The two army colours are new and deliberately not the site cyan: cyan
+   is the interface accent everywhere else, and a battlefield that shares its
+   colour with the navigation reads as chrome rather than as a side. */
+:root{
+  --bg:#111117;--panel:#18181d;--line:#27272a;--line-soft:#1f1f25;
+  --cyan:#00ffff;--cyan-dim:#00c9c9;--text:#fafafa;--text-2:#a8aab8;--dim:#6b6d7c;
+  --noodle-y:#fcd14f;--noodle-o:#ef9530;
+  --blue:#4aa8ff;--blue-dim:#1d5f9e;--red:#ff4d4d;--red-dim:#8f2020;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
+  font-family:'Work Sans','PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+}
+a{color:inherit}
+
+/* ---------- starfield ---------- */
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+#stars i{position:absolute;border-radius:1.5px;animation:tw linear infinite}
+@keyframes tw{0%,100%{opacity:.12}50%{opacity:.95}}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:relative;z-index:5;display:flex;justify-content:space-between;align-items:center;
+  padding:14px 22px;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);background:rgba(17,17,23,.85);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.wordmark{font-weight:700;font-size:17px;letter-spacing:.14em;color:var(--cyan);text-decoration:none;display:flex;align-items:center;gap:8px}
+.toplinks{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.toplinks a,#langBtn{
+  font-family:inherit;font-weight:500;font-size:13px;letter-spacing:.02em;
+  color:var(--text-2);text-decoration:none;cursor:pointer;
+  border:1px solid var(--line);border-radius:6px;padding:6px 12px;background:transparent;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.toplinks a:hover,#langBtn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+#langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
+
+/* ---------- page tabs ---------- */
+.secnav{
+  position:sticky;top:0;z-index:6;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;
+  padding:9px 14px;border-bottom:1px solid var(--line);
+  background:rgba(17,17,23,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.secnav a{
+  font-weight:500;font-size:12.5px;letter-spacing:.02em;color:var(--text-2);text-decoration:none;
+  padding:6px 13px;border:1px solid var(--line);border-radius:6px;white-space:nowrap;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.secnav a:hover,.secnav a:focus-visible{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+.secnav a.tab{font-weight:600;font-size:13px;padding:7px 15px}
+.secnav a.tab.on{color:var(--cyan);border-color:rgba(0,255,255,.5);background:rgba(0,255,255,.08)}
+
+main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:26px 20px 10px}
+
+/* ---------- head ---------- */
+.war-head{text-align:center;margin-bottom:16px}
+.war-head h1{font-size:clamp(24px,5.4vw,38px);font-weight:800;letter-spacing:.02em;line-height:1.15}
+.war-head p{margin-top:10px;font-size:13.5px;color:var(--text-2);line-height:1.75}
+.stamp{
+  display:inline-flex;align-items:center;gap:8px;margin-top:12px;
+  font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;
+  border:1px solid var(--line);border-radius:999px;padding:5px 13px;background:var(--panel);
+}
+.stamp b{color:var(--text-2);font-weight:600}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--noodle-y);animation:blip 2s ease-in-out infinite}
+.pulse.cold{background:var(--dim);animation:none}
+@keyframes blip{0%,100%{box-shadow:0 0 0 0 rgba(252,209,79,.5)}50%{box-shadow:0 0 0 5px rgba(252,209,79,0)}}
+
+/* ---------- arena ---------- */
+/* The battle is fought inside the bowl, so the stage is square and the canvas
+   fills it exactly. Everything inside is drawn in canvas units of 1000x1000 and
+   scaled by the device pixel ratio, so the same code serves any screen size. */
+.stage{position:relative;width:min(96vw,720px);aspect-ratio:1;margin:0 auto}
+#field{display:block;width:100%;height:100%;border-radius:50%}
+.stage-note{
+  text-align:center;font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.6;
+}
+
+/* ---------- front line readout ---------- */
+.frontline{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;
+  margin:18px auto 0;max-width:720px;
+}
+.fl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.fl .k{font-size:10.5px;font-weight:600;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.fl .v{font-size:19px;font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums;line-height:1.2}
+.fl .s{font-size:11.5px;color:var(--dim);margin-top:3px;font-variant-numeric:tabular-nums}
+.fl.up .v{color:var(--blue)}
+.fl.down .v{color:var(--red)}
+
+/* ---------- legend ---------- */
+.legend{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:16px auto 0;max-width:760px;
+}
+.lg{
+  display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-2);
+  border:1px solid var(--line);border-radius:6px;padding:6px 11px;background:var(--panel);
+}
+.lg canvas{display:block;width:26px;height:18px}
+.lg b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ---------- camps ---------- */
+.camps{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+.camp{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
+.camp.blue{border-color:rgba(74,168,255,.35)}
+.camp.red{border-color:rgba(255,77,77,.32)}
+.camp h2{font-size:14px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+.camp.blue h2{color:var(--blue)}
+.camp.red h2{color:var(--red)}
+.camp .sub{font-size:11.5px;color:var(--dim);margin-top:6px;line-height:1.6}
+.roster{
+  margin-top:12px;display:flex;flex-direction:column;gap:7px;
+  max-height:326px;overflow-y:auto;scrollbar-width:thin;
+  scrollbar-color:var(--line) transparent;
+}
+.roster::-webkit-scrollbar{width:6px}
+.roster::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.count{
+  font-size:11px;font-weight:600;color:var(--dim);font-variant-numeric:tabular-nums;
+  border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:auto;
+}
+.row{display:flex;align-items:center;gap:9px;font-size:12.5px;min-width:0}
+.av{
+  width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-size:10px;font-weight:700;color:#06060a;
+}
+.camp.blue .av{background:var(--blue)}
+.camp.red .av{background:var(--red)}
+.nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.nm a{text-decoration:none}
+.nm a:hover{color:var(--cyan)}
+.amt{font-variant-numeric:tabular-nums;color:var(--text-2);font-size:11.5px;white-space:nowrap}
+.tag{
+  font-size:9px;font-weight:700;letter-spacing:.08em;padding:2px 6px;border-radius:4px;flex:none;
+  background:rgba(252,209,79,.14);color:var(--noodle-y);border:1px solid rgba(252,209,79,.3);
+}
+/* A Chef who also sold in the window is genuinely on both sides; saying so is
+   better than letting the same name appear twice with no explanation. */
+.tag.warn{background:rgba(255,77,77,.12);color:var(--red);border-color:rgba(255,77,77,.32)}
+.empty{font-size:12px;color:var(--dim);padding:8px 0}
+
+.err{
+  background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.35);color:#ffb3b3;
+  border-radius:8px;padding:11px 14px;font-size:12.5px;margin:0 auto 14px;max-width:720px;line-height:1.6;
+}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+footer{
+  position:relative;z-index:1;text-align:center;color:var(--dim);font-weight:400;font-size:12px;
+  padding:40px 20px 26px;letter-spacing:.01em;line-height:1.9;
+  border-top:1px solid var(--line-soft);margin-top:36px;
+}
+footer a{color:var(--text-2);text-decoration:none}
+footer a:hover{color:var(--cyan)}
+
+@media (max-width:640px){
+  .toplinks a{display:none}
+  .topbar{padding:12px 16px}
+  main{padding:20px 12px 8px}
+  .camps{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  #stars i,.pulse{animation:none !important}
+}
+</style>
+</head>
+<body>
+<div id="stars" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="wordmark" href="index.html">🍜 NOODL·CLUB</a>
+  <nav class="toplinks">
+    <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener" data-i="linkToken">Odin.Fun ↗</a>
+    <a href="https://odin.fun/c/7ij3h-flwdx-jncgk-765tf-qyu7w-cr77f-wjvqt-bvapu-tgx56-aydty-bqe?r=u1jr4b658e" target="_blank" rel="noopener" data-i="linkCommunity">Community ↗</a>
+    <button id="langBtn" type="button">中文</button>
+  </nav>
+</header>
+
+<nav class="secnav" aria-label="Pages">
+  <a class="tab" href="index.html" data-i="navHome">Home</a>
+  <a class="tab" href="holders.html" data-i="navBoard">Holder board</a>
+  <a class="tab" href="revelation.html" data-i="navRev">NOODL Revelation</a>
+  <a class="tab on" href="battle.html" aria-current="page" data-i="navWar">Battlefield</a>
+</nav>
+
+<main>
+  <div class="war-head">
+    <h1 data-i="warH">NOODL Battlefield</h1>
+    <p data-i="warLead"></p>
+    <div class="stamp"><span class="pulse" id="pulse"></span><span id="stamp"></span></div>
+  </div>
+
+  <div id="err"></div>
+
+  <div class="stage">
+    <canvas id="field" role="img" aria-describedby="alt"></canvas>
+  </div>
+  <p class="sr-only" id="alt"></p>
+  <p class="stage-note" data-i="stageNote"></p>
+
+  <div class="frontline" id="frontline"></div>
+  <div class="legend" id="legend"></div>
+
+  <div class="camps">
+    <section class="camp blue">
+      <h2><span data-i="blueH">Blue camp · the pool</span><span class="count" id="blueN"></span></h2>
+      <p class="sub" data-i="blueSub"></p>
+      <div class="roster" id="blueRoster"></div>
+    </section>
+    <section class="camp red">
+      <h2><span data-i="redH">Red camp</span><span class="count" id="redN"></span></h2>
+      <p class="sub" data-i="redSub"></p>
+      <div class="roster" id="redRoster"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span data-i="footer">NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles.</span> 🍜<br>
+  <span data-i="footerLinks">© 2026 NOODL.club ·</span>
+  <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun/token/hjrg</a>
+</footer>
+
+<noscript><p style="text-align:center;padding:20px">NOODL · enable JavaScript to watch the battle. Token: <a href="https://odin.fun/token/hjrg">odin.fun/token/hjrg</a></p></noscript>
+
+<script>
+'use strict';
+/* ================= constants =================
+   Token amounts and trade BTC carry 1e11 (decimals 3 + divisibility 8). */
+const MS=1e11, DAY=864e5, WEEK=7*DAY, TOKEN='hjrg';
+const ODIN=['https://api.odin.fun/v2','/api/odin'];
+const $=s=>document.querySelector(s);
+
+/* Unit thresholds, in BTC, exactly as specified. A trade at or above PLANE is a
+   plane, at or above TANK a tank, and anything below is infantry whose head
+   count scales with size so a 0.004 BTC buy visibly outweighs a 0.0002 one. */
+const TANK=0.005, PLANE=0.01, PER_SOLDIER=0.0005, MAX_SOLDIERS=8;
+
+/* ================= i18n ================= */
+const I18N={
+zh:{
+  linkToken:'Odin.Fun ↗',linkCommunity:'社区 ↗',
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navWar:'战场',
+  warH:'NOODL 战场',
+  warLead:'odin.fun 上每一笔 NOODL 买卖，都是一次出兵。买入是蓝方，卖出是红方；池子是蓝方基地，战线就是此刻的单价与市值。',
+  stageNote:'战场画的是最近一轮交战。没有新成交的时候，你看到的是上一场仗。',
+  window:(n,t)=>'本轮战报：'+n+' 笔成交，最早一笔 '+t+'。没有新成交的时候，你看到的就是上一场仗。',
+  loading:'正在读取战报…',
+  err:'连不上 odin.fun 接口。它有频率限制，偶尔也会拦非浏览器流量，过一分钟再试。',
+  live:t=>'交战中 · 最近一笔 '+t,
+  cold:t=>'战场安静 · 上次交战 '+t,
+  never:'还没有成交记录',
+  ago:{s:'刚刚',m:n=>n+' 分钟前',h:n=>n+' 小时前',d:n=>n+' 天前'},
+  flPrice:'战线 · 单价',flMcap:'战线 · 市值',flPool:'蓝方基地 · 池子',flForce:'本轮兵力',
+  flPriceSub:s=>s+' sats / 枚',
+  flForceSub:(b,s)=>'蓝 '+b+' · 红 '+s,
+  sats:'sats',
+  blueH:'蓝方军营 · 池子基地',
+  blueSub:'加了池子的 Chef，以及前 20 大持有者里最近 7 天一枚没卖的人。标了「也卖了」的 Chef，最近 7 天也卖出过——做市和卖出并不冲突。',
+  redH:'红方军营',
+  redSub:'前 10 大持有者里，最近 7 天卖出过的人。卖得越多，红方推得越前。',
+  chef:'CHEF',alsoSold:'也卖了',
+  soldOut:v=>'7 天卖出 '+v,
+  holds:v=>'持有 '+v,
+  noBlue:'暂时没有符合条件的守军。',
+  noRed:'最近 7 天，前 10 大持有者一枚都没卖。',
+  lgSoldier:'士兵',lgTank:'坦克',lgPlane:'飞机',
+  lgSoldierV:'< 0.005 BTC',lgTankV:'≥ 0.005 BTC',lgPlaneV:'≥ 0.01 BTC',
+  lgBlue:'蓝方 = 买入',lgRed:'红方 = 卖出',
+  alt:(b,s,p)=>'NOODL 战场：最近一轮交战蓝方出兵 '+b+' 次、红方 '+s+' 次，当前单价 '+p+'。',
+  footer:'NOODL 是 Odin.Fun 上的社区 meme 代币。本页不构成任何投资建议，只有面条。',
+  footerLinks:'© 2026 NOODL.club ·'
+},
+en:{
+  linkToken:'Odin.Fun ↗',linkCommunity:'Community ↗',
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navWar:'Battlefield',
+  warH:'NOODL Battlefield',
+  warLead:'Every NOODL trade on odin.fun is a sortie. Buys advance in blue, sells push back in red; the pool is the blue base, and the front line is the live price and market cap.',
+  stageNote:'The arena shows the most recent engagement. When nothing is trading, you are watching the last battle.',
+  window:(n,t)=>'This engagement: '+n+' trades, the earliest '+t+'. When nothing is trading, this is the last battle, held.',
+  loading:'Reading the dispatches…',
+  err:'Could not reach the odin.fun API. It rate-limits and occasionally blocks non-browser traffic; try again in a minute.',
+  live:t=>'Engaged · last shot '+t,
+  cold:t=>'Quiet · last engagement '+t,
+  never:'No trades on record yet',
+  ago:{s:'just now',m:n=>n+'m ago',h:n=>n+'h ago',d:n=>n+'d ago'},
+  flPrice:'Front line · price',flMcap:'Front line · market cap',flPool:'Blue base · pool',flForce:'This engagement',
+  flPriceSub:s=>s+' sats each',
+  flForceSub:(b,s)=>'blue '+b+' · red '+s,
+  sats:'sats',
+  blueH:'Blue barracks · the pool',
+  blueSub:'Chefs providing liquidity, plus every top-20 holder who has not sold a single coin in seven days. A Chef marked ALSO SOLD has also sold inside the window — providing liquidity and selling are not exclusive.',
+  redH:'Red barracks',
+  redSub:'Top-10 holders who have sold within the last seven days. The more they sell, the further red pushes.',
+  chef:'CHEF',alsoSold:'ALSO SOLD',
+  soldOut:v=>'sold '+v+' in 7d',
+  holds:v=>'holds '+v,
+  noBlue:'No qualifying defenders right now.',
+  noRed:'Not one of the top 10 holders has sold in seven days.',
+  lgSoldier:'Soldier',lgTank:'Tank',lgPlane:'Plane',
+  lgSoldierV:'< 0.005 BTC',lgTankV:'≥ 0.005 BTC',lgPlaneV:'≥ 0.01 BTC',
+  lgBlue:'Blue = buy',lgRed:'Red = sell',
+  alt:(b,s,p)=>'NOODL battlefield: the latest engagement had '+b+' blue sorties and '+s+' red, price '+p+'.',
+  footer:'NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles.',
+  footerLinks:'© 2026 NOODL.club ·'
+}
+};
+let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
+if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= helpers ================= */
+const nf=(v,d)=>Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function fmtBtc(v){const a=Math.abs(v);return a>=100?nf(v,0):a>=1?nf(v,3):nf(v,4);}
+function fmtUsd(v){
+  const a=Math.abs(v);
+  if(a>=1e6)return '$'+nf(v/1e6,2)+'M';
+  if(a>=1000)return '$'+nf(v/1000,1)+'K';
+  if(a>=1)return '$'+nf(v,2);
+  if(a>=0.01)return '$'+nf(v,4);
+  return a===0?'$0':'$'+nf(v,6);
+}
+function fmtTok(v){
+  const a=Math.abs(v);
+  if(a>=1e6)return nf(v/1e6,2)+'M';
+  if(a>=1000)return nf(v/1000,1)+'K';
+  return nf(v,0);
+}
+function ago(ms){
+  const u=I18N[lang].ago,d=Date.now()-ms;
+  if(d<60e3)return u.s;
+  if(d<36e5)return u.m(Math.round(d/60e3));
+  if(d<DAY)return u.h(Math.round(d/36e5));
+  return u.d(Math.round(d/DAY));
+}
+const initial=n=>{const s=String(n||'').trim();return s?s[0].toUpperCase():'?';};
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+async function api(path){
+  let last;
+  for(const base of ODIN){
+    try{
+      const r=await fetch(base+path,{headers:{accept:'application/json'}});
+      if(!r.ok){last=new Error(path+' HTTP '+r.status);continue;}
+      return await r.json();
+    }catch(e){last=e;}
+  }
+  throw last||new Error('fetch failed '+path);
+}
+
+/* ================= model ================= */
+let S=null;
+
+/* One trade becomes one sortie. Size decides what rolls out; the head count on
+   infantry is what keeps a 0.004 BTC order from looking like a 0.0002 one. */
+function classify(btc){
+  if(btc>=PLANE)return {kind:'plane',n:1};
+  if(btc>=TANK)return {kind:'tank',n:1};
+  return {kind:'soldier',n:clamp(Math.ceil(btc/PER_SOLDIER),1,MAX_SOLDIERS)};
+}
+
+/* The engagement on screen is the tail of the trade feed: everything inside the
+   last quiet gap. If the token has been still for an hour, that hour is not
+   empty screen — it is the previous battle, held. */
+function lastEngagement(trades){
+  if(!trades.length)return [];
+  const GAP=45*60e3;                       // a three-quarter-hour lull ends a battle
+  const MIN=14, MAX=48;                    // ...but never field fewer than MIN
+  const out=[trades[0]];
+  for(let i=1;i<trades.length&&out.length<MAX;i++){
+    const quiet=Date.parse(out[out.length-1].time)-Date.parse(trades[i].time)>GAP;
+    if(quiet&&out.length>=MIN)break;
+    out.push(trades[i]);
+  }
+  return out.reverse();                    // oldest first, so it replays forwards
+}
+
+async function load(){
+  $('#stamp').textContent=I18N[lang].loading;
+  $('#err').innerHTML='';
+
+  const [tok,cur,own,liq]=await Promise.all([
+    api('/token/'+TOKEN),api('/currency/btc'),
+    api('/token/'+TOKEN+'/owners?limit=1000'),api('/token/'+TOKEN+'/liquidity?limit=1000')
+  ]);
+
+  /* Seven days of trades. The feed is newest-first, so paging stops as soon as a
+     page ends older than the window rather than pulling the whole history. */
+  const cutoff=Date.now()-WEEK;
+  let trades=[];
+  for(let pg=1;pg<=6;pg++){
+    const d=await api('/token/'+TOKEN+'/trades?limit=1000&page='+pg);
+    const rows=d.data||[];
+    trades=trades.concat(rows);
+    if(!rows.length||trades.length>=(d.count||0))break;
+    if(Date.parse(rows[rows.length-1].time)<cutoff)break;
+  }
+  trades.sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
+
+  const btcUsd=Number(cur.amount)||0;
+  const price=Number(tok.price)||0;                  // millisats per NOODL
+  const supply=Number(tok.total_supply)/MS;
+  const mcBtc=Number(tok.marketcap)/MS;
+  const poolBtc=Number(tok.btc_liquidity)/MS*2;      // both sides of the pair
+
+  /* Who sold in the last seven days, and how much of it. This is the single
+     test that sorts the top holders into the two barracks. */
+  const sold7={};
+  trades.forEach(t=>{
+    if(t.buy)return;
+    if(Date.parse(t.time)<cutoff)return;
+    sold7[t.user]=(sold7[t.user]||0)+Number(t.amount_token)/MS;
+  });
+
+  const nameOf={};
+  trades.forEach(t=>{if(t.user_username)nameOf[t.user]=t.user_username;});
+
+  const owners=(own.data||[]).map(o=>({
+    user:o.user,
+    name:o.user_username||nameOf[o.user]||o.user.slice(0,12),
+    bal:Number(o.balance)/MS
+  })).sort((a,b)=>b.bal-a.bal);
+
+  const lpRows=(liq.data||[]).map(o=>({
+    user:o.user,
+    name:o.user_username||nameOf[o.user]||o.user.slice(0,12),
+    lp:Number(o.balance)
+  })).filter(o=>o.lp>0).sort((a,b)=>b.lp-a.lp);
+  const lpTotal=lpRows.reduce((s,o)=>s+o.lp,0);
+
+  /* Blue barracks: the Chefs holding the pool open, then the top-20 holders who
+     have not sold a coin in the window. A Chef who also sold still counts as a
+     Chef — the liquidity is what the base is made of. */
+  const lpSet=new Set(lpRows.map(o=>o.user));
+  const blue=lpRows.map(o=>({
+    user:o.user,name:o.name,chef:true,alsoSold:!!sold7[o.user],
+    sub:lpTotal?nf(o.lp/lpTotal*100,1)+'% LP':''
+  }));
+  owners.slice(0,20).forEach(o=>{
+    if(lpSet.has(o.user))return;
+    if(sold7[o.user])return;
+    blue.push({user:o.user,name:o.name,chef:false,alsoSold:false,sub:fmtTok(o.bal)});
+  });
+
+  // Red barracks: top-10 holders who did sell, heaviest seller first
+  const red=owners.slice(0,10).filter(o=>sold7[o.user])
+    .map(o=>({user:o.user,name:o.name,sold:sold7[o.user],bal:o.bal}))
+    .sort((a,b)=>b.sold-a.sold);
+
+  const battle=lastEngagement(trades);
+  const since=battle.length?Date.parse(battle[0].time):null;
+  const units=battle.map(t=>{
+    const btc=Number(t.amount_btc)/MS;
+    const c=classify(btc);
+    return {
+      side:t.buy?'blue':'red',kind:c.kind,n:c.n,btc,
+      name:t.user_username||t.user.slice(0,8),
+      time:Date.parse(t.time)
+    };
+  });
+
+  /* Price 24h ago, off the same feed, so the front line can lean. */
+  const t24=Date.now()-DAY;
+  let p24=price;
+  for(const t of trades){if(Date.parse(t.time)<=t24){p24=Number(t.price);break;}}
+  const chg=p24?(price-p24)/p24*100:0;
+
+  S={stamp:Date.now(),btcUsd,price,supply,mcBtc,poolBtc,chg,since,
+     lastTrade:trades.length?Date.parse(trades[0].time):null,
+     units,blue,red,
+     blueN:units.filter(u=>u.side==='blue').length,
+     redN:units.filter(u=>u.side==='red').length};
+
+  paintHud();
+  engine.load(S);
+}
+
+/* ================= HUD ================= */
+function paintHud(){
+  const ui=I18N[lang],s=S;
+  if(!s)return;
+
+  const priceBtc=s.price/MS;                       // BTC per NOODL
+  const sats=priceBtc*1e8;
+  const fresh=s.lastTrade&&Date.now()-s.lastTrade<45*60e3;
+  $('#pulse').className='pulse'+(fresh?'':' cold');
+  $('#stamp').textContent=s.lastTrade
+    ?(fresh?ui.live(ago(s.lastTrade)):ui.cold(ago(s.lastTrade)))
+    :ui.never;
+
+  const dir=s.chg>=0?'up':'down';
+  $('#frontline').innerHTML=
+     card(ui.flPrice,fmtUsd(priceBtc*s.btcUsd),ui.flPriceSub(nf(sats,2)),dir)
+    +card(ui.flMcap,fmtBtc(s.mcBtc)+' BTC',fmtUsd(s.mcBtc*s.btcUsd),dir)
+    +card(ui.flPool,fmtBtc(s.poolBtc)+' BTC',fmtUsd(s.poolBtc*s.btcUsd),'')
+    +card(ui.flForce,s.units.length,ui.flForceSub(s.blueN,s.redN),'');
+
+  $('#blueN').textContent=s.blue.length;
+  $('#redN').textContent=s.red.length;
+  $('#blueRoster').innerHTML=s.blue.length
+    ?s.blue.map(o=>row(o.name,o.user,o.sub,o.chef?ui.chef:'',o.alsoSold?ui.alsoSold:'')).join('')
+    :'<div class="empty">'+esc(ui.noBlue)+'</div>';
+  $('#redRoster').innerHTML=s.red.length
+    ?s.red.map(o=>row(o.name,o.user,ui.soldOut(fmtTok(o.sold)),'')).join('')
+    :'<div class="empty">'+esc(ui.noRed)+'</div>';
+
+  $('#legend').innerHTML=
+     lg('soldier','blue',ui.lgSoldier,ui.lgSoldierV)
+    +lg('tank','blue',ui.lgTank,ui.lgTankV)
+    +lg('plane','blue',ui.lgPlane,ui.lgPlaneV)
+    +'<span class="lg" style="color:var(--blue)">'+esc(ui.lgBlue)+'</span>'
+    +'<span class="lg" style="color:var(--red)">'+esc(ui.lgRed)+'</span>';
+  document.querySelectorAll('.lg canvas[data-kind]').forEach(c=>{
+    const g=c.getContext('2d'),d=2;
+    c.width=26*d;c.height=18*d;g.setTransform(d,0,0,d,0,0);
+    drawUnit(g,13,9,c.dataset.kind,'blue',1,0);
+  });
+
+  $('#alt').textContent=ui.alt(s.blueN,s.redN,fmtUsd(priceBtc*s.btcUsd));
+  const note=document.querySelector('[data-i="stageNote"]');
+  if(note)note.textContent=s.since?ui.window(s.units.length,ago(s.since)):ui.stageNote;
+}
+function card(k,v,sub,cls){
+  return '<div class="fl '+cls+'"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div>'
+    +'<div class="s">'+esc(sub)+'</div></div>';
+}
+function row(name,user,amt,tag,warn){
+  return '<div class="row"><span class="av">'+esc(initial(name))+'</span>'
+    +'<span class="nm"><a href="https://odin.fun/user/'+esc(user)+'" target="_blank" rel="noopener">'+esc(name)+'</a></span>'
+    +(tag?'<span class="tag">'+esc(tag)+'</span>':'')
+    +(warn?'<span class="tag warn">'+esc(warn)+'</span>':'')
+    +'<span class="amt">'+esc(amt)+'</span></div>';
+}
+function lg(kind,side,label,val){
+  return '<span class="lg"><canvas data-kind="'+kind+'"></canvas>'+esc(label)+' <b>'+esc(val)+'</b></span>';
+}
+
+/* ================= unit art =================
+   Drawn as vectors rather than glyphs so they stay crisp at any dpr and can be
+   tinted per side. Every unit points along +x; the caller rotates. */
+/* Canvas roundRect only landed in Safari 16.4, and iOS Safari is a first-class
+   target here, so the path is spelled out. */
+function rr(g,x,y,w,h,r){
+  g.beginPath();
+  g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);
+  g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();
+}
+function drawUnit(g,x,y,kind,side,scale,rot){
+  const col=side==='blue'?'#4aa8ff':'#ff4d4d';
+  const dark=side==='blue'?'#1d5f9e':'#8f2020';
+  g.save();g.translate(x,y);g.rotate(rot);g.scale(scale,scale);
+  g.lineJoin='round';g.lineCap='round';
+  if(kind==='plane'){
+    g.fillStyle=col;
+    g.beginPath();
+    g.moveTo(9,0);g.lineTo(-2,3.4);g.lineTo(-7,3.4);g.lineTo(-4,0);
+    g.lineTo(-7,-3.4);g.lineTo(-2,-3.4);g.closePath();g.fill();
+    g.fillStyle=dark;
+    g.beginPath();g.moveTo(1,0);g.lineTo(-3,2.2);g.lineTo(-3,-2.2);g.closePath();g.fill();
+  }else if(kind==='tank'){
+    g.fillStyle=dark;
+    rr(g,-6,-3.6,12,7.2,2);g.fill();
+    g.fillStyle=col;
+    rr(g,-3.4,-2.6,6.4,5.2,1.6);g.fill();
+    g.strokeStyle=col;g.lineWidth=1.6;
+    g.beginPath();g.moveTo(2,0);g.lineTo(8.4,0);g.stroke();
+  }else{
+    g.fillStyle=col;
+    g.beginPath();g.arc(0,-2.4,1.9,0,7);g.fill();          // head
+    g.strokeStyle=col;g.lineWidth=1.7;
+    g.beginPath();g.moveTo(0,-0.6);g.lineTo(0,2.6);g.stroke();   // body
+    g.beginPath();g.moveTo(-2.2,4.6);g.lineTo(0,2.6);g.lineTo(2.2,4.6);g.stroke(); // legs
+    g.lineWidth=1.4;
+    g.beginPath();g.moveTo(0.4,0.4);g.lineTo(4.4,-1.2);g.stroke();  // rifle
+  }
+  g.restore();
+}
+
+/* ================= the battle =================
+   Canvas is drawn in a fixed 1000x1000 space and scaled to whatever the stage
+   is, so every position below is resolution independent. The two bases sit on
+   an axis through the centre; sorties march along it and meet at the line. */
+const engine=(function(){
+  const W=1000,C=500,R=468;
+  const AX=Math.cos(-0.6),AY=Math.sin(-0.6);           // base-to-base direction
+  const BLUE={x:C-AX*R*0.74,y:C-AY*R*0.74};
+  const RED ={x:C+AX*R*0.74,y:C+AY*R*0.74};
+  let cv,g,dpr=1,box=0,units=[],t0=0,raf=0,front=0,loaded=null,stars=[];
+
+  function fit(){
+    if(!cv)return;
+    box=cv.clientWidth||360;
+    dpr=Math.min(2,window.devicePixelRatio||1);
+    cv.width=Math.round(box*dpr);cv.height=Math.round(box*dpr);
+    g=cv.getContext('2d');
+    frame(performance.now());                 // repaint immediately on resize
+  }
+  function seedStars(){
+    stars=[];
+    for(let i=0;i<90;i++){
+      const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*R*0.98;
+      stars.push({x:C+Math.cos(a)*r,y:C+Math.sin(a)*r,r:0.6+Math.random()*1.7,
+                  p:Math.random()*6.28});
+    }
+  }
+
+  /* Sorties are laid out along the engagement, oldest first, and given a launch
+     time so the battle replays at a watchable pace rather than all at once. */
+  function load(s){
+    loaded=s;
+    front=clamp(s.chg/18,-1,1)*R*0.30;
+    units=[];
+    const SPACING=520;                        // ms between sorties on screen
+    /* With motion turned off there is no replay to watch, so the engagement is
+       laid out as a standing parade instead: every sortie is placed at a fixed
+       distance from its own base, in order, and nothing moves or fades. */
+    const N=Math.max(1,s.units.length-1);
+    s.units.forEach((u,i)=>{
+      for(let k=0;k<u.n;k++){
+        units.push({
+          side:u.side,kind:u.kind,name:u.name,btc:u.btc,
+          born:i*SPACING+k*90,
+          /* Each sortie takes its own lane across the front — the golden-ratio
+             step keeps consecutive ones far apart instead of clustering — and the
+             men inside a sortie fan out around it. */
+          lane:((i*0.618)%1-0.5)*1.7+(k-(u.n-1)/2)*0.13,
+          speed:u.kind==='plane'?1.55:u.kind==='tank'?0.95:1.15,
+          sp:0.24+0.62*(i/N),                // where it stands when motion is off
+          label:k===0                          // only the lead unit carries the name
+        });
+      }
+    });
+    t0=performance.now();
+    if(!raf)start();
+    else frame(performance.now());
+  }
+  function start(){
+    /* Paint once synchronously first. requestAnimationFrame never fires in a tab
+       that is not being painted, and a battlefield that renders as a blank disc
+       in a background tab or a prerender is worse than one that does not move. */
+    frame(performance.now());
+    if(reduceMotion)return;
+    const loop=now=>{frame(now);raf=requestAnimationFrame(loop);};
+    raf=requestAnimationFrame(loop);
+  }
+  function stop(){if(raf){cancelAnimationFrame(raf);raf=0;}}
+
+  function pos(u,age){
+    if(reduceMotion){
+      const sign=u.side==='blue'?1:-1;
+      const base=u.side==='blue'?BLUE:RED;
+      const mx=C+AX*front,my=C+AY*front;
+      const nx=-AY,ny=AX,spread=R*0.26*clamp(u.lane,-1,1);
+      return {x:base.x+(mx-base.x)*u.sp+nx*spread,
+              y:base.y+(my-base.y)*u.sp+ny*spread,
+              p:u.sp,sign,hit:false,fade:0};
+    }
+    /* Distance travelled from own base toward the line, capped at the line. A
+       unit that has arrived stays at the line and fades rather than walking on
+       through the enemy, which is what makes the line read as a line. */
+    const dur=4200/u.speed;
+    const p=clamp(age/dur,0,1);
+    const sign=u.side==='blue'?1:-1;
+    const base=u.side==='blue'?BLUE:RED;
+    const meetX=C+AX*front,meetY=C+AY*front;
+    const px=base.x+(meetX-base.x)*p,py=base.y+(meetY-base.y)*p;
+    const nx=-AY,ny=AX;                        // lateral unit vector
+    const spread=R*0.26*clamp(u.lane,-1,1);
+    return {x:px+nx*spread,y:py+ny*spread,p,sign,
+            hit:p>=1,fade:clamp((age-dur)/1100,0,1)};
+  }
+
+  function frame(now){
+    if(!g)return;
+    const t=now-t0;
+    g.setTransform(dpr*box/W,0,0,dpr*box/W,0,0);
+    g.clearRect(0,0,W,W);
+
+    // ---- the bowl: NOODL NOVA, seen from above ----
+    g.save();
+    g.beginPath();g.arc(C,C,R,0,7);g.clip();
+    const sky=g.createRadialGradient(C,C,R*0.1,C,C,R);
+    sky.addColorStop(0,'#161622');sky.addColorStop(1,'#0b0b11');
+    g.fillStyle=sky;g.fillRect(0,0,W,W);
+    stars.forEach(s=>{
+      const tw=reduceMotion?0.7:0.45+0.45*Math.sin(t/900+s.p);
+      g.globalAlpha=tw;g.fillStyle='#cfd3e6';
+      g.beginPath();g.arc(s.x,s.y,s.r,0,7);g.fill();
+    });
+    g.globalAlpha=1;
+
+    drawTerritory();
+    drawBase(BLUE,'blue');
+    drawBase(RED,'red');
+    if(loaded){
+      drawGarrison(BLUE,loaded.blue.map(o=>o.name),'blue');
+      drawGarrison(RED,loaded.red.map(o=>o.name),'red');
+    }
+    drawFront(t);
+
+    let live=0;
+    units.forEach(u=>{
+      const age=t-u.born;
+      if(age<0&&!reduceMotion)return;
+      const q=pos(u,age);
+      if(q.fade>=1)return;
+      live++;
+      g.globalAlpha=1-q.fade;
+      const rot=Math.atan2(AY*q.sign,AX*q.sign);
+      drawUnit(g,q.x,q.y,u.kind,u.side,u.kind==='soldier'?1.5:1.8,rot);
+      if(q.hit)burst(q.x,q.y,u.side,q.fade);
+      /* The label rides with its unit until the approach, then gets out of the
+         way: at the line every sortie occupies the same strip and the names
+         would otherwise stack into an unreadable smear. */
+      if(u.label&&q.p<0.82){
+        const dim=clamp((0.82-q.p)/0.18,0,1);
+        g.globalAlpha=(1-q.fade)*0.9*dim;
+        g.font='600 15px "Work Sans",sans-serif';
+        g.textAlign='center';
+        const ty=q.y+(u.kind==='plane'?-16:20);
+        g.lineWidth=3;g.strokeStyle='rgba(8,8,14,.85)';
+        g.strokeText(u.name.slice(0,14),q.x,ty);
+        g.fillStyle=u.side==='blue'?'#9ccdff':'#ffb0b0';
+        g.fillText(u.name.slice(0,14),q.x,ty);
+      }
+      g.globalAlpha=1;
+    });
+    g.restore();
+
+    // rim
+    g.strokeStyle='#2e2e38';g.lineWidth=9;
+    g.beginPath();g.arc(C,C,R+4,0,7);g.stroke();
+    g.strokeStyle='rgba(0,255,255,.16)';g.lineWidth=2;
+    g.beginPath();g.arc(C,C,R-6,0,7);g.stroke();
+
+    // once every sortie has landed and faded, run the engagement again
+    if(!reduceMotion&&live===0&&units.length&&t>1500)t0=now;
+  }
+
+  function drawTerritory(){
+    const mx=C+AX*front,my=C+AY*front;
+    const nx=-AY,ny=AX,L=R*2;
+    [['blue',-1],['red',1]].forEach(([side,dir])=>{
+      g.save();
+      g.beginPath();
+      g.moveTo(mx+nx*L,my+ny*L);
+      g.lineTo(mx-nx*L,my-ny*L);
+      g.lineTo(mx-nx*L+AX*L*dir,my-ny*L+AY*L*dir);
+      g.lineTo(mx+nx*L+AX*L*dir,my+ny*L+AY*L*dir);
+      g.closePath();
+      g.fillStyle=side==='blue'?'rgba(74,168,255,.055)':'rgba(255,77,77,.05)';
+      g.fill();g.restore();
+    });
+  }
+
+  /* The garrison, written faintly around its own keep. Names are what make the
+     base a camp rather than a marker, and the brief asked for them here. */
+  function drawGarrison(b,names,side){
+    if(!names.length)return;
+    g.save();
+    g.font='500 13px "Work Sans","PingFang SC",sans-serif';
+    g.textAlign='center';g.textBaseline='middle';
+    g.fillStyle=side==='blue'?'rgba(156,205,255,.42)':'rgba(255,176,176,.42)';
+    const n=Math.min(names.length,9),rad=R*0.215;
+    for(let i=0;i<n;i++){
+      const a=-Math.PI/2+(i/n)*Math.PI*2;
+      g.fillText(String(names[i]).slice(0,10),b.x+Math.cos(a)*rad,b.y+Math.sin(a)*rad);
+    }
+    g.restore();
+  }
+
+  function drawBase(b,side){
+    const col=side==='blue'?'#4aa8ff':'#ff4d4d';
+    g.save();
+    const gl=g.createRadialGradient(b.x,b.y,2,b.x,b.y,R*0.24);
+    gl.addColorStop(0,side==='blue'?'rgba(74,168,255,.28)':'rgba(255,77,77,.24)');
+    gl.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=gl;g.beginPath();g.arc(b.x,b.y,R*0.24,0,7);g.fill();
+    g.strokeStyle=col;g.lineWidth=3;g.globalAlpha=.85;
+    g.beginPath();g.arc(b.x,b.y,R*0.115,0,7);g.stroke();
+    g.globalAlpha=.4;
+    g.beginPath();g.arc(b.x,b.y,R*0.16,0,7);g.stroke();
+    g.globalAlpha=1;
+    // a squat keep, so the base reads as a place and not just a dot
+    g.fillStyle=col;
+    rr(g,b.x-16,b.y-11,32,22,4);g.fill();
+    g.fillStyle='#0b0b11';
+    rr(g,b.x-9,b.y-4,18,15,2);g.fill();
+    g.restore();
+  }
+
+  function drawFront(t){
+    const mx=C+AX*front,my=C+AY*front;
+    const nx=-AY,ny=AX,half=R*0.99;
+    g.save();
+    g.setLineDash([14,12]);
+    g.lineDashOffset=reduceMotion?0:-(t/38)%26;
+    g.strokeStyle='rgba(252,209,79,.75)';g.lineWidth=2.4;
+    g.beginPath();
+    g.moveTo(mx+nx*half,my+ny*half);
+    g.lineTo(mx-nx*half,my-ny*half);
+    g.stroke();
+    g.restore();
+  }
+
+  function burst(x,y,side,f){
+    g.save();
+    g.globalAlpha=(1-f)*0.9;
+    g.strokeStyle=side==='blue'?'#9ccdff':'#ffb0b0';
+    g.lineWidth=2;
+    const r=6+f*22;
+    g.beginPath();g.arc(x,y,r,0,7);g.stroke();
+    g.restore();
+  }
+
+  return {
+    init(){
+      cv=$('#field');
+      seedStars();
+      fit();
+      addEventListener('resize',()=>{clearTimeout(fit.t);fit.t=setTimeout(fit,160);});
+      document.addEventListener('visibilitychange',()=>{
+        if(document.hidden)stop();
+        else if(loaded&&!reduceMotion&&!raf){t0=performance.now();start();}
+      });
+    },
+    load,
+    repaint(){frame(performance.now());}
+  };
+})();
+
+/* ================= i18n apply ================= */
+function applyLang(){
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  const ui=I18N[lang];
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const v=ui[el.dataset.i];
+    if(typeof v==='string')el.textContent=v;
+  });
+  $('#langBtn').textContent=lang==='zh'?'EN':'中文';
+  if(S)paintHud();
+}
+$('#langBtn').addEventListener('click',()=>{
+  lang=lang==='zh'?'en':'zh';
+  try{localStorage.setItem('noodl_lang',lang);}catch(e){}
+  applyLang();
+});
+
+/* ================= starfield ================= */
+(function(){
+  const box=$('#stars'),colors=['#f4ead0','#f5a86a','#8fd0c8','#ffffff','#e06a2b'];
+  for(let i=0;i<80;i++){
+    const s=document.createElement('i'),w=(1.4+Math.random()*2.6).toFixed(1);
+    s.style.cssText='left:'+(Math.random()*100).toFixed(2)+'%;top:'+(Math.random()*100).toFixed(2)+
+      '%;width:'+w+'px;height:'+w+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+
+      ';animation-delay:-'+(Math.random()*8).toFixed(2)+'s;animation-duration:'+(3+Math.random()*5).toFixed(2)+'s';
+    box.appendChild(s);
+  }
+})();
+
+/* ================= boot ================= */
+async function boot(){
+  applyLang();
+  engine.init();
+  try{ await load(); }
+  catch(e){
+    console.error(e);
+    $('#stamp').textContent='';
+    $('#err').innerHTML='<div class="err">'+esc(I18N[lang].err)+'</div>';
+  }
+}
+boot();
+setInterval(()=>{if(!document.hidden)load().catch(e=>console.error(e));},60000);
+</script>
+</body>
+</html>
