@@ -499,7 +499,7 @@ footer a:hover{color:var(--cyan)}
       <p data-i="whatWhyP">Bitcoin traded the third leg of the blockchain trilemma for decentralisation and security: ten-minute blocks, no smart contracts, no pools. However lively inscriptions and runes became, trading still meant order books: you eat whatever someone happened to list, one large ask crushes the tape, and a sell order may simply never find a buyer. ODIN·FUN keeps assets and settlement on Bitcoin while matching moves to a two-second-finality, zero-gas fast layer, with pools instead of order books.</p>
 
       <h3 data-i="whatV1H">What happened to v1, and what changed</h3>
-      <p data-i="whatV1P">v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was pace: the ecosystem grew faster than its security infrastructure, a mechanism upgrade shipped with a flaw in it, attackers found the gap, and a security incident followed. The car was fine and the road was fine, the brakes simply had not caught up with the horsepower.</p>
+      <p data-i="whatV1P">v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and the first token on that test build ran from a few thousand dollars to a $35M cap. What broke it was pace: the ecosystem grew faster than its security infrastructure, a mechanism upgrade shipped with a flaw in it, attackers found the gap, and a security incident followed. The car was fine and the road was fine, the brakes simply had not caught up with the horsepower.</p>
       <p data-i="whatV2P">v2 rebuilt the answer to each of those, item by item: deposits sit under <b>threshold-signature (TSS) custody</b>, the vault key is split across independent parties, and no single party, the team included, can move funds. Contract upgrades now pass a <b>4-of-7 multisig DAO</b> in which the team holds only two seats; platform revenue flows to a <b>3-of-5 treasury DAO</b> where the team holds none. Individual accounts add 2FA and an instant session padlock. Withdrawals to Bitcoin mainnet are batched, ten minutes at most.</p>
 
       <div class="facts">
@@ -508,6 +508,20 @@ footer a:hover{color:var(--cyan)}
         <div class="fact"><b>~2s</b><span data-i="factSpeed">Trade finality, zero gas, pools not order books</span></div>
         <div class="fact"><b>#1</b><span data-i="factFirst">NOODL's launch position on v2, permanently</span></div>
       </div>
+
+      <h3 data-i="lockH">The other side of the pool: this is Bitcoin being taken off the market</h3>
+      <p data-i="lockP1">The halving is written into the protocol.</p>
+      <p data-i="lockP2">What most people see in Odin is that it solved liquidity for inscriptions and runes.</p>
+      <p data-i="lockP3">One level down: what is actually sitting in those pools?</p>
+      <p data-i="lockP4">One thing has to be said plainly: this is not a lock.</p>
+      <p data-i="lockP5">None of this needs anyone to arrange it.</p>
+
+      <h3 data-i="dexH">Why the endgame is a venue nobody controls</h3>
+      <p data-i="dexP1">Half of a centralised exchange's moat has always been information asymmetry.</p>
+      <p data-i="dexP2">CRS was built for bank accounts.</p>
+      <p data-i="dexP3">This will not make centralised exchanges disappear.</p>
+      <p data-i="dexP4">The problem is that Bitcoin could not offer that venue.</p>
+      <p data-i="dexP5">If Bitcoin is where every chain's assets eventually settle, the venue that trades them grows on Bitcoin too.</p>
 
     </section>
 
@@ -669,8 +683,20 @@ en:{
     whatWhyH:'Why Bitcoin needed a launchpad like this',
     whatWhyP:'Bitcoin traded the third leg of the blockchain trilemma for decentralisation and security: ten-minute blocks, no smart contracts, no pools. However lively inscriptions and runes became, trading still meant order books: you eat whatever someone happened to list, one large ask crushes the tape, and a sell order may simply never find a buyer. ODIN·FUN keeps assets and settlement on Bitcoin while matching moves to a two-second-finality, zero-gas fast layer, with pools instead of order books.',
     whatV1H:'What happened to v1, and what changed',
-    whatV1P:'v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and its first token ODINDOG ran from a few thousand dollars to a $35M cap. What broke it was pace: the ecosystem grew faster than its security infrastructure, a mechanism upgrade shipped with a flaw in it, attackers found the gap, and a security incident followed. The car was fine and the road was fine, the brakes simply had not caught up with the horsepower.',
+    whatV1P:'v1 was not killed by a missing market. In its first month it did over 1,000 BTC of volume across thirty-seven thousand addresses, and the first token on that test build ran from a few thousand dollars to a $35M cap. What broke it was pace: the ecosystem grew faster than its security infrastructure, a mechanism upgrade shipped with a flaw in it, attackers found the gap, and a security incident followed. The car was fine and the road was fine, the brakes simply had not caught up with the horsepower.',
     whatV2P:'v2 rebuilt the answer to each of those, item by item: deposits sit under <b>threshold-signature (TSS) custody</b>, the vault key is split across independent parties, and no single party, the team included, can move funds. Contract upgrades now pass a <b>4-of-7 multisig DAO</b> in which the team holds only two seats; platform revenue flows to a <b>3-of-5 treasury DAO</b> where the team holds none. Individual accounts add 2FA and an instant session padlock. Withdrawals to Bitcoin mainnet are batched, ten minutes at most.',
+    lockH:'The other side of the pool: this is Bitcoin being taken off the market',
+    lockP1:"The halving is written into the protocol: every four years the same electricity buys half the BTC it used to. For that business to keep working, the price has to double — so miners, pools, and every balance sheet denominated in BTC have a standing reason to look for anything that adds demand to Bitcoin. Not out of loyalty. Out of arithmetic.",
+    lockP2:'What most people see in Odin is that it solved liquidity for inscriptions and runes. Before it, trading meant an order book: you could only buy what someone happened to have listed, one large ask crushed the tape, and a sell order might never find a buyer at all. Now there is a pool, and you can get in and out whenever you like. That is true, and it is the surface.',
+    lockP3:'One level down: what is actually sitting in those pools? BTC. Before a token can graduate into the AMM it has to sell 0.211 BTC along its bonding curve, and that amount plus another 0.2 BTC is deposited into the pool. From that moment those coins sit there making a market, and they are not circulating anywhere else. Every additional live token on the platform adds another deposit like it. As this sentence was written, <b id="platBtc">…</b> BTC were held on Odin — that is everything on the platform, of which the pools are one part.',
+    lockP4:'One thing has to be said plainly: this is not a lock. The BTC in a pool belongs to whoever provided it and can be withdrawn at any time — it is a commitment, not a lockup, and if a token gets sold off hard the BTC leaves with it. What turns it into a real lock is staking: once the platform ships staking and unlocking, what goes in has a term on it and cannot simply be pulled. That version subtracts from circulating supply far harder than a pool does.',
+    lockP5:'None of this needs anyone to arrange it, and nothing here says a cartel is holding a price up. The claim is narrower and duller: if the way a venue works is itself absorbing circulating BTC, then the people holding BTC and that venue are pointed the same way. Which is the kind of alignment that outlasts sentiment.',
+    dexH:'Why the endgame is a venue nobody controls',
+    dexP1:"Half of a centralised exchange's moat has always been information asymmetry: your position, your fills and your identity are known to you and to it, and to nobody else. That half is being dismantled.",
+    dexP2:'CRS, the Common Reporting Standard, was built for bank accounts — tax authorities automatically exchanging residents’ account information with each other. The crypto version, CARF, sits on the same framework and takes effect from 2027 in the first wave of signatory jurisdictions: regulated platforms report their users’ identity, balances and transactions annually, and those reports are passed to the country where each user is tax-resident. Exchanges that already run KYC are exactly where this plugs in most easily, because the fields KYC collects are the fields the report wants. Binance, OKX and the rest are not being singled out; they are simply the easiest to connect.',
+    dexP3:'This will not make centralised exchanges disappear — they are still the smoothest route between fiat and crypto, and that job is not going anywhere. What it does is separate two things that used to blur together: assets on an exchange are visible by default, assets in your own wallet are not. Once that line is sharp, some share of holdings moves to the second side, and that share needs somewhere it can actually trade.',
+    dexP4:'The problem is that Bitcoin could not offer that venue. Ten-minute blocks, no smart contracts: the assets carry the most weight in the industry while the matching underneath them stayed the most primitive, so trading on-chain has always been possible but unpleasant. Odin fills in that layer — two-second finality, no gas, pools instead of an order book — and, just as importantly, asks nothing of the user. You do not have to know what an AMM is to buy.',
+    dexP5:'If Bitcoin is where every chain’s assets eventually settle — value draining toward the deepest consensus and the hardest security — then the venue that trades them grows on Bitcoin too. That is an argument, not a conclusion, and plenty of things would falsify it: another Bitcoin venue getting there first, regulation reaching decentralised venues as well, or the migration simply never happening. But if it holds, whatever is already standing in that spot matters considerably more than it looks like it does today.',
     factBtc:"BTC of volume in v1's first month, the demand was always real",
     factDao:'Multisig DAO required to change v2 code (team holds 2)',
     factSpeed:'Trade finality, zero gas, pools not order books',
@@ -763,8 +789,20 @@ zh:{
     whatWhyH:'比特币生态为什么需要这样一个发射台',
     whatWhyP:'比特币用区块链不可能三角的第三条腿，换取了去中心化与安全：十分钟一个块、没有智能合约、没有池子。所以无论铭文和符文多热闹，交易仍然只能靠订单簿：买入只能吃别人挂的量，一张大卖单就砸穿盘口；卖出更难受，没有池子接盘，挂单可能永远等不到买家。ODIN·FUN 的解法是：资产与结算留在比特币，撮合搬到两秒终局、零 gas 的快速层，用池子取代订单簿。',
     whatV1H:'v1 发生了什么，以及 v2 改了什么',
-    whatV1P:'v1 不是死于没有市场。上线首月成交超过 1,000 BTC、覆盖三万七千个地址，首枚代币 ODINDOG 从几千美元市值一路走到 3,500 万美元。真正击穿它的是节奏：生态跑得比安全基建更快，一次机制升级带着漏洞上线，被黑客抓住，于是发生了安全事故。车没问题，路也没问题：是刹车没跟上马力。',
+    whatV1P:'v1 不是死于没有市场。上线首月成交超过 1,000 BTC、覆盖三万七千个地址，v1 测试版的首枚代币从几千美元市值一路走到 3,500 万美元。真正击穿它的是节奏：生态跑得比安全基建更快，一次机制升级带着漏洞上线，被黑客抓住，于是发生了安全事故。车没问题，路也没问题：是刹车没跟上马力。',
     whatV2P:'v2 针对每一条逐项重建：存入资金由<b>门限签名（TSS）托管</b>：金库密钥被拆分给多个独立方持有，包括团队自己在内，没有任何单方能动用资金。合约升级须经<b>4/7 多签 DAO</b>，其中团队只占两席；平台收入进入<b>3/5 多签国库 DAO</b>，团队一席不占。个人账户层面则加了两步验证与即时会话锁。提现到比特币主网按批处理，最多十分钟。',
+    lockH:'池子的另一面：这是在把比特币从市面上收走',
+    lockP1:'减半是写进协议里的：每四年，同样的电换到的 BTC 少一半。要让这门生意继续成立，币价就得翻倍——所以矿工、矿池，以及一切以 BTC 计价的资产负债表，都有一个长期存在的理由去寻找能给比特币加需求的东西。不是出于信仰，是出于算术。',
+    lockP2:'大部分人在 Odin 身上看到的，是它解决了铭文和符文的流动性。在它之前，交易意味着订单簿：买只能吃别人恰好挂出来的量，一张大卖单就能把盘口砸穿，而一笔卖单可能永远等不到接盘。现在有了池子，随时进、随时出。这没说错，但这是表层。',
+    lockP3:'再往下一层：池子里装的到底是什么？是 BTC。一枚代币要毕业进 AMM，得先沿着联合曲线卖出 0.211 BTC，这笔钱连同另外 0.2 BTC 一起注入池子。从那一刻起，这些币就待在里面做市，不在别处流通。平台上每多一枚活着的代币，就多一份这样的沉淀。写下这句话时，Odin 上存着 <b id="platBtc">…</b> BTC——那是平台上的全部，池子是其中一部分。',
+    lockP4:'有一点必须说清楚：这不是锁。池子里的 BTC 属于出资的人，随时可以撤走——它是"承诺"，不是"锁定"；代币被砸穿的时候，BTC 会跟着一起走。真正把它变成锁定的是质押：等平台的质押与解锁功能上线，存进去的那部分才带期限、才拿不回来。那个版本对流通量的削减，比现在的池子狠得多。',
+    lockP5:'这条推论不需要谁去安排，这里也没有在说有哪个集团在托价。它想说的比那个窄、也比那个无聊：如果一个场子运转的方式本身就在吸走流通中的 BTC，那么持有 BTC 的人和这个场子，是朝同一个方向的。这种同向，比情绪活得久。',
+    dexH:'为什么终局是一个没人能控制的场子',
+    dexP1:'中心化交易所的护城河，一直有一半是信息不对称：你的持仓、你的成交、你的身份，只有你和它知道，别人不知道。这一半正在被拆掉。',
+    dexP2:'CRS（共同申报准则）原本是为银行账户设计的——各国税务机关之间自动交换居民的账户信息。加密资产的那一版叫 CARF，架在同一套框架上，从 2027 年起在首批签署辖区生效：受监管的平台每年把用户的身份、余额与交易报给税务机关，再由税务机关转交给用户的税务居住国。做了 KYC 的交易所，恰恰是这套机制最容易接上的地方——KYC 收上来的那些字段，本来就是申报表要填的字段。币安、欧易这些平台不是被针对，它们只是最好接。',
+    dexP3:'这不会让中心化交易所消失——法币进出这条路它们仍然走得最顺，这份活儿短期内没人抢得走。它真正做的，是把过去混在一起的两件事分开：放在交易所里的资产默认可见，放在自己钱包里的不是。这条线一旦划清楚，总有一部分持仓会往后者挪，而这部分持仓需要一个真的能交易的地方。',
+    dexP4:'问题是过去比特币给不了这个地方。十分钟一个块、没有智能合约：资产是这个行业里分量最重的，底下的撮合方式却是最原始的，所以链上交易一直是"能做，但难受"。Odin 把这一层补上了——两秒终局、零 gas、池子而不是订单簿——而且同样重要的是，它对用户没有要求：你不需要知道 AMM 是什么，点开就能买。',
+    dexP5:'如果比特币最终是所有公链资产的沉淀之处——价值往共识最厚、安全性最高的那条链上流——那么承接这些资产交易的场子，也会长在比特币上。这是论点，不是结论；能证伪它的事情不少：另一个比特币场子先做起来、监管把去中心化场子也一并纳入、或者这场迁移根本没有发生。但如果它成立，此刻已经站在那个位置上的东西，会比现在看起来重要得多。',
     factBtc:'v1 上线首月成交 BTC：需求从来都是真的',
     factDao:'修改 v2 代码所需多签（团队仅占 2 席）',
     factSpeed:'交易终局时间，零 gas，池子而非订单簿',
@@ -905,6 +943,12 @@ async function refresh(){
       if(Number.isFinite(h)&&h>0)state.holders=Math.floor(h);
       state.live=true;seeded=false;
       try{localStorage.setItem('noodl_cache',JSON.stringify({mc:state.mc,btcUsd:state.btcUsd,holders:state.holders}));}catch(e){}
+      /* The platform BTC balance the lock-up argument in section 01 rests on.
+         It is a plain satoshi figure, so it scales by 1e8 — NOT the 1e11 the
+         token amounts above use. Mixing the two is a factor-of-1000 error. */
+      const dash=await getJson(['https://api.odin.fun/v2/statistics/dashboard','/api/odin/statistics/dashboard']);
+      const pb=dash?Number(dash.ckbtc_balance_current)/1e8:NaN;
+      if(Number.isFinite(pb)&&pb>0)state.platBtc=pb;
     }else{
       state.live=false;
     }
@@ -1012,6 +1056,8 @@ else setTimeout(scanRecentAth,5000);
 function render(){
   renderCmp();
   const hf=$('#ecoHolders');if(hf)hf.textContent=state.holders;
+  // refilled after every applyLang, which replaces the <b> along with the paragraph
+  const pb=$('#platBtc');if(pb&&state.platBtc)pb.textContent=fmtBtc(state.platBtc);
   const mn=$('#mirNow');if(mn)mn.textContent=fmtBtc(state.mc)+' BTC';
   if(window.__foldLive)window.__foldLive(state.mc);
   checkUnlocks();
@@ -1027,7 +1073,7 @@ function applyLang(){
   // The strings are authored here in this file — never user or API data.
   // every key whose value carries inline <b>/<i>; miss one and the reader
   // sees the tag itself. Audited against the dictionary, not eyeballed.
-  const RICH=/^(whatV2P|whatFirstP|cultLead|cultBridgeP|cultMianP|commTeamP)$/;
+  const RICH=/^(whatV2P|whatFirstP|cultLead|cultBridgeP|cultMianP|commTeamP|lockP3)$/;
   document.querySelectorAll('[data-i]').forEach(el=>{
     const k=el.dataset.i,v=ui[k];
     if(typeof v!=='string')return;
