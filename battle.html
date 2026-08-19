@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NOODL 战场 · NOODL.club</title>
-<meta name="description" content="NOODL 战场：把 odin.fun 上每一笔 NOODL 买卖画成一场星际战争。买是蓝方，卖是红方，池子是蓝方基地，战线就是当前单价与市值。">
+<title>NOODL 交易战场 · NOODL.club</title>
+<meta name="description" content="NOODL 交易战场：把 odin.fun 上每一笔 NOODL 买卖画成一场星际战争。买是蓝方，卖是红方，池子是蓝方基地，战线就是当前单价与市值。">
 <meta name="theme-color" content="#111117">
-<meta property="og:title" content="NOODL 战场 · NOODL Battlefield">
+<meta property="og:title" content="NOODL 交易战场 · NOODL Trade Battlefield">
 <meta property="og:description" content="Every NOODL trade on odin.fun, drawn as an interstellar battle. Buys advance in blue, sells push back in red, the front line is the live price.">
 <meta property="og:image" content="https://api.odin.fun/v2/token/hjrg/image">
 <meta property="og:type" content="website">
@@ -24,7 +24,7 @@
   --bg:#111117;--panel:#18181d;--line:#27272a;--line-soft:#1f1f25;
   --cyan:#00ffff;--cyan-dim:#00c9c9;--text:#fafafa;--text-2:#a8aab8;--dim:#6b6d7c;
   --noodle-y:#fcd14f;--noodle-o:#ef9530;
-  --blue:#4aa8ff;--blue-dim:#1d5f9e;--red:#ff4d4d;--red-dim:#8f2020;
+  --blue:#22d18c;--blue-dim:#0f7a52;--red:#ff4d4d;--red-dim:#8f2020;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -72,7 +72,7 @@ a{color:inherit}
 .secnav a.tab{font-weight:600;font-size:13px;padding:7px 15px}
 .secnav a.tab.on{color:var(--cyan);border-color:rgba(0,255,255,.5);background:rgba(0,255,255,.08)}
 
-main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:26px 20px 10px}
+main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 20px 10px}
 
 /* ---------- head ---------- */
 .war-head{text-align:center;margin-bottom:16px}
@@ -92,17 +92,57 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:26px 20p
 /* The battle is fought inside the bowl, so the stage is square and the canvas
    fills it exactly. Everything inside is drawn in canvas units of 1000x1000 and
    scaled by the device pixel ratio, so the same code serves any screen size. */
-.stage{position:relative;width:min(96vw,720px);aspect-ratio:1;margin:0 auto}
+.field{display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:16px;align-items:start}
+.stage{position:relative;width:100%;aspect-ratio:1;max-width:720px;margin:0 auto}
 #field{display:block;width:100%;height:100%;border-radius:50%}
 .stage-note{
   text-align:center;font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.6;
 }
 
 /* ---------- front line readout ---------- */
-.frontline{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;
-  margin:18px auto 0;max-width:720px;
+/* the dispatches, filling in as each order rolls out of its base */
+.feed{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+.feed h2{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;
+  display:flex;align-items:center;gap:8px}
+.feed h2 .n{margin-left:auto;font-size:11px;letter-spacing:0;color:var(--text-2);font-variant-numeric:tabular-nums}
+.feed-list{margin-top:11px;display:flex;flex-direction:column;gap:8px;max-height:612px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.feed-list::-webkit-scrollbar{width:6px}
+.feed-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.fd{border-left:2px solid var(--line);padding:1px 0 1px 9px}
+.feed-list .fd:first-child{animation:fdIn .32s ease-out}
+.fd.blue{border-left-color:var(--blue)}
+.fd.red{border-left-color:var(--red)}
+@keyframes fdIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.fd-top{display:flex;align-items:baseline;gap:6px;font-size:12.5px;min-width:0}
+.fd-nm{font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.fd-act{font-weight:700;font-size:11px;letter-spacing:.06em;flex:none}
+.fd-ago{font-size:10.5px;color:var(--dim);flex:none;font-variant-numeric:tabular-nums}
+.fd.blue .fd-act{color:var(--blue)}
+.fd.red .fd-act{color:var(--red)}
+.fd-sub{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11.5px;color:var(--text-2);
+  font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.fd-usd{color:var(--dim)}
+.fd-kind{font-size:9.5px;font-weight:700;letter-spacing:.06em;padding:1px 6px;border-radius:4px;flex:none;
+  border:1px solid var(--line);color:var(--text-2);display:inline-flex;align-items:center;gap:4px}
+.fd-kind canvas{display:block;width:17px;height:12px}
+.feed-wait{font-size:12px;color:var(--dim);padding:10px 0;line-height:1.7}
+.fbtn{
+  border:1px solid var(--line);background:transparent;color:var(--text-2);border-radius:6px;
+  padding:3px 9px;font:600 11px/1 "Work Sans",sans-serif;letter-spacing:0;cursor:pointer;flex:none;
 }
+.fbtn:hover{color:var(--text);border-color:var(--dim)}
+.fbtn.on{color:var(--blue);border-color:rgba(34,209,140,.5)}
+/* offered, never forced: the battlefield only reloads when the reader says so */
+.fresh{
+  margin:12px 0 0 8px;border:1px solid rgba(252,209,79,.45);background:rgba(252,209,79,.1);
+  color:#fcd14f;border-radius:999px;padding:6px 14px;cursor:pointer;
+  font:600 12px/1 "Work Sans",sans-serif;
+}
+.fresh:hover{background:rgba(252,209,79,.18)}
+.fresh[hidden]{display:none}
+
+.frontline{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:18px 0 0}
 .fl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .fl .k{font-size:10.5px;font-weight:600;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
 .fl .v{font-size:19px;font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums;line-height:1.2}
@@ -111,9 +151,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:26px 20p
 .fl.down .v{color:var(--red)}
 
 /* ---------- legend ---------- */
-.legend{
-  display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:16px auto 0;max-width:760px;
-}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:16px auto 0}
 .lg{
   display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-2);
   border:1px solid var(--line);border-radius:6px;padding:6px 11px;background:var(--panel);
@@ -124,7 +162,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:26px 20p
 /* ---------- camps ---------- */
 .camps{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
 .camp{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
-.camp.blue{border-color:rgba(74,168,255,.35)}
+.camp.blue{border-color:rgba(34,209,140,.35)}
 .camp.red{border-color:rgba(255,77,77,.32)}
 .camp h2{font-size:14px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
 .camp.blue h2{color:var(--blue)}
@@ -159,6 +197,20 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:26px 20p
    better than letting the same name appear twice with no explanation. */
 .tag.warn{background:rgba(255,77,77,.12);color:var(--red);border-color:rgba(255,77,77,.32)}
 .empty{font-size:12px;color:var(--dim);padding:8px 0}
+.amt.out{color:var(--dim);opacity:.75}
+.div{
+  margin:5px 0 1px;padding-top:8px;border-top:1px solid var(--line);
+  font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+}
+/* what each side is holding, and what it is reaching for */
+.obj{
+  margin-top:13px;padding-top:11px;border-top:1px solid var(--line);
+  display:flex;align-items:baseline;gap:9px;
+}
+.obj b{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.camp.blue .obj b{color:var(--blue)}
+.camp.red .obj b{color:var(--red)}
+.obj span{font-size:11px;color:var(--dim);line-height:1.5}
 
 .err{
   background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.35);color:#ffb3b3;
@@ -174,6 +226,10 @@ footer{
 footer a{color:var(--text-2);text-decoration:none}
 footer a:hover{color:var(--cyan)}
 
+@media (max-width:940px){
+  .field{grid-template-columns:1fr}
+  .feed-list{max-height:300px}
+}
 @media (max-width:640px){
   .toplinks a{display:none}
   .topbar{padding:12px 16px}
@@ -182,6 +238,7 @@ footer a:hover{color:var(--cyan)}
 }
 @media (prefers-reduced-motion:reduce){
   #stars i,.pulse{animation:none !important}
+  .feed-list .fd:first-child{animation:none !important}
 }
 </style>
 </head>
@@ -201,23 +258,31 @@ footer a:hover{color:var(--cyan)}
   <a class="tab" href="index.html" data-i="navHome">Home</a>
   <a class="tab" href="holders.html" data-i="navBoard">Holder board</a>
   <a class="tab" href="revelation.html" data-i="navRev">NOODL Revelation</a>
-  <a class="tab on" href="battle.html" aria-current="page" data-i="navWar">Battlefield</a>
+  <a class="tab on" href="battle.html" aria-current="page" data-i="navWar">Trade battlefield</a>
 </nav>
 
 <main>
   <div class="war-head">
-    <h1 data-i="warH">NOODL Battlefield</h1>
+    <h1 data-i="warH">NOODL Trade Battlefield</h1>
     <p data-i="warLead"></p>
     <div class="stamp"><span class="pulse" id="pulse"></span><span id="stamp"></span></div>
+    <button class="fresh" id="btnFresh" type="button" data-i="fresh" hidden></button>
   </div>
 
   <div id="err"></div>
 
-  <div class="stage">
-    <canvas id="field" role="img" aria-describedby="alt"></canvas>
+  <div class="field">
+    <div>
+      <div class="stage"><canvas id="field" role="img" aria-describedby="alt"></canvas></div>
+      <p class="sr-only" id="alt"></p>
+      <p class="stage-note" data-i="stageNote"></p>
+    </div>
+    <section class="feed">
+      <h2><span data-i="feedH">Dispatches</span><span class="n" id="feedN"></span>
+        <button class="fbtn" id="btnPlay" type="button"></button></h2>
+      <div class="feed-list" id="feedList"></div>
+    </section>
   </div>
-  <p class="sr-only" id="alt"></p>
-  <p class="stage-note" data-i="stageNote"></p>
 
   <div class="frontline" id="frontline"></div>
   <div class="legend" id="legend"></div>
@@ -226,10 +291,12 @@ footer a:hover{color:var(--cyan)}
     <section class="camp blue">
       <h2><span data-i="blueH">Blue barracks</span><span class="count" id="blueN"></span></h2>
       <div class="roster" id="blueRoster"></div>
+      <div class="obj"><b>0.211 BTC</b><span data-i="objBlue"></span></div>
     </section>
     <section class="camp red">
       <h2><span data-i="redH">Red barracks</span><span class="count" id="redN"></span></h2>
       <div class="roster" id="redRoster"></div>
+      <div class="obj"><b>5 BTC</b><span id="objRedSub"></span></div>
     </section>
   </div>
 </main>
@@ -254,14 +321,18 @@ const $=s=>document.querySelector(s);
    plane, at or above TANK a tank, and anything below is infantry whose head
    count scales with size so a 0.004 BTC buy visibly outweighs a 0.0002 one. */
 const TANK=0.005, PLANE=0.01, PER_SOLDIER=0.0005, MAX_SOLDIERS=8;
+/* The two ends of the road NOODL is on: the bonding curve it already cleared,
+   and the next milestone. The battle is fought between them. */
+const WON=0.211, GOAL=5;
+const DUST=1e-3;                            // below this a holder has left the field
 
 /* ================= i18n ================= */
 const I18N={
 zh:{
   linkToken:'Odin.Fun ↗',linkCommunity:'社区 ↗',
-  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navWar:'战场',
-  warH:'NOODL 战场',
-  warLead:'odin.fun 上每一笔 NOODL 买卖，都是一次出兵。买入是蓝方，卖出是红方；池子是蓝方基地，战线就是此刻的单价与市值。',
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navWar:'交易战场',
+  warH:'NOODL 交易战场',
+  warLead:'odin.fun 上每一笔 NOODL 买卖，都是一次出兵。买入是蓝方，卖出是红方；池子是蓝方基地，战线就是此刻的单价与市值。蓝方守着已经打下来的 0.211 BTC，向 5 BTC 的阶段目标市值推进。',
   stageNote:'战场画的是最近一轮交战。没有新成交的时候，你看到的是上一场仗。',
   window:(n,t)=>'本轮战报：'+n+' 笔成交，最早一笔 '+t+'。没有新成交的时候，你看到的就是上一场仗。',
   loading:'正在读取战报…',
@@ -273,7 +344,12 @@ zh:{
   flPrice:'战线 · 单价',flMcap:'战线 · 市值',flPool:'蓝方基地 · 池子',flForce:'本轮兵力',
   flPriceSub:s=>s+' sats / 枚',
   flForceSub:(b,s)=>'蓝 '+b+' · 红 '+s,
-  sats:'sats',
+  feedH:'战报',feedWait:'等待出兵…',buy:'买入',sell:'卖出',
+  quit:'已退出战场',fighters:'本轮参战',
+  btnPlay:'↻ 循环播放',btnStop:'■ 停止循环',
+  fresh:'有新交易 · 刷新战场',freshing:'刷新中…',
+  objBlue:'上一轮已达成 · 联合曲线毕业',
+  objRed:p=>'本阶段目标市值 · 已完成 '+p+'%',
   blueH:'蓝方军营',
   redH:'红方军营',
   chef:'CHEF',alsoSold:'也卖了',
@@ -290,9 +366,9 @@ zh:{
 },
 en:{
   linkToken:'Odin.Fun ↗',linkCommunity:'Community ↗',
-  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navWar:'Battlefield',
-  warH:'NOODL Battlefield',
-  warLead:'Every NOODL trade on odin.fun is a sortie. Buys advance in blue, sells push back in red; the pool is the blue base, and the front line is the live price and market cap.',
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navWar:'Trade battlefield',
+  warH:'NOODL Trade Battlefield',
+  warLead:'Every NOODL trade on odin.fun is a sortie. Buys advance in blue, sells push back in red; the pool is the blue base and the front line is the live price. Blue holds the 0.211 BTC it already took, and pushes for a 5 BTC cap.',
   stageNote:'The arena shows the most recent engagement. When nothing is trading, you are watching the last battle.',
   window:(n,t)=>'This engagement: '+n+' trades, the earliest '+t+'. When nothing is trading, this is the last battle, held.',
   loading:'Reading the dispatches…',
@@ -304,7 +380,12 @@ en:{
   flPrice:'Front line · price',flMcap:'Front line · market cap',flPool:'Blue base · pool',flForce:'This engagement',
   flPriceSub:s=>s+' sats each',
   flForceSub:(b,s)=>'blue '+b+' · red '+s,
-  sats:'sats',
+  feedH:'Dispatches',feedWait:'Waiting for the first sortie…',buy:'BUY',sell:'SELL',
+  quit:'left the field',fighters:'in this engagement',
+  btnPlay:'↻ Loop',btnStop:'■ Stop loop',
+  fresh:'New trades · refresh the battlefield',freshing:'Refreshing…',
+  objBlue:'already taken · graduated the bonding curve',
+  objRed:p=>'stage target market cap · '+p+'% of the way',
   blueH:'Blue barracks',
   redH:'Red barracks',
   chef:'CHEF',alsoSold:'ALSO SOLD',
@@ -437,6 +518,7 @@ async function load(){
     name:o.user_username||nameOf[o.user]||o.user.slice(0,12),
     bal:Number(o.balance)/MS
   })).sort((a,b)=>b.bal-a.bal);
+  const balOf={};owners.forEach(o=>{balOf[o.user]=o.bal;});
 
   const lpRows=(liq.data||[]).map(o=>({
     user:o.user,
@@ -471,7 +553,8 @@ async function load(){
     const c=classify(btc);
     return {
       side:t.buy?'blue':'red',kind:c.kind,n:c.n,btc,price:Number(t.price)||0,
-      name:t.user_username||t.user.slice(0,8),
+      tok:Number(t.amount_token)/MS,
+      user:t.user,name:t.user_username||t.user.slice(0,8),
       time:Date.parse(t.time)
     };
   });
@@ -482,7 +565,18 @@ async function load(){
   for(const t of trades){if(Date.parse(t.time)<=t24){p24=Number(t.price);break;}}
   const chg=p24?(price-p24)/p24*100:0;
 
-  S={stamp:Date.now(),btcUsd,price,supply,mcBtc,poolBtc,chg,since,
+  /* Everyone who took the field this round, each side separately, with what they
+     hold now — a trader who has since sold out has left the field. */
+  const seen={blue:new Set(),red:new Set()};
+  const fighters={blue:[],red:[]};
+  units.slice().reverse().forEach(u=>{           // newest first
+    if(seen[u.side].has(u.user))return;
+    seen[u.side].add(u.user);
+    const bal=balOf[u.user]||0;
+    fighters[u.side].push({user:u.user,name:u.name,bal,out:bal<DUST});
+  });
+
+  S={stamp:Date.now(),btcUsd,price,supply,mcBtc,poolBtc,chg,since,fighters,
      lastTrade:trades.length?Date.parse(trades[0].time):null,
      units,blue,red,
      blueN:units.filter(u=>u.side==='blue').length,
@@ -490,6 +584,7 @@ async function load(){
 
   paintHud();
   engine.load(S);
+  looping=false;paintPlay();
 }
 
 /* ================= HUD ================= */
@@ -512,14 +607,15 @@ function paintHud(){
     +card(ui.flPool,fmtBtc(s.poolBtc)+' BTC',fmtUsd(s.poolBtc*s.btcUsd),'')
     +card(ui.flForce,s.units.length,ui.flForceSub(s.blueN,s.redN),'');
 
-  $('#blueN').textContent=s.blue.length;
-  $('#redN').textContent=s.red.length;
-  $('#blueRoster').innerHTML=s.blue.length
-    ?s.blue.map(o=>row(o.name,o.user,o.sub,o.chef?ui.chef:'',o.alsoSold?ui.alsoSold:'')).join('')
-    :'<div class="empty">'+esc(ui.noBlue)+'</div>';
-  $('#redRoster').innerHTML=s.red.length
-    ?s.red.map(o=>row(o.name,o.user,ui.soldOut(fmtTok(o.sold)),'')).join('')
-    :'<div class="empty">'+esc(ui.noRed)+'</div>';
+  $('#blueN').textContent=s.blue.length+s.fighters.blue.length;
+  $('#redN').textContent=s.red.length+s.fighters.red.length;
+  $('#blueRoster').innerHTML=roster(s.blue.length
+      ?s.blue.map(o=>row(o.name,o.user,o.sub,o.chef?ui.chef:'',o.alsoSold?ui.alsoSold:'')).join('')
+      :'<div class="empty">'+esc(ui.noBlue)+'</div>', s.fighters.blue);
+  $('#redRoster').innerHTML=roster(s.red.length
+      ?s.red.map(o=>row(o.name,o.user,ui.soldOut(fmtTok(o.sold)),'')).join('')
+      :'<div class="empty">'+esc(ui.noRed)+'</div>', s.fighters.red);
+  $('#objRedSub').textContent=ui.objRed(nf(clamp(s.mcBtc/GOAL*100,0,100),1));
 
   $('#legend').innerHTML=
      lg('soldier','blue',ui.lgSoldier,ui.lgSoldierV)
@@ -527,13 +623,11 @@ function paintHud(){
     +lg('plane','blue',ui.lgPlane,ui.lgPlaneV)
     +'<span class="lg" style="color:var(--blue)">'+esc(ui.lgBlue)+'</span>'
     +'<span class="lg" style="color:var(--red)">'+esc(ui.lgRed)+'</span>';
-  document.querySelectorAll('.lg canvas[data-kind]').forEach(c=>{
-    const g=c.getContext('2d'),d=2;
-    c.width=26*d;c.height=18*d;g.setTransform(d,0,0,d,0,0);
-    drawUnit(g,13,9,c.dataset.kind,'blue',1,0);
-  });
+  paintIcons();
 
   $('#alt').textContent=ui.alt(s.blueN,s.redN,fmtUsd(priceBtc*s.btcUsd));
+  paintFeed(feedShown);
+  paintPlay();
   const note=document.querySelector('[data-i="stageNote"]');
   if(note)note.textContent=s.since?ui.window(s.units.length,ago(s.since)):ui.stageNote;
 }
@@ -541,15 +635,57 @@ function card(k,v,sub,cls){
   return '<div class="fl '+cls+'"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div>'
     +'<div class="s">'+esc(sub)+'</div></div>';
 }
-function row(name,user,amt,tag,warn){
+function row(name,user,amt,tag,warn,out){
   return '<div class="row"><span class="av">'+esc(initial(name))+'</span>'
     +'<span class="nm"><a href="https://odin.fun/user/'+esc(user)+'" target="_blank" rel="noopener">'+esc(name)+'</a></span>'
     +(tag?'<span class="tag">'+esc(tag)+'</span>':'')
     +(warn?'<span class="tag warn">'+esc(warn)+'</span>':'')
-    +'<span class="amt">'+esc(amt)+'</span></div>';
+    +'<span class="amt'+(out?' out':'')+'">'+esc(amt)+'</span></div>';
 }
 function lg(kind,side,label,val){
   return '<span class="lg"><canvas data-kind="'+kind+'"></canvas>'+esc(label)+' <b>'+esc(val)+'</b></span>';
+}
+/* One painter for every inline unit icon, legend and dispatches alike. */
+function paintIcons(){
+  document.querySelectorAll('canvas[data-kind]').forEach(c=>{
+    const wide=c.parentElement.classList.contains('lg');
+    const g=c.getContext('2d'),d=2,w=wide?26:17,h=wide?18:12;
+    c.width=w*d;c.height=h*d;g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,w,h);
+    drawUnit(g,w/2,h/2,c.dataset.kind,c.dataset.side||'blue',wide?1:0.78,0);
+  });
+}
+
+/* Everyone in the roster, then this round's fighters under their own heading. */
+function roster(main,fighters){
+  const ui=I18N[lang];
+  if(!fighters||!fighters.length)return main;
+  return main+'<div class="div">'+esc(ui.fighters)+'</div>'
+    +fighters.map(f=>row(f.name,f.user,f.out?ui.quit:ui.holds(fmtTok(f.bal)),'','',f.out)).join('');
+}
+
+/* ---- the dispatches, in step with the replay ---- */
+let feedShown=0;
+function paintFeed(n){
+  feedShown=n;
+  const ui=I18N[lang];
+  if(!S)return;
+  $('#feedN').textContent=n?n+' / '+S.units.length:'';
+  if(!n){$('#feedList').innerHTML='<div class="feed-wait">'+esc(ui.feedWait)+'</div>';return;}
+  const rows=S.units.slice(0,n).reverse();      // newest at the top
+  $('#feedList').innerHTML=rows.map(u=>{
+    const kindLabel=u.kind==='plane'?ui.lgPlane:u.kind==='tank'?ui.lgTank:ui.lgSoldier;
+    return '<div class="fd '+u.side+'">'
+      +'<div class="fd-top"><span class="fd-nm">'+esc(u.name)+'</span>'
+        +'<span class="fd-ago">'+esc(ago(u.time))+'</span>'
+        +'<span class="fd-act">'+esc(u.side==='blue'?ui.buy:ui.sell)+'</span></div>'
+      +'<div class="fd-sub"><span>'+esc(fmtTok(u.tok))+' NOODL</span>'
+        +'<span>'+esc(nf(u.btc,5))+' BTC</span>'
+        +'<span class="fd-usd">'+esc(fmtUsd(u.btc*S.btcUsd))+'</span>'
+        +'<span class="fd-kind"><canvas data-kind="'+u.kind+'" data-side="'+u.side+'"></canvas>'
+          +esc(kindLabel)+(u.n>1?' ×'+u.n:'')+'</span></div>'
+    +'</div>';
+  }).join('');
+  paintIcons();
 }
 
 /* ================= unit art =================
@@ -563,8 +699,8 @@ function rr(g,x,y,w,h,r){
   g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();
 }
 function drawUnit(g,x,y,kind,side,scale,rot){
-  const col=side==='blue'?'#4aa8ff':'#ff4d4d';
-  const dark=side==='blue'?'#1d5f9e':'#8f2020';
+  const col=side==='blue'?'#22d18c':'#ff4d4d';
+  const dark=side==='blue'?'#0f7a52':'#8f2020';
   g.save();g.translate(x,y);g.rotate(rot);g.scale(scale,scale);
   g.lineJoin='round';g.lineCap='round';
   if(kind==='plane'){
@@ -582,14 +718,89 @@ function drawUnit(g,x,y,kind,side,scale,rot){
     g.strokeStyle=col;g.lineWidth=1.6;
     g.beginPath();g.moveTo(2,0);g.lineTo(8.4,0);g.stroke();
   }else{
-    g.fillStyle=col;
-    g.beginPath();g.arc(0,-2.4,1.9,0,7);g.fill();          // head
+    /* A rifleman seen from the side: helmet, torso, a stride, and the weapon
+       held across him pointing at the enemy. Small, but unmistakably a man with
+       a gun rather than a stick figure. */
     g.strokeStyle=col;g.lineWidth=1.7;
-    g.beginPath();g.moveTo(0,-0.6);g.lineTo(0,2.6);g.stroke();   // body
-    g.beginPath();g.moveTo(-2.2,4.6);g.lineTo(0,2.6);g.lineTo(2.2,4.6);g.stroke(); // legs
-    g.lineWidth=1.4;
-    g.beginPath();g.moveTo(0.4,0.4);g.lineTo(4.4,-1.2);g.stroke();  // rifle
+    g.beginPath();g.moveTo(-0.6,2.0);g.lineTo(-3.0,5.4);g.stroke();   // rear leg
+    g.beginPath();g.moveTo(0.6,2.0);g.lineTo(2.8,5.2);g.stroke();     // front leg
+    g.lineWidth=3.0;
+    g.beginPath();g.moveTo(-0.5,-1.4);g.lineTo(0.1,2.2);g.stroke();   // torso
+    g.fillStyle=col;
+    g.beginPath();g.arc(0.2,-3.2,1.8,0,7);g.fill();                   // head
+    g.fillStyle=dark;
+    g.beginPath();g.arc(0.2,-3.6,2.2,Math.PI*1.02,Math.PI*2.02);g.fill();  // helmet
+    g.strokeStyle=dark;g.lineWidth=1.9;
+    g.beginPath();g.moveTo(-2.4,0.6);g.lineTo(6.6,-1.0);g.stroke();   // rifle
+    g.strokeStyle=col;g.lineWidth=1.4;
+    g.beginPath();g.moveTo(-0.2,-0.6);g.lineTo(3.2,-0.5);g.stroke();  // arms
   }
+  g.restore();
+}
+function burst(g,x,y,hot,col,r,k){
+  g.globalAlpha=(1-k)*.85;g.fillStyle=hot;
+  g.beginPath();g.arc(x,y,r*(0.3+k),0,7);g.fill();
+  g.globalAlpha=(1-k)*.55;g.strokeStyle=col;g.lineWidth=2;
+  g.beginPath();g.arc(x,y,r*(0.5+k*1.7),0,7);g.stroke();
+  g.globalAlpha=(1-k)*.7;g.lineWidth=2.2;
+  for(let i=0;i<7;i++){                          // fragments thrown clear
+    const a=i*0.898,d0=r*(0.4+k*1.1),d1=d0+r*(0.5+k*0.9);
+    g.beginPath();
+    g.moveTo(x+Math.cos(a)*d0,y+Math.sin(a)*d0);
+    g.lineTo(x+Math.cos(a)*d1,y+Math.sin(a)*d1);
+    g.stroke();
+  }
+}
+/* A tank does not shoot, it bombards: a blast at the barrel, a round crossing
+   no-man's-land, and a burst where it lands. ph runs 0..1 over one reload. */
+function drawShell(g,x,y,side,rot,ph){
+  const col=side==='blue'?'#c8ffe4':'#ffd7d7';
+  const hot=side==='blue'?'#22d18c':'#ff4d4d';
+  g.save();g.translate(x,y);g.rotate(rot);
+  if(ph<0.05){                                   // the gun goes off
+    g.globalAlpha=1-ph/0.05;g.fillStyle=col;
+    g.beginPath();g.moveTo(21,-3);g.lineTo(34,-0.4);g.lineTo(21,2.4);g.closePath();g.fill();
+  }else if(ph<0.42){                             // the round on its way
+    const k=(ph-0.05)/0.37, d=24+k*128;
+    g.globalAlpha=.95;g.fillStyle=col;
+    g.beginPath();g.arc(d,-0.4-Math.sin(k*Math.PI)*9,2.6,0,7);g.fill();
+    g.globalAlpha=.28;g.strokeStyle=col;g.lineWidth=1.4;
+    g.beginPath();g.moveTo(d-13,-0.4-Math.sin(k*Math.PI)*9);g.lineTo(d,-0.4-Math.sin(k*Math.PI)*9);g.stroke();
+  }else if(ph<0.60){                             // and where it lands
+    burst(g,152,-0.4,hot,col,13,(ph-0.42)/0.18);
+  }
+  g.restore();
+}
+/* A plane launches: the missile leaves a trail and goes off deep in enemy ground. */
+function drawMissile(g,x,y,side,rot,ph){
+  const col=side==='blue'?'#c8ffe4':'#ffd7d7';
+  const hot=side==='blue'?'#22d18c':'#ff4d4d';
+  g.save();g.translate(x,y);g.rotate(rot);
+  if(ph<0.40){
+    const k=ph/0.40, d=20+k*172;
+    g.globalAlpha=.9;g.fillStyle=col;
+    g.beginPath();
+    g.moveTo(d+5,-0.4);g.lineTo(d-3,-2.3);g.lineTo(d-3,1.5);g.closePath();g.fill();
+    const grd=g.createLinearGradient(d-3,0,d-34,0);
+    grd.addColorStop(0,side==='blue'?'rgba(200,255,228,.55)':'rgba(255,215,215,.55)');
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=grd;
+    g.beginPath();g.moveTo(d-3,-1.9);g.lineTo(d-34,-0.4);g.lineTo(d-3,1.1);g.closePath();g.fill();
+  }else if(ph<0.58){
+    burst(g,196,-0.4,hot,col,17,(ph-0.40)/0.18);
+  }
+  g.restore();
+}
+/* the muzzle flash of a man holding the line */
+function drawMuzzle(g,x,y,side,rot,f,d){
+  const col=side==='blue'?'#c8ffe4':'#ffd7d7';
+  g.save();g.translate(x,y);g.rotate(rot);
+  g.globalAlpha=f;
+  g.fillStyle=col;
+  g.beginPath();
+  g.moveTo(d,-2.2);g.lineTo(d+8+f*7,-0.3);g.lineTo(d,1.6);g.closePath();g.fill();
+  g.globalAlpha=f*0.5;
+  g.beginPath();g.arc(d,-0.3,3.4+f*2,0,7);g.fill();
   g.restore();
 }
 
@@ -600,12 +811,34 @@ function drawUnit(g,x,y,kind,side,scale,rot){
 const engine=(function(){
   const W=1000,C=500,R=468;
   const AX=Math.cos(-0.6),AY=Math.sin(-0.6);           // base-to-base direction
+  const NX=-AY,NY=AX;                                  // across the front
   const BLUE={x:C-AX*R*0.74,y:C-AY*R*0.74};
   const RED ={x:C+AX*R*0.74,y:C+AY*R*0.74};
   const DEATH=820;                                   // how long a man takes to fall
+  const FIGHT=1900;                                  // how long a rank trades fire before it breaks
   const HOLD=5200;                                   // how long the outcome is held
+  const LMAX=R*0.95;                                   // half-width of the front
+  const BOW=R*0.11;                                    // how deep the line bends
   let cv,g,dpr=1,box=0,units=[],t0=0,raf=0,front=0,loaded=null,stars=[];
-  let timeline=[],p0=0,tEnd=0,curPrice=0;
+  let timeline=[],p0=0,tEnd=0,tFirst=0,curPrice=0,shown=-1,onFeed=null;
+  let repeat=false,halt=false,tHide=0;               // one pass by default, then hold
+
+  /* The front is not a straight chord. There is a bonding curve underneath this
+     market, and a line that bows is also just what a front does: it gives way
+     furthest where the pressure is greatest, in the middle. One function decides
+     the bow, and both the drawing and the men standing on it read from it, so
+     the line and the troops can never drift apart. */
+  function frontOffset(lat){
+    const u=clamp(lat/LMAX,-1,1);
+    const k=1-u*u;                                     // deepest in the middle
+    const dir=front<0?-1:1;                            // bulges into whoever is losing
+    const push=Math.min(1,Math.abs(front)/(R*0.28));
+    return front*(1-0.35*u*u)+dir*BOW*(0.45+0.55*push)*k;
+  }
+  function frontPoint(lat){
+    const d=frontOffset(lat);
+    return {x:C+AX*d+NX*lat, y:C+AY*d+NY*lat};
+  }
 
   function fit(){
     if(!cv)return;
@@ -647,6 +880,7 @@ const engine=(function(){
              men inside a sortie fan out around it. */
           lane:((i*0.618)%1-0.5)*1.7+(k-(u.n-1)/2)*0.13,
           label:k===0,                         // only the lead man carries the name
+          fire:Math.random(),                  // so a line does not fire in unison
           deathAt:null,stack:0
         });
       }
@@ -662,9 +896,9 @@ const engine=(function(){
         const o=foe[0];
         const kill=Math.min(inc,o.remain);
         o.remain-=kill;inc-=kill;
-        if(o.remain<=EPS){o.deathAt=sp.arrive;foe.shift();}
+        if(o.remain<=EPS){o.deathAt=sp.arrive+FIGHT;foe.shift();}
       }
-      if(inc<=EPS){sp.deathAt=sp.arrive;sp.remain=0;}
+      if(inc<=EPS){sp.deathAt=sp.arrive+FIGHT;sp.remain=0;}
       else{sp.remain=inc;sp.stack=standing[sp.side].length;standing[sp.side].push(sp);}
     });
 
@@ -673,8 +907,11 @@ const engine=(function(){
        leans by how far that has moved from where the engagement started. */
     timeline=s.units.map((u,i)=>({t:i*SPACING,price:u.price}));
     p0=timeline.length&&timeline[0].price?timeline[0].price:s.price;
-    tEnd=units.reduce((m,u)=>Math.max(m,u.arrive),0)+DEATH+400;
+    tFirst=units.reduce((m,u)=>Math.min(m,u.arrive),Infinity);
+    if(!isFinite(tFirst))tFirst=0;
+    tEnd=units.reduce((m,u)=>Math.max(m,u.arrive),0)+FIGHT+DEATH+400;
 
+    shown=-1;repeat=false;halt=false;                // a new battle plays once
     t0=performance.now();
     if(!raf)start();
     else frame(performance.now());
@@ -685,32 +922,35 @@ const engine=(function(){
        in a background tab or a prerender is worse than one that does not move. */
     frame(performance.now());
     if(reduceMotion)return;
-    const loop=now=>{frame(now);raf=requestAnimationFrame(loop);};
-    raf=requestAnimationFrame(loop);
+    if(halt)return;
+    const tick=now=>{frame(now);if(halt){raf=0;return;}raf=requestAnimationFrame(tick);};
+    raf=requestAnimationFrame(tick);
   }
   function stop(){if(raf){cancelAnimationFrame(raf);raf=0;}}
 
   function pos(u,t){
-    const age=t-u.born;
-    const p=clamp(age/u.dur,0,1);
+    const p=clamp((t-u.born)/u.dur,0,1);
     const sign=u.side==='blue'?1:-1;
     const base=u.side==='blue'?BLUE:RED;
-    const mx=C+AX*front,my=C+AY*front;
-    const nx=-AY,ny=AX,spread=R*0.26*clamp(u.lane,-1,1);
-    let x=base.x+(mx-base.x)*p,y=base.y+(my-base.y)*p;
+    const lat=R*0.26*clamp(u.lane,-1,1);
+    const fp=frontPoint(lat);                  // his own spot on the curve
+    let x=base.x+NX*lat+(fp.x-(base.x+NX*lat))*p;
+    let y=base.y+NY*lat+(fp.y-(base.y+NY*lat))*p;
     /* Once a man arrives he does not walk on through the enemy: he holds, and
        ranks up behind whoever got there before him, which is what turns a stream
        of arrivals into a line that can be pushed. */
+    /* Because his spot is read off the curve every frame, the survivors advance
+       when the line advances. */
     if(p>=1){
-      const back=22+Math.min(u.stack,11)*17;
+      const back=34+(u.stack%4)*19;                   // four ranks deep, not a queue
       x-=AX*sign*back;y-=AY*sign*back;
     }
-    return {x:x+nx*spread,y:y+ny*spread,p,sign};
+    return {x,y,p,sign,holding:p>=1};
   }
 
   /* A man falling: he tips over and dims while the hit blooms off him. */
   function drawDeath(x,y,kind,side,f,rot){
-    const col=side==='blue'?'#9ccdff':'#ffb0b0';
+    const col=side==='blue'?'#8fe9c2':'#ffb0b0';
     g.save();
     g.globalAlpha=(1-f)*0.9;
     drawUnit(g,x,y,kind,side,(kind==='soldier'?2:2.5)*(1-f*0.35),rot+f*1.5);
@@ -730,10 +970,21 @@ const engine=(function(){
     if(!g)return;
     /* With motion off there is nothing to watch unfold, so the frame is the end
        of the battle: the fallen are gone and the survivors are holding the line. */
-    const t=reduceMotion?tEnd:(now-t0);
+    /* The engagement runs forward to the newest trade and stops there, which is
+       the state a visitor should find: the battlefield as it stands. */
+    const t=reduceMotion?tEnd:(repeat?now-t0:Math.min(now-t0,tEnd));
+
     curPrice=p0;
-    for(let i=0;i<timeline.length;i++){if(timeline[i].t<=t)curPrice=timeline[i].price;else break;}
-    front=p0?clamp((curPrice/p0-1)/0.05,-1,1)*R*0.28:0;
+    let launched=0;
+    for(let i=0;i<timeline.length;i++){
+      if(timeline[i].t<=t){curPrice=timeline[i].price;launched=i+1;}else break;
+    }
+    /* The line holds where it started until the first wave actually arrives, then
+       eases into tracking the price. Before contact nobody is pushing anybody. */
+    const engaged=clamp((t-tFirst)/1600,0,1);
+    front=p0?clamp((curPrice/p0-1)/0.05,-1,1)*R*0.28*engaged:0;
+
+    if(launched!==shown){shown=launched;if(onFeed)onFeed(launched);}
     g.setTransform(dpr*box/W,0,0,dpr*box/W,0,0);
     g.clearRect(0,0,W,W);
 
@@ -768,6 +1019,18 @@ const engine=(function(){
       const rot=Math.atan2(AY*q.sign,AX*q.sign);
       if(dead){drawDeath(q.x,q.y,u.kind,u.side,df,rot);return;}
       drawUnit(g,q.x,q.y,u.kind,u.side,u.kind==='soldier'?2:2.5,rot);
+      /* Once he is in his rank he is in the fight: riflemen keep up small-arms
+         fire, tanks bombard, planes put missiles into the far side. */
+      if(q.holding&&!reduceMotion){
+        if(u.kind==='soldier'){
+          const ph=((t/240)+u.fire*7)%1;
+          if(ph<0.16)drawMuzzle(g,q.x,q.y,u.side,rot,1-ph/0.16,14);
+        }else if(u.kind==='tank'){
+          drawShell(g,q.x,q.y,u.side,rot,((t/2100)+u.fire)%1);
+        }else{
+          drawMissile(g,q.x,q.y,u.side,rot,((t/2600)+u.fire)%1);
+        }
+      }
       /* Names ride in with the sortie and stay on the front rank once it digs
          in. Deeper ranks drop their labels or the line becomes a smear. */
       if(u.label&&(q.p<0.86||u.stack<3)){
@@ -777,12 +1040,15 @@ const engine=(function(){
         const ty=q.y+(u.kind==='plane'?-16:20);
         g.lineWidth=3;g.strokeStyle='rgba(8,8,14,.85)';
         g.strokeText(u.name.slice(0,14),q.x,ty);
-        g.fillStyle=u.side==='blue'?'#9ccdff':'#ffb0b0';
+        g.fillStyle=u.side==='blue'?'#8fe9c2':'#ffb0b0';
         g.fillText(u.name.slice(0,14),q.x,ty);
         g.globalAlpha=1;
       }
     });
     g.restore();
+
+    drawObjective(BLUE,'blue');
+    drawObjective(RED,'red');
 
     // rim
     g.strokeStyle='#2e2e38';g.lineWidth=9;
@@ -790,22 +1056,24 @@ const engine=(function(){
     g.strokeStyle='rgba(0,255,255,.16)';g.lineWidth=2;
     g.beginPath();g.arc(C,C,R-6,0,7);g.stroke();
 
-    // hold the outcome for a while, then fight it again
-    if(!reduceMotion&&units.length&&t>tEnd+HOLD)t0=now;
+    // hold the outcome for a while, then fight it again — only if asked to
+    if(repeat){ if(!reduceMotion&&units.length&&t>tEnd+HOLD)t0=now; }
+    else if(!reduceMotion&&units.length&&now-t0>=tEnd)halt=true;
   }
 
+  // territory is bounded by the same curve the troops stand on
   function drawTerritory(){
-    const mx=C+AX*front,my=C+AY*front;
-    const nx=-AY,ny=AX,L=R*2;
     [['blue',-1],['red',1]].forEach(([side,dir])=>{
-      g.save();
-      g.beginPath();
-      g.moveTo(mx+nx*L,my+ny*L);
-      g.lineTo(mx-nx*L,my-ny*L);
-      g.lineTo(mx-nx*L+AX*L*dir,my-ny*L+AY*L*dir);
-      g.lineTo(mx+nx*L+AX*L*dir,my+ny*L+AY*L*dir);
+      g.save();g.beginPath();
+      for(let i=0;i<=40;i++){
+        const lat=-LMAX+(2*LMAX)*(i/40),p=frontPoint(lat);
+        i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y);
+      }
+      const e=frontPoint(LMAX),s0=frontPoint(-LMAX),L=R*2;
+      g.lineTo(e.x+AX*L*dir,e.y+AY*L*dir);
+      g.lineTo(s0.x+AX*L*dir,s0.y+AY*L*dir);
       g.closePath();
-      g.fillStyle=side==='blue'?'rgba(74,168,255,.055)':'rgba(255,77,77,.05)';
+      g.fillStyle=side==='blue'?'rgba(34,209,140,.06)':'rgba(255,77,77,.05)';
       g.fill();g.restore();
     });
   }
@@ -827,10 +1095,10 @@ const engine=(function(){
   }
 
   function drawBase(b,side){
-    const col=side==='blue'?'#4aa8ff':'#ff4d4d';
+    const col=side==='blue'?'#22d18c':'#ff4d4d';
     g.save();
     const gl=g.createRadialGradient(b.x,b.y,2,b.x,b.y,R*0.24);
-    gl.addColorStop(0,side==='blue'?'rgba(74,168,255,.28)':'rgba(255,77,77,.24)');
+    gl.addColorStop(0,side==='blue'?'rgba(34,209,140,.28)':'rgba(255,77,77,.24)');
     gl.addColorStop(1,'rgba(0,0,0,0)');
     g.fillStyle=gl;g.beginPath();g.arc(b.x,b.y,R*0.24,0,7);g.fill();
     g.strokeStyle=col;g.lineWidth=3;g.globalAlpha=.85;
@@ -846,16 +1114,32 @@ const engine=(function(){
     g.restore();
   }
 
+  // what each base is worth: one milestone taken, one still to take
+  function drawObjective(b,side){
+    const col=side==='blue'?'#22d18c':'#ff4d4d';
+    const lab=(side==='blue'?WON:GOAL)+' BTC', ly=b.y-R*0.215;
+    g.save();
+    g.font='700 17px "Work Sans",sans-serif';g.textAlign='center';
+    const lw=g.measureText(lab).width+20;
+    g.fillStyle='rgba(11,11,17,.9)';
+    rr(g,b.x-lw/2,ly-15,lw,23,6);g.fill();
+    g.strokeStyle=col;g.globalAlpha=.4;g.lineWidth=1;
+    rr(g,b.x-lw/2,ly-15,lw,23,6);g.stroke();
+    g.globalAlpha=1;g.fillStyle=col;
+    g.fillText(lab,b.x,ly+2);
+    g.restore();
+  }
+
   function drawFront(t){
-    const mx=C+AX*front,my=C+AY*front;
-    const nx=-AY,ny=AX,half=R*0.99;
     g.save();
     g.setLineDash([14,12]);
     g.lineDashOffset=reduceMotion?0:-(t/38)%26;
     g.strokeStyle='rgba(252,209,79,.75)';g.lineWidth=2.4;
     g.beginPath();
-    g.moveTo(mx+nx*half,my+ny*half);
-    g.lineTo(mx-nx*half,my-ny*half);
+    for(let i=0;i<=60;i++){
+      const lat=-LMAX+(2*LMAX)*(i/60),p=frontPoint(lat);
+      i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y);
+    }
     g.stroke();
     g.setLineDash([]);
 
@@ -863,7 +1147,7 @@ const engine=(function(){
        order to have gone in, which means it moves the moment anyone trades. */
     if(loaded&&curPrice){
       const btc=curPrice/MS, usd=btc*loaded.btcUsd, sats=btc*1e8;
-      const lx=mx-nx*half*0.60, ly=my-ny*half*0.60;
+      const anchor=frontPoint(-LMAX*0.60), lx=anchor.x, ly=anchor.y;
       const a=fmtUsd(usd), b=nf(sats,2)+' sats';
       g.font='700 21px "Work Sans",sans-serif';
       const w=Math.max(g.measureText(a).width,120)+28;
@@ -884,18 +1168,27 @@ const engine=(function(){
 
 
   return {
-    init(){
-      cv=$('#field');
+    init(cb){
+      cv=$('#field');onFeed=cb;
       seedStars();
       fit();
       addEventListener('resize',()=>{clearTimeout(fit.t);fit.t=setTimeout(fit,160);});
+      /* Coming back to the tab should not restart the battle: the clock is
+         nudged forward by however long nobody was watching. */
       document.addEventListener('visibilitychange',()=>{
-        if(document.hidden)stop();
-        else if(loaded&&!reduceMotion&&!raf){t0=performance.now();start();}
+        if(document.hidden){tHide=performance.now();stop();}
+        else if(loaded&&!reduceMotion&&!raf&&!halt){
+          if(tHide)t0+=performance.now()-tHide;
+          tHide=0;start();
+        }
       });
     },
     load,
-    repaint(){frame(performance.now());}
+    /* on: run it again and keep running. off: let this pass finish and hold. */
+    replay(on){
+      repeat=!!on;
+      if(on){halt=false;shown=-1;t0=performance.now();if(!raf)start();}
+    }
   };
 })();
 
@@ -929,9 +1222,40 @@ $('#langBtn').addEventListener('click',()=>{
 })();
 
 /* ================= boot ================= */
+/* ================= playback ================= */
+let looping=false;
+function paintPlay(){
+  const b=$('#btnPlay');if(!b)return;
+  b.textContent=I18N[lang][looping?'btnStop':'btnPlay'];
+  b.classList.toggle('on',looping);
+}
+$('#btnPlay').addEventListener('click',()=>{
+  looping=!looping;
+  engine.replay(looping);
+  paintPlay();
+});
+
+/* Nothing reloads under the reader's feet: when odin.fun has traded again the
+   page says so and waits to be asked. */
+async function checkFresh(){
+  if(document.hidden||!S||!S.lastTrade)return;
+  try{
+    const d=await api('/token/'+TOKEN+'/trades?limit=1');
+    const t=d.data&&d.data[0]?Date.parse(d.data[0].time):null;
+    if(t&&t>S.lastTrade)$('#btnFresh').hidden=false;
+  }catch(e){/* a failed check is just a check that happens again in a minute */}
+}
+$('#btnFresh').addEventListener('click',async()=>{
+  const b=$('#btnFresh');
+  b.disabled=true;b.textContent=I18N[lang].freshing;
+  try{await load();b.hidden=true;}
+  catch(e){console.error(e);}
+  b.disabled=false;b.textContent=I18N[lang].fresh;
+});
+
 async function boot(){
   applyLang();
-  engine.init();
+  engine.init(paintFeed);
   try{ await load(); }
   catch(e){
     console.error(e);
@@ -940,7 +1264,8 @@ async function boot(){
   }
 }
 boot();
-setInterval(()=>{if(!document.hidden)load().catch(e=>console.error(e));},60000);
+setInterval(checkFresh,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkFresh();});
 </script>
 </body>
 </html>
