@@ -346,7 +346,8 @@ zh:{
   flPriceSub:s=>s+' sats / 枚',
   flForceSub:(b,s)=>'涨 '+b+' · 空 '+s,
   feedH:'战报',feedWait:'等待出兵…',buy:'买入',sell:'卖出',
-  quit:'已退出战场',fighters:'本轮参战',
+  quit:'已退出战场',fighters:'本轮参战',traded:v=>'本轮 '+v,
+  liveOn:t=>'实时跟进 · 最近一笔 '+t,
   btnPlay:'↻ 循环播放',btnStop:'■ 停止循环',
   fresh:'有新交易 · 刷新战场',freshing:'刷新中…',
   objBlue:'上一轮已达成 · 联合曲线毕业',
@@ -382,7 +383,8 @@ en:{
   flPriceSub:s=>s+' sats each',
   flForceSub:(b,s)=>'bull '+b+' · bear '+s,
   feedH:'Dispatches',feedWait:'Waiting for the first sortie…',buy:'BUY',sell:'SELL',
-  quit:'left the field',fighters:'in this engagement',
+  quit:'left the field',fighters:'in this engagement',traded:v=>'traded '+v,
+  liveOn:t=>'live · last shot '+t,
   btnPlay:'↻ Loop',btnStop:'■ Stop loop',
   fresh:'New trades · refresh the battlefield',freshing:'Refreshing…',
   objBlue:'already taken · graduated the bonding curve',
@@ -461,6 +463,20 @@ function classify(btc){
 /* The engagement on screen is the tail of the trade feed: everything inside the
    last quiet gap. If the token has been still for an hour, that hour is not
    empty screen — it is the previous battle, held. */
+/* A trade as the battlefield sees it: which side, what it musters, and who sent
+   it. The opening window and every live poll both come through here. */
+function toUnit(t){
+  const btc=Number(t.amount_btc)/MS;
+  const c=classify(btc);
+  return {
+    id:t.id,
+    side:t.buy?'blue':'red',kind:c.kind,n:c.n,btc,price:Number(t.price)||0,
+    tok:Number(t.amount_token)/MS,
+    user:t.user,name:t.user_username||t.user.slice(0,8),
+    time:Date.parse(t.time)
+  };
+}
+
 function lastEngagement(trades){
   if(!trades.length)return [];
   const GAP=45*60e3;                       // a three-quarter-hour lull ends a battle
@@ -549,16 +565,7 @@ async function load(){
 
   const battle=lastEngagement(trades);
   const since=battle.length?Date.parse(battle[0].time):null;
-  const units=battle.map(t=>{
-    const btc=Number(t.amount_btc)/MS;
-    const c=classify(btc);
-    return {
-      side:t.buy?'blue':'red',kind:c.kind,n:c.n,btc,price:Number(t.price)||0,
-      tok:Number(t.amount_token)/MS,
-      user:t.user,name:t.user_username||t.user.slice(0,8),
-      time:Date.parse(t.time)
-    };
-  });
+  const units=battle.map(toUnit);
 
   /* Price 24h ago, off the same feed, so the front line can lean. */
   const t24=Date.now()-DAY;
@@ -585,6 +592,8 @@ async function load(){
   }));
 
   S={stamp:Date.now(),btcUsd,price,supply,mcBtc,poolBtc,chg,since,fighters,chefs,
+     seen:new Set(trades.map(t=>t.id)),        // every trade already accounted for
+
      lastTrade:trades.length?Date.parse(trades[0].time):null,
      units,blue,red,
      blueN:units.filter(u=>u.side==='blue').length,
@@ -592,21 +601,29 @@ async function load(){
 
   paintHud();
   engine.load(S);
+  engine.follow(true);            // once the replay reaches the newest trade, stay there
   looping=false;paintPlay();
 }
 
 /* ================= HUD ================= */
+/* The one line that has to keep telling the truth between trades. */
+function paintStamp(){
+  const ui=I18N[lang],s=S;
+  if(!s)return;
+  const warm=s.lastTrade&&Date.now()-s.lastTrade<45*60e3;
+  $('#pulse').className='pulse'+(warm?'':' cold');
+  $('#stamp').textContent=!s.lastTrade?ui.never
+    :engine.isLive()?ui.liveOn(ago(s.lastTrade))
+    :warm?ui.live(ago(s.lastTrade)):ui.cold(ago(s.lastTrade));
+}
+
 function paintHud(){
   const ui=I18N[lang],s=S;
   if(!s)return;
 
   const priceBtc=s.price/MS;                       // BTC per NOODL
   const sats=priceBtc*1e8;
-  const fresh=s.lastTrade&&Date.now()-s.lastTrade<45*60e3;
-  $('#pulse').className='pulse'+(fresh?'':' cold');
-  $('#stamp').textContent=s.lastTrade
-    ?(fresh?ui.live(ago(s.lastTrade)):ui.cold(ago(s.lastTrade)))
-    :ui.never;
+  paintStamp();
 
   const dir=s.chg>=0?'up':'down';
   $('#frontline').innerHTML=
@@ -668,15 +685,21 @@ function roster(main,fighters){
   const ui=I18N[lang];
   if(!fighters||!fighters.length)return main;
   return main+'<div class="div">'+esc(ui.fighters)+'</div>'
-    +fighters.map(f=>row(f.name,f.user,f.out?ui.quit:ui.holds(fmtTok(f.bal)),'','',f.out)).join('');
+    +fighters.map(f=>row(f.name,f.user,
+        f.out?ui.quit:(f.bal==null?ui.traded(fmtTok(f.traded||0)):ui.holds(fmtTok(f.bal))),
+        '','',f.out)).join('');
 }
 
 /* ---- the dispatches, in step with the replay ---- */
 let feedShown=0;
 function paintFeed(n){
-  feedShown=n;
   const ui=I18N[lang];
   if(!S)return;
+  /* The count comes from the engine timeline and the rows from the order list;
+     they are written in lockstep, but a feed that can only ever be a prefix of
+     what it is listing is one less thing that can ever read as nonsense. */
+  n=Math.min(n,S.units.length);
+  feedShown=n;
   $('#feedN').textContent=n?n+' / '+S.units.length:'';
   if(!n){$('#feedList').innerHTML='<div class="feed-wait">'+esc(ui.feedWait)+'</div>';return;}
   const rows=S.units.slice(0,n).reverse();      // newest at the top
@@ -2371,6 +2394,12 @@ const engine=(function(){
   let timeline=[],p0=0,tEnd=0,tFirst=0,curPrice=0,shown=-1,onFeed=null;
   let repeat=false,halt=false,tHide=0;               // one pass by default, then hold
   let pools=[],victory=false,tCease=0;               // the barracks, and how it ended
+  let standing={blue:[],red:[]};                     // who is holding the line, per side
+  let cursor=0;                                      // the next man due to arrive
+  let pending={blue:0,red:0};                        // launched, still marching
+  let lastDeathAt=0,orderNo=0,tNow=0;
+  let live=false,liveOn=false;                       // caught up, and allowed to stay caught up
+  const EPS=1e-12;
 
   /* Depth: the ground recedes upward, so anything low on screen is nearer the
      camera and is drawn larger and later. */
@@ -2440,65 +2469,104 @@ const engine=(function(){
      wipes out a 0.001 buy and keeps 0.001 of itself on the field. Each sprite
      therefore knows up front whether it dies and at what moment, which makes the
      animation pure playback and the outcome identical every replay. */
-  function load(s){
-    loaded=s;
-    units=[];
-    pools=layoutPools(s.chefs);
-    const SPACING=300;                        // ms between sorties on screen
-    s.units.forEach((u,i)=>{
-      for(let k=0;k<u.n;k++){
-        const speed=u.kind==='plane'?1.55:u.kind==='tank'?0.95:1.15;
-        const born=i*SPACING+k*90;
-        /* Sorties take the barracks in turn, so over a round every Chef's pool
-           is visibly sending men. */
-        const from=u.side==='blue'?pools[i%pools.length]:RED;
-        units.push({
-          side:u.side,kind:u.kind,name:u.name,from,
-          btc:u.btc/u.n,remain:u.btc/u.n,     // each man carries his share of the order
-          born,dur:3400/speed,arrive:born+3400/speed,
-          /* Each sortie takes its own lane across the front — the golden-ratio
-             step keeps consecutive ones far apart instead of clustering — and the
-             men inside a sortie fan out around it. */
-          lane:((i*0.618)%1-0.5)*1.7+(k-(u.n-1)/2)*0.13,
-          label:k===0,                         // only the lead man carries the name
-          fire:Math.random(),                  // so a line does not fire in unison
-          deathAt:null,stack:0
-        });
-      }
-    });
+  const SPACING=300;                          // ms between sorties on screen
 
-    // ---- fight it out, in arrival order ----
-    const EPS=1e-12;
-    const standing={blue:[],red:[]};
-    units.slice().sort((a,b)=>a.arrive-b.arrive).forEach(sp=>{
+  /* One sortie's worth of men. The opening replay and every trade that lands
+     afterwards both go through here, so a live sortie is built exactly like a
+     recorded one and there is only one thing to get right. */
+  function muster(u,i,bornAt){
+    const out=[];
+    for(let k=0;k<u.n;k++){
+      const speed=u.kind==='plane'?1.55:u.kind==='tank'?0.95:1.15;
+      const dur=3400/speed, born=bornAt+k*90;
+      /* Sorties take the barracks in turn, so over a round every Chef's pool
+         is visibly sending men. */
+      const from=u.side==='blue'?pools[i%pools.length]:RED;
+      out.push({
+        side:u.side,kind:u.kind,name:u.name,from,
+        btc:u.btc/u.n,remain:u.btc/u.n,       // each man carries his share of the order
+        born,dur,arrive:born+dur,
+        /* Each sortie takes its own lane across the front — the golden-ratio
+           step keeps consecutive ones far apart instead of clustering — and the
+           men inside a sortie fan out around it. */
+        lane:((i*0.618)%1-0.5)*1.7+(k-(u.n-1)/2)*0.13,
+        label:k===0,                           // only the lead man carries the name
+        fire:Math.random(),                    // so a line does not fire in unison
+        deathAt:null,stack:0
+      });
+    }
+    return out;
+  }
+
+  /* Back to the first frame: every man alive again, nobody resolved. */
+  function rewind(){
+    standing={blue:[],red:[]};cursor=0;lastDeathAt=0;pending={blue:0,red:0};
+    units.forEach(u=>{u.remain=u.btc;u.deathAt=null;u.stack=0;pending[u.side]++;});
+    shown=-1;
+  }
+
+  /* Resolve everyone who has reached the line by time t, in the order they got
+     there. Equal amounts of BTC destroy each other, the front rank falls first,
+     and the survivor stays and takes his place in the ranks. */
+  function resolveUpTo(t){
+    while(cursor<units.length&&units[cursor].arrive<=t){
+      const sp=units[cursor++];
+      pending[sp.side]--;
       const foe=standing[sp.side==='blue'?'red':'blue'];
       let inc=sp.remain;
-      while(inc>EPS&&foe.length){            // the front rank falls first
+      while(inc>EPS&&foe.length){
         const o=foe[0];
         const kill=Math.min(inc,o.remain);
         o.remain-=kill;inc-=kill;
-        if(o.remain<=EPS){o.deathAt=sp.arrive+FIGHT;foe.shift();}
+        if(o.remain<=EPS){
+          o.deathAt=sp.arrive+FIGHT;foe.shift();
+          if(o.deathAt>lastDeathAt)lastDeathAt=o.deathAt;
+        }
       }
-      if(inc<=EPS){sp.deathAt=sp.arrive+FIGHT;sp.remain=0;}
-      else{sp.remain=inc;sp.stack=standing[sp.side].length;standing[sp.side].push(sp);}
+      if(inc<=EPS){
+        sp.deathAt=sp.arrive+FIGHT;sp.remain=0;
+        if(sp.deathAt>lastDeathAt)lastDeathAt=sp.deathAt;
+      }else{
+        sp.remain=inc;sp.stack=standing[sp.side].length;standing[sp.side].push(sp);
+      }
+    }
+  }
+
+  /* A trade that has just happened, joining the battle already in progress. It
+     musters at the current playback moment and is filed into the queue in
+     arrival order — a fast aircraft launched now can genuinely overtake a tank
+     that set off a second ago, and the scheduler has to see that. */
+  function enlist(list,atT){
+    if(!list||!list.length)return;
+    let fresh=[];
+    list.forEach(u=>{fresh=fresh.concat(muster(u,orderNo++,atT+200));});
+    fresh.forEach(u=>{pending[u.side]++;});
+    const tail=units.slice(cursor).concat(fresh).sort((a,b)=>a.arrive-b.arrive);
+    units=units.slice(0,cursor).concat(tail);
+    fresh.forEach(u=>{
+      const e=u.arrive+FIGHT+DEATH+400;
+      if(e>tEnd)tEnd=e;
     });
+    list.forEach(u=>timeline.push({t:atT+200,price:u.price}));
+  }
+
+  function load(s){
+    loaded=s;
+    pools=layoutPools(s.chefs);
+    units=[];orderNo=0;
+    s.units.forEach((u,i)=>{units=units.concat(muster(u,orderNo++,i*SPACING));});
+    units.sort((a,b)=>a.arrive-b.arrive);     // the queue the scheduler walks
 
     /* Where the line sits, and what it says, both come from the trade prices:
        the label is the price of the last order to have launched, and the line
        leans by how far that has moved from where the engagement started. */
     timeline=s.units.map((u,i)=>({t:i*SPACING,price:u.price}));
     p0=timeline.length&&timeline[0].price?timeline[0].price:s.price;
-    tFirst=units.reduce((m,u)=>Math.min(m,u.arrive),Infinity);
-    if(!isFinite(tFirst))tFirst=0;
+    tFirst=units.length?units[0].arrive:0;
     tEnd=units.reduce((m,u)=>Math.max(m,u.arrive),0)+FIGHT+DEATH+400;
 
-    /* If the Alliance is the only side still standing it has won the round, and
-       once the last man has fallen there is nothing left to shoot at. */
-    victory=standing.blue.length>0&&standing.red.length===0;
-    const lastDeath=units.reduce((m,u)=>u.deathAt!=null?Math.max(m,u.deathAt):m,0);
-    tCease=(lastDeath?lastDeath+DEATH:tFirst+FIGHT)+300;
-
-    shown=-1;repeat=false;halt=false;                // a new battle plays once
+    rewind();
+    repeat=false;halt=false;live=false;              // a new battle plays once
     t0=performance.now();
     if(!raf)start();
     else frame(performance.now());
@@ -2567,8 +2635,19 @@ const engine=(function(){
     /* With motion off there is nothing to watch unfold, so the frame is the end
        of the battle: the fallen are gone and the survivors are holding the line. */
     /* The engagement runs forward to the newest trade and stops there, which is
-       the state a visitor should find: the battlefield as it stands. */
-    const t=reduceMotion?tEnd:(repeat?now-t0:Math.min(now-t0,tEnd));
+       the state a visitor should find: the battlefield as it stands — unless we
+       are following the market, in which case the clock keeps running and the
+       next thing that happens is the next trade. */
+    const elapsed=now-t0;
+    if(liveOn&&!repeat&&!live&&elapsed>=tEnd)live=true;
+    const t=reduceMotion?tEnd:(repeat||live?elapsed:Math.min(elapsed,tEnd));
+    tNow=t;
+
+    resolveUpTo(t);
+    /* Nobody is left to shoot at only when the other side has neither a man on
+       the line nor a man still walking towards it. */
+    victory=standing.blue.length>0&&standing.red.length===0&&pending.red===0;
+    tCease=(lastDeathAt?lastDeathAt+DEATH:tFirst+FIGHT)+300;
 
     curPrice=p0;
     let launched=0;
@@ -2669,9 +2748,11 @@ const engine=(function(){
     g.beginPath();g.arc(C,C,R-6,0,7);g.stroke();
 
     // hold the outcome for a while, then fight it again — only if asked to
-    if(repeat){ if(!reduceMotion&&units.length&&t>tEnd+HOLD)t0=now; }
-    /* A won field is never quite still: the replay stops on the newest trade,
-       but the survivors go on eating. */
+    if(repeat){ if(!reduceMotion&&units.length&&t>tEnd+HOLD){t0=now;rewind();} }
+    /* Following the market, the clock never stops — what happens next is
+       whatever trades next. Otherwise a won field is still never quite still:
+       the replay stops on the newest trade, but the survivors go on eating. */
+    else if(live){ /* held open for the next trade */ }
     else if(!reduceMotion&&units.length&&now-t0>=tEnd&&!victory)halt=true;
   }
 
@@ -2813,10 +2894,22 @@ const engine=(function(){
       });
     },
     load,
+    /* Trades that have happened since the replay was built, joining the fight in
+       progress. Returns false if the battle is in no state to take them. */
+    enlist(list){
+      if(!units.length||repeat||!list||!list.length)return false;
+      enlist(list,Math.max(0,tNow));
+      halt=false;
+      if(!raf&&!reduceMotion&&!document.hidden)start();
+      return true;
+    },
+    /* Follow the market once the replay has caught up with it. */
+    follow(on){liveOn=!!on;if(!on)live=false;},
+    isLive(){return live;},
     /* on: run it again and keep running. off: let this pass finish and hold. */
     replay(on){
       repeat=!!on;
-      if(on){halt=false;shown=-1;t0=performance.now();if(!raf)start();}
+      if(on){halt=false;live=false;t0=performance.now();rewind();if(!raf)start();}
     }
   };
 })();
@@ -2857,22 +2950,53 @@ function paintPlay(){
   const b=$('#btnPlay');if(!b)return;
   b.textContent=I18N[lang][looping?'btnStop':'btnPlay'];
   b.classList.toggle('on',looping);
+  paintStamp();          // a loop is a recording, and the line above should say so
 }
 $('#btnPlay').addEventListener('click',()=>{
   looping=!looping;
   engine.replay(looping);
+  engine.follow(!looping);        // a loop is a recording; you cannot be in both
   paintPlay();
+  if(!looping)checkFresh();       // catch up on whatever traded while it looped
 });
 
 /* Nothing reloads under the reader's feet: when odin.fun has traded again the
    page says so and waits to be asked. */
+const POLL=12000, WINDOW=20;      // how often we ask, and how far back one ask can see
+
+/* Everything that has traded since we last looked, sent out onto the field. */
 async function checkFresh(){
   if(document.hidden||!S||!S.lastTrade)return;
-  try{
-    const d=await api('/token/'+TOKEN+'/trades?limit=1');
-    const t=d.data&&d.data[0]?Date.parse(d.data[0].time):null;
-    if(t&&t>S.lastTrade)$('#btnFresh').hidden=false;
-  }catch(e){/* a failed check is just a check that happens again in a minute */}
+  let d;
+  try{ d=await api('/token/'+TOKEN+'/trades?limit='+WINDOW); }
+  catch(e){ return; }             // a failed poll is just a poll that happens again
+  const rows=(d.data||[]).filter(t=>!S.seen.has(t.id))
+                         .sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
+  if(!rows.length)return;
+
+  /* Two cases polling cannot honestly cover: a replay running on a loop has no
+     live front to join, and a window that came back full might have cut off
+     trades we never saw. Both get the button instead of a guess. */
+  if(looping||rows.length>=WINDOW){$('#btnFresh').hidden=false;return;}
+
+  const fresh=rows.map(toUnit);
+  if(!engine.enlist(fresh)){$('#btnFresh').hidden=false;return;}
+
+  fresh.forEach(u=>S.seen.add(u.id));
+  S.units=S.units.concat(fresh);
+  S.lastTrade=Math.max(S.lastTrade,fresh[fresh.length-1].time);
+  /* The front line is the price, so the price has to move with the trade that
+     just moved it — market cap follows from it and the supply we already have. */
+  const last=fresh[fresh.length-1];
+  if(last.price){S.price=last.price;S.mcBtc=last.price/MS*S.supply;}
+  fresh.forEach(u=>{
+    if(u.side==='blue')S.blueN++;else S.redN++;
+    const camp=S.fighters[u.side];
+    const was=camp.find(f=>f.user===u.user);
+    if(was){was.traded=(was.traded||0)+u.tok;}
+    else camp.unshift({user:u.user,name:u.name,bal:null,traded:u.tok,out:false});
+  });
+  paintHud();
 }
 $('#btnFresh').addEventListener('click',async()=>{
   const b=$('#btnFresh');
@@ -2893,7 +3017,10 @@ async function boot(){
   }
 }
 boot();
-setInterval(checkFresh,60000);
+setInterval(checkFresh,POLL);
+setInterval(()=>{if(!document.hidden)paintStamp();},20000);
+/* Timers do not run in a background tab, so the moment somebody looks again we
+   ask straight away rather than making them wait out the interval. */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkFresh();});
 </script>
 </body>
