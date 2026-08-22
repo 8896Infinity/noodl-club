@@ -94,6 +94,101 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 20p
    scaled by the device pixel ratio, so the same code serves any screen size. */
 .field{display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:16px;align-items:start}
 .stage{position:relative;width:100%;aspect-ratio:1;max-width:720px;margin:0 auto}
+/* ---- the join screen ---- */
+.joinwrap{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:18px}
+.joinwrap[hidden]{display:none}
+.joinbg{position:absolute;inset:0;background:rgba(6,6,10,.82);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.joinbox{
+  position:relative;width:min(940px,100%);max-height:calc(100vh - 36px);overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 22px 18px;
+}
+.joinx{
+  position:absolute;top:10px;right:12px;width:30px;height:30px;line-height:1;
+  border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--text-2);
+  font-size:19px;cursor:pointer;
+}
+.joinx:hover{color:var(--text);border-color:var(--dim)}
+.joinbox h2{margin:0 0 4px;font-size:19px;letter-spacing:.01em}
+.joinlead{margin:0 0 14px;font-size:12.5px;color:var(--dim);line-height:1.7}
+.joinmap{position:relative;border:1px solid var(--line);border-radius:10px;background:#0c0d12;overflow:hidden}
+#joinSvg{display:block;width:100%;height:auto}
+.jsea{fill:#080a10}
+.jland{fill:#20242e;stroke:#39404f;stroke-width:1}
+.jsea2{fill:#0b131c;stroke:#22384a;stroke-width:.9}
+.jroad{fill:none;stroke:rgba(252,209,79,.42);stroke-width:1.6;stroke-dasharray:7 6;stroke-linecap:round}
+.jc{cursor:pointer}
+.jhit{fill:transparent}
+.jdot{stroke:#0c0d12;stroke-width:1.4}
+.jhalo{fill:none;stroke-width:1.2;opacity:.5}
+.jlab{font:600 12px "Work Sans","PingFang SC",sans-serif;fill:var(--text-2);pointer-events:none}
+.jc-blue .jdot{fill:var(--blue)} .jc-blue .jhalo{stroke:var(--blue)} .jc-blue .jlab{fill:#8fe9c2}
+.jc-red  .jdot{fill:var(--red)}  .jc-red  .jhalo{stroke:var(--red)}  .jc-red  .jlab{fill:#ffb0b0}
+.jc-live .jdot{fill:#fcd14f}     .jc-live .jhalo{stroke:#fcd14f}     .jc-live .jlab{fill:#fcd14f}
+.jc-live .jhalo{animation:jping 2.4s ease-out infinite}
+@keyframes jping{0%{r:8;opacity:.85}100%{r:19;opacity:0}}
+.jc:hover .jdot,.jc:focus-visible .jdot{r:6}
+.jc:focus-visible{outline:none}
+.jc:focus-visible .jhalo{opacity:1;stroke-width:2}
+.jointip{
+  position:absolute;left:12px;bottom:12px;right:12px;pointer-events:none;
+  background:rgba(12,13,18,.94);border:1px solid var(--line);border-radius:8px;
+  padding:9px 12px;font-size:12.5px;line-height:1.6;color:var(--text-2);
+}
+.jointip b{color:var(--text);font-weight:700;margin-right:8px}
+.jointip.blue b{color:var(--blue)} .jointip.red b{color:var(--red)} .jointip.live b{color:#fcd14f}
+.joinlist{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.joinlist li{
+  display:flex;gap:10px;align-items:baseline;font-size:12.5px;color:var(--dim);
+  border:1px solid var(--line);border-radius:8px;padding:8px 11px;
+}
+.joinlist b{font-weight:700;flex:none;min-width:6.2em}
+.joinlist .blue b{color:var(--blue)} .joinlist .red b{color:var(--red)} .joinlist .live b{color:#fcd14f}
+.joinfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.joinw{
+  border:1px solid rgba(0,255,255,.45);border-radius:6px;background:rgba(0,255,255,.07);
+  color:var(--cyan);font:600 13px/1 "Work Sans",sans-serif;padding:11px 18px;cursor:pointer;
+}
+.joinw:hover{background:rgba(0,255,255,.13)}
+.joinsoon{font-size:12.5px;color:var(--noodle-y)}
+.joinsoon[hidden]{display:none}
+@media (max-width:600px){
+  .joinbox{padding:18px 14px 14px}
+  .jlab{font-size:15px}
+  .jointip{position:static;margin:10px 0 0}
+  .joinlist b{min-width:5.4em}
+}
+
+/* five blocks, bolted end to end. One link of it is on screen below. */
+.chain{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;max-width:720px;margin:0 auto 10px;flex-wrap:nowrap;
+}
+.chain .blk{
+  width:44px;height:34px;flex:none;border:1px solid var(--line);border-radius:6px;
+  background:#15151b;color:var(--dim);cursor:pointer;padding:0;
+  display:grid;place-items:center;line-height:1;
+  font:700 12px/1 "Work Sans",sans-serif;font-variant-numeric:tabular-nums;
+}
+.chain .blk:hover{color:var(--text);border-color:var(--dim)}
+.chain .blk.held-blue{color:var(--blue);border-color:rgba(34,209,140,.34)}
+.chain .blk.held-red{color:var(--red);border-color:rgba(255,77,77,.30)}
+.chain .blk.live{color:#fcd14f;border-color:rgba(252,209,79,.40)}
+.chain .blk.on{
+  background:rgba(0,255,255,.08);border-color:var(--cyan);color:var(--text);
+  box-shadow:0 0 0 1px rgba(0,255,255,.22);
+}
+/* the pin between one block and the next */
+.chain .lnk{
+  width:16px;height:2px;flex:none;background:var(--line);position:relative;
+}
+.chain .lnk::after{
+  content:'';position:absolute;left:50%;top:50%;width:5px;height:5px;
+  margin:-2.5px 0 0 -2.5px;border-radius:1.5px;background:#2e2e38;
+}
+@media (max-width:600px){
+  .chain .blk{width:34px;height:30px;font-size:11px}
+  .chain .lnk{width:9px}
+}
 /* the name of the ground you are standing on, and the way out of it */
 .theatres{
   display:flex;align-items:center;justify-content:center;gap:14px;
@@ -133,7 +228,7 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 20p
 .field.solo{grid-template-columns:minmax(0,1fr)}
 .field.solo .feed{display:none}
 .treplay button[hidden]{display:none}
-#field{display:block;width:100%;height:100%;border-radius:50%}
+#field{display:block;width:100%;height:100%;border-radius:13px}
 .stage-note{
   text-align:center;font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.6;
 }
@@ -298,7 +393,8 @@ footer a:hover{color:var(--cyan)}
   <a class="tab" href="index.html" data-i="navHome">Home</a>
   <a class="tab" href="holders.html" data-i="navBoard">Holder board</a>
   <a class="tab" href="revelation.html" data-i="navRev">NOODL Revelation</a>
-  <a class="tab on" href="battle.html" aria-current="page" data-i="navWar">Trade battlefield</a>
+  <a class="tab on" href="battle.html" aria-current="page" data-i="navWar">Read the battle</a>
+  <a class="tab" href="#join" id="navJoin" data-i="navJoin">Join the battle</a>
 </nav>
 
 <main>
@@ -313,6 +409,7 @@ footer a:hover{color:var(--cyan)}
 
   <div class="field">
     <div>
+      <div class="chain" id="chain" role="tablist"></div>
       <div class="theatres">
         <button class="tnav" id="tPrev" type="button" aria-label="previous">&lsaquo;</button>
         <div class="tlabel">
@@ -358,6 +455,69 @@ footer a:hover{color:var(--cyan)}
   </div>
 </main>
 
+<div class="joinwrap" id="joinWrap" hidden>
+  <div class="joinbg" data-jclose></div>
+  <div class="joinbox" role="dialog" aria-modal="true" aria-labelledby="joinH">
+    <button class="joinx" id="joinX" type="button" aria-label="close" data-jclose>&times;</button>
+    <h2 id="joinH" data-i="joinH"></h2>
+    <p class="joinlead" data-i="joinLead"></p>
+    <div class="joinmap">
+      <svg id="joinSvg" viewBox="0 0 900 460" role="img" aria-labelledby="joinMapT">
+      <title id="joinMapT" data-i="joinMapT"></title>
+      <rect class="jsea" x="0" y="0" width="900" height="460"/>
+      <path class="jland" d="M66.6 182.6 L65.5 210.3 L68.3 221.3 L83.6 227.8 L102.8 232.9 L136.7 222.6 L176.9 220.7 L182.0 241.3 L205.8 251.0 L232.4 253.6 L260.6 253.6 L288.4 258.8 L301.9 258.8 L305.9 275.6 L317.2 282.7 L331.4 305.3 L339.8 324.7 L351.2 350.5 L364.2 378.9 L376.6 377.0 L393.6 368.6 L416.2 351.8 L430.4 347.9 L446.2 331.1 L457.5 315.0 L438.3 302.0 L416.2 304.0 L403.2 289.1 L393.6 269.1 L404.9 269.1 L424.7 287.2 L444.5 295.6 L467.1 298.2 L484.1 297.5 L498.3 305.3 L506.7 308.5 L515.2 324.7 L531.1 336.9 L537.9 363.4 L549.2 389.2 L557.7 408.0 L573.5 375.7 L583.1 351.8 L600.1 332.4 L611.4 320.8 L625.6 320.1 L639.7 327.9 L653.8 357.0 L668.0 351.8 L676.5 395.7 L686.7 415.1 L704.8 451.3 L716.1 395.7 L727.4 390.5 L738.7 376.3 L731.4 344.0 L741.5 321.4 L761.3 316.9 L784.0 306.6 L798.1 292.4 L808.3 269.8 L809.4 259.4 L800.9 240.7 L792.5 218.7 L812.3 218.1 L795.3 205.8 L806.6 196.8 L823.6 203.2 L834.9 221.3 L850.7 233.6 L852.4 211.6 L859.2 185.8 L871.7 150.3 L877.3 -17.7 L458.7 -17.7 L345.5 -4.8 L305.9 8.2 L291.8 21.1 L303.1 30.8 L277.6 37.2 L257.8 35.3 L240.8 8.2 L209.7 17.9 L187.1 40.5 L158.8 53.4 L148.6 69.5 L181.4 79.2 L189.9 97.3 L178.6 108.3 L167.3 95.4 L167.9 111.5 L192.8 110.2 L226.7 107.6 L238.0 95.4 L257.8 87.0 L272.0 76.0 L290.6 72.8 L280.4 59.8 L240.8 50.1 L218.2 66.3 L189.9 82.4 L184.3 87.0 L158.8 85.7 L141.8 105.0 L127.7 130.9 L110.7 140.6 L92.0 147.7 L112.4 163.2 L109.0 180.0 L66.6 182.6Z"/>
+      <path class="jland" d="M102.2 127.0 L90.9 136.7 L101.1 115.4 L92.0 106.3 L88.1 103.8 L102.2 81.8 L107.9 88.9 L118.1 111.5 L128.8 119.9 L127.1 128.3 L102.2 127.0Z"/>
+      <path class="jland" d="M85.3 123.1 L60.4 127.0 L62.6 110.2 L76.8 103.1 L85.3 107.6 L85.3 123.1Z"/>
+      <path class="jsea2" d="M87.5 227.8 L113.5 230.4 L141.8 225.2 L170.1 217.4 L189.4 221.3 L206.9 222.6 L229.5 236.8 L260.6 251.0 L294.6 256.2 L314.4 256.2 L321.7 227.8 L300.2 223.9 L288.9 199.4 L269.1 208.4 L249.3 200.6 L229.5 190.3 L212.6 198.7 L189.9 167.1 L170.1 174.8 L144.7 181.3 L119.2 209.7 L87.5 227.8Z"/>
+      <path class="jsea2" d="M279.9 194.2 L294.6 168.3 L311.6 163.2 L334.2 155.4 L354.6 180.0 L334.2 191.6 L305.9 195.5 L279.9 194.2Z"/>
+      <path class="jsea2" d="M317.2 166.4 L337.0 155.4 L341.5 160.0 L322.9 167.7 L317.2 166.4Z"/>
+      <path class="jsea2" d="M394.2 220.0 L403.2 201.9 L414.5 182.6 L417.9 158.0 L396.4 159.3 L387.4 182.6 L385.1 207.1 L394.2 220.0Z"/>
+      <path class="jsea2" d="M448.5 176.1 L465.4 170.9 L465.4 160.6 L449.6 162.5 L448.5 176.1Z"/>
+      <path class="jsea2" d="M394.2 266.5 L407.7 282.0 L425.8 288.5 L439.4 301.4 L434.9 309.2 L411.1 291.1 L393.0 275.6 L394.2 266.5Z"/>
+      <path class="jsea2" d="M307.0 273.0 L321.7 285.9 L341.0 324.7 L365.9 378.9 L356.8 378.9 L335.3 337.6 L315.0 294.9 L301.4 275.6 L307.0 273.0Z"/>
+      <path class="jsea2" d="M191.6 105.0 L198.4 98.6 L226.7 96.0 L240.8 81.8 L255.0 74.0 L238.0 67.6 L226.7 56.0 L217.6 70.2 L221.0 92.1 L201.2 106.3 L191.6 105.0Z"/>
+      <path class="jroad" d="M118.6 127.7 L141.8 140.6 L187.1 156.7 L238.0 176.1 L283.3 195.5 L334.2 198.7 L402.1 201.9 L447.3 198.7 L497.7 203.9 L560.5 192.2 L628.4 208.4 L673.6 218.1 L706.5 227.1 L735.3 238.8"/>
+      <g class="jc jc-red" data-c="t5000" tabindex="0" role="button">
+        <circle class="jhit" cx="118.6" cy="127.7" r="18"/>
+        <circle class="jhalo" cx="118.6" cy="127.7" r="11"/>
+        <circle class="jdot" cx="118.6" cy="127.7" r="4.6"/>
+        <text class="jlab" x="129.6" y="116.7" text-anchor="start"></text>
+      </g>
+      <g class="jc jc-red" data-c="t500" tabindex="0" role="button">
+        <circle class="jhit" cx="283.3" cy="195.5" r="18"/>
+        <circle class="jhalo" cx="283.3" cy="195.5" r="11"/>
+        <circle class="jdot" cx="283.3" cy="195.5" r="4.6"/>
+        <text class="jlab" x="283.3" y="180.5" text-anchor="middle"></text>
+      </g>
+      <g class="jc jc-red" data-c="t50" tabindex="0" role="button">
+        <circle class="jhit" cx="497.7" cy="203.9" r="18"/>
+        <circle class="jhalo" cx="497.7" cy="203.9" r="11"/>
+        <circle class="jdot" cx="497.7" cy="203.9" r="4.6"/>
+        <text class="jlab" x="497.7" y="188.9" text-anchor="middle"></text>
+      </g>
+      <g class="jc jc-blue" data-c="launch" tabindex="0" role="button">
+        <circle class="jhit" cx="706.5" cy="227.1" r="18"/>
+        <circle class="jhalo" cx="706.5" cy="227.1" r="11"/>
+        <circle class="jdot" cx="706.5" cy="227.1" r="4.6"/>
+        <text class="jlab" x="694.5" y="217.1" text-anchor="end"></text>
+      </g>
+      <g class="jc jc-live" data-c="live" tabindex="0" role="button">
+        <circle class="jhit" cx="735.3" cy="238.8" r="18"/>
+        <circle class="jhalo" cx="735.3" cy="238.8" r="11"/>
+        <circle class="jdot" cx="735.3" cy="238.8" r="4.6"/>
+        <text class="jlab" x="747.3" y="254.8" text-anchor="start"></text>
+      </g>
+    </svg>
+      <div class="jointip" id="joinTip" aria-live="polite"></div>
+    </div>
+    <ul class="joinlist" id="joinList"></ul>
+    <div class="joinfoot">
+      <button class="joinw" id="joinWallet" type="button" data-i="joinWallet"></button>
+      <span class="joinsoon" id="joinSoon" hidden data-i="joinSoon"></span>
+    </div>
+  </div>
+</div>
+
 <footer>
   <span data-i="footer">NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles.</span> 🍜<br>
   <span data-i="footerLinks">© 2026 NOODL.club ·</span>
@@ -397,7 +557,7 @@ const DUST=1e-3;                            // below this a holder has left the 
 const I18N={
 zh:{
   linkToken:'Odin.Fun ↗',linkCommunity:'社区 ↗',
-  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navWar:'交易战场',
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navWar:'分析战局',navJoin:'加入战场',
   warH:'NOODL 交易战场',
   warLead:'odin.fun 上每一笔 NOODL 买卖，都是一次出兵。买入的是看涨联盟，卖出的是看空部落；联盟的兵营就是一个个池子，每个池子挂着开池 Chef 的名字，士兵从池子里出列。战线是此刻的单价与市值 —— 联盟守着已经打下来的 0.211 BTC，向 5 BTC 的阶段目标市值推进。',
   stageNote:'战场画的是最近一轮交战。没有新成交的时候，你看到的是上一场仗。',
@@ -430,6 +590,19 @@ zh:{
   win6:'最近 6 小时',win24:'最近 24 小时',winAll:'全部战况',winLoading:'调取战史…',
   worksZ:'前线工事 · 挖战壕、架铁丝网',
   odinPool:'odin.fun 自带池子',
+  joinH:'加入战场',
+  joinLead:'丝绸之路五座城，五个战区。兰州已被 NOODLER 拿下，长安正在交战，前面三座还在看空部落手里。把鼠标放到一座城上，看那里能做什么。',
+  joinMapT:'欧亚大陆，丝绸之路沿线的五座城',
+  joinWallet:'连接钱包',
+  joinSoon:'功能暂未开放，敬请期待',
+  joinCity:{launch:'兰州',live:'长安',t50:'撒马尔罕',t500:'君士坦丁堡',t5000:'伦敦'},
+  joinState:{launch:'已被 NOODLER 占领',live:'正在激烈交战',
+             t50:'空军占领区',t500:'空军占领区',t5000:'空军占领区'},
+  joinAct:{launch:'补给区 · 购买装备，研发武器（锁仓后可加入）',
+           live:'正面战场 · 加入，改变战局',
+           t50:'敌后战场 · 秘密潜入（5 分钟内买入 NOODL 加入）',
+           t500:'敌后战场 · 秘密潜入（5 分钟内买入 NOODL 加入）',
+           t5000:'敌后战场 · 秘密潜入（5 分钟内买入 NOODL 加入）'},
   fresh:'有新交易 · 刷新战场',freshing:'刷新中…',
   objBlue:'上一轮已达成 · 联合曲线毕业',
   objRed:p=>'本阶段目标市值 · 已完成 '+p+'%',
@@ -449,7 +622,7 @@ zh:{
 },
 en:{
   linkToken:'Odin.Fun ↗',linkCommunity:'Community ↗',
-  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navWar:'Trade battlefield',
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navWar:'Read the battle',navJoin:'Join the battle',
   warH:'NOODL Trade Battlefield',
   warLead:'Every NOODL trade on odin.fun is a sortie. Buys march for the Bull Alliance, sells for the Bear Tribe. The Alliance musters out of the liquidity pools themselves, each barracks named for the Chef who opened it. The front line is the live price: the Alliance holds the 0.211 BTC it already took, and pushes for a 5 BTC cap.',
   stageNote:'The arena shows the most recent engagement. When nothing is trading, you are watching the last battle.',
@@ -482,6 +655,19 @@ en:{
   win6:'Last 6h',win24:'Last 24h',winAll:'The whole campaign',winLoading:'reading…',
   worksZ:'works detail · digging in and wiring the line',
   odinPool:'the odin.fun bonding pool',
+  joinH:'Join the battle',
+  joinLead:'Five cities on the silk road, five theatres. Lanzhou is taken, Chang\u2019an is contested, and the three ahead of it are still the Bear Tribe\u2019s. Point at a city to see what can be done there.',
+  joinMapT:'Eurasia, with the five silk-road cities',
+  joinWallet:'Connect wallet',
+  joinSoon:'Not open yet — coming soon',
+  joinCity:{launch:'Lanzhou',live:'Chang\u2019an',t50:'Samarkand',t500:'Constantinople',t5000:'London'},
+  joinState:{launch:'held by the NOODLERs',live:'open battle',
+             t50:'bear-held',t500:'bear-held',t5000:'bear-held'},
+  joinAct:{launch:'Supply zone \u00b7 buy kit, develop weapons (join once your stake is locked)',
+           live:'The front \u00b7 join, and change the battle',
+           t50:'Behind the lines \u00b7 slip in (buy NOODL within 5 minutes to join)',
+           t500:'Behind the lines \u00b7 slip in (buy NOODL within 5 minutes to join)',
+           t5000:'Behind the lines \u00b7 slip in (buy NOODL within 5 minutes to join)'},
   fresh:'New trades · refresh the battlefield',freshing:'Refreshing…',
   objBlue:'already taken · graduated the bonding curve',
   objRed:p=>'stage target market cap · '+p+'% of the way',
@@ -901,8 +1087,9 @@ const TERRAIN={
 /* 兰州 — a dry loess corridor with the Yellow River through it. The road starts
    here, and so do the noodles. */
 launch:{
-  names:[{u:-.66,v:-.42,zh:'黄河',en:'Yellow River',w:1},
-         {u: .30,v:-.80,zh:'皋兰山',en:'Gaolan Shan'}],
+  names:[{u:-.66,v:-.42,zh:'黄河',en:'Yellow River',w:1}],
+  holds:[{u:.30,v:-.72,rx:.30,ry:.11,zh:'皋兰山',en:'Gaolan Shan',take:.07},
+         {u:-.45,v:-.45,rx:.32,ry:.08,zh:'黄河渡口',en:'Yellow River ford',take:.05}],
   f:[
     {k:'ground',kind:'terrace',seed:1101,blob:[0,.80,.86,.20,11,.16]},
     {k:'run',kind:'river',seed:1102,w:[.030,.038],
@@ -918,13 +1105,18 @@ launch:{
    Deliberately the emptiest of the five: this is the only contested field. */
 live:{
   road:[-1.02,.58, -.50,.62, .00,.58, .50,.62, 1.02,.56],
-  names:[{u:-.56,v:.80,zh:'昆明池',en:'Kunming Lake',w:1},
-         {u: .16,v:.98,zh:'秦岭',en:'Qinling'},
-         {u: .54,v:-.19,zh:'长安',en:"Chang'an"}],
+  names:[],
+  /* The three that decide this battle. Kunming Lake sits inside the ground the
+     Alliance normally holds, the Qinling straddles the line, and Chang'an
+     itself is far enough east that nothing yet fielded has come near it —
+     which is the honest reading of a market that has not taken the objective. */
+  holds:[{u:-.28,v:.74,rx:.19,ry:.10,zh:'昆明池',en:'Kunming Lake',take:.06},
+         {u: .12,v:.86,rx:.31,ry:.13,zh:'秦岭',en:'Qinling',take:.09},
+         {u: .54,v:-.35,rx:.17,ry:.15,zh:'长安城',en:"Chang'an",take:.05}],
   f:[
     {k:'run',kind:'river',seed:2101,w:[.028,.034],
      pts:[-.90,-.76, -.40,-.80, .05,-.82, .50,-.79, .90,-.75]},
-    {k:'water',seed:2102,blob:[-.56,.71,.17,.075,16,.14]},
+    {k:'water',seed:2102,blob:[-.28,.72,.16,.072,16,.14]},
     {k:'ridge',kind:'rock',h:.075,seed:2103,
      crest:[-.28,.90, .08,.86, .46,.90, .80,.92],
      mark:{u:.30,kind:'snow',h:.026}},
@@ -936,8 +1128,10 @@ live:{
 /* 撒马尔罕 — one thread of river and orchard on a dead ochre plain. The desert
    is this map's floor: without it the garrison is standing on nothing. */
 t50:{
-  names:[{u:.46,v:-.44,zh:'泽拉夫尚河',en:'Zarafshan',w:1},
+  names:[{u:.62,v:-.52,zh:'泽拉夫尚河',en:'Zarafshan',w:1},
          {u:-.55,v:.34,zh:'克孜勒库姆',en:'Kyzylkum'}],
+  holds:[{u:.32,v:-.42,rx:.23,ry:.10,zh:'撒马尔罕城',en:'Samarkand',take:.05},
+         {u:-.02,v:-.34,rx:.19,ry:.10,zh:'泽拉夫尚绿洲',en:'Zarafshan oasis',take:.05}],
   f:[
     {k:'ground',kind:'sand',seed:3101,blob:[-.30,.10,.68,.85,13,.18]},
     {k:'run',kind:'river',seed:3102,w:[.014,.004],
@@ -955,6 +1149,8 @@ t500:{
   road:[-1.02,.66, -.40,.60, -.06,.52, .10,.30, .40,.12, .75,-.04, 1.02,-.12],
   names:[{u:.05,v:-.74,zh:'金角湾',en:'Golden Horn',w:1},
          {u:.05,v: .92,zh:'马尔马拉海',en:'Marmara',w:1}],
+  holds:[{u:-.08,v:.22,rx:.13,ry:.56,zh:'狄奥多西城墙',en:'Theodosian Wall',take:.05},
+         {u: .30,v:-.40,rx:.40,ry:.12,zh:'君士坦丁堡',en:'Constantinople',take:.05}],
   f:[
     {k:'water',seed:4101,
      pts:[-.50,-1.10, -.46,-.78, -.10,-.67, .20,-.60, .50,-.52,
@@ -975,8 +1171,9 @@ t500:{
    makes a map generic. */
 t5000:{
   road:[-1.02,.62, -.40,.58, .02,.46, .30,.34, .55,.22, .70,.14],
-  names:[{u:-.55,v:.44,zh:'泰晤士河',en:'Thames',w:1},
-         {u:-.20,v:-.86,zh:'北部高地',en:'Northern Heights'}],
+  names:[{u:-.55,v:.44,zh:'泰晤士河',en:'Thames',w:1}],
+  holds:[{u:.24,v:.06,rx:.40,ry:.21,zh:'伦敦城区',en:'the City',take:.05},
+         {u:-.20,v:-.62,rx:.26,ry:.12,zh:'北部高地',en:'Northern Heights',take:.05}],
   f:[
     {k:'run',kind:'river',seed:5101,w:[.030,.045],
      pts:[-.86,.46, -.30,.36, .02,.27, .28,.34, .42,.50, .60,.54,
@@ -3365,6 +3562,3021 @@ function drawCarrier3D(g, x, y, s, dir, pal, ph){
   g.restore();
 }
 
+/* ── drawPagoda3D ───────────────────────────────────────────────────────────
+   白塔山白塔 — the White Pagoda of Lanzhou, standing in for the Bear Tribe's
+   keep on the 兰州启航 field. Seven octagonal storeys of whitewashed Ming brick
+   on a low walled terrace, each storey stepping in, each capped by a dark tiled
+   eave, a small finial on top.
+
+   PROJECTION. One oblique frame for the whole solid: a plan point (px,pz) lands
+   at (px + 0.60*pz, -h - 0.33*(pz+PZF)). Depth therefore recedes up and to the
+   right on exactly the slope the rest of the diorama recedes on (-0.55 per unit
+   across), which is why this sits next to the keep and the shop without looking
+   imported. An octagon in plan lands as a squashed octagon; of its eight faces
+   only four ever face us — the front-left, the front, the front-right and the
+   right — so a storey is four quads, never eight. The ground point handed in is
+   the FRONT edge of the terrace, so the mass rises away from the caller's feet
+   and the tower's axis stays on x.
+
+   LIGHT. One lamp, up and to the left, and every facet's tone is read straight
+   off its plan normal: horizontal tops lightest, front-left next, front mid,
+   front-right dim, the right face darkest. Nothing turns. A facet is dark
+   because of where it points, not because it was spun there.
+
+   THE EAVE IS THE BUILDING. Take the eave away and seven stacked drums are a
+   wedding cake. What makes an eave read is not the tile — it is the dark line
+   struck under its lip, so every storey gets four things in order: a lit tile
+   ring stepping out and down, a dark fascia at the lip, a bright arris along
+   the top of that fascia, and a hard shadow laid on the wall beneath it. That
+   shadow is derived from the lip's own outline (so it follows the overhang, not
+   the wall) and then clipped to the wall's silhouette, so it can never float
+   out into the air where the eave sticks past the brick.
+
+   The tile pitch is held at 0.20 rise per unit of overhang on purpose. Above
+   0.305 the far slope of a roof folds behind its own ridge in this projection
+   and the ring turns inside out; staying under it keeps all eight panels honest
+   at every storey.
+
+   ph (0..1, wrapping) drives three slow, small things and nothing structural:
+   the lamps in the niches breathe, the two banners at the first eave stir, and
+   the censer on the terrace gives off one thread of smoke.                    */
+function drawPagoda3D(g, x, y, s, pal, ph) {
+  g.save();
+
+  var TAU = Math.PI * 2;
+  s = (typeof s === 'number' && isFinite(s) && s !== 0) ? s : 1;
+  var p = (typeof ph === 'number' && isFinite(ph)) ? ph - Math.floor(ph) : 0;
+  var breath = 0.5 - 0.5 * Math.cos(p * TAU);
+  var stir = Math.sin(p * TAU);
+
+  var P = pal || {};
+  var baseC = P.base || '#6b6d7c';
+  var lightC = P.light || '#a8aab8';
+  var darkC = P.dark || '#3a3a44';
+  var edgeC = P.edge || '#0b0b11';
+  var accC = P.accent || '#e9e9f2';
+
+  /* ---------- colour: accepts #rgb, #rrggbb and rgb()/rgba() ---------- */
+  function chan(c) {
+    if (typeof c !== 'string') return null;
+    var t = c.replace(/\s/g, ''), v;
+    if (t.charAt(0) === '#') {
+      if (t.length === 4) v = [parseInt(t.charAt(1) + t.charAt(1), 16), parseInt(t.charAt(2) + t.charAt(2), 16), parseInt(t.charAt(3) + t.charAt(3), 16)];
+      else if (t.length === 7) v = [parseInt(t.substr(1, 2), 16), parseInt(t.substr(3, 2), 16), parseInt(t.substr(5, 2), 16)];
+      else return null;
+    } else {
+      var m = t.match(/-?[0-9.]+/g);
+      if (!m || m.length < 3) return null;
+      v = [+m[0], +m[1], +m[2]];
+    }
+    if (isNaN(v[0]) || isNaN(v[1]) || isNaN(v[2])) return null;
+    return v;
+  }
+  function mix(a, b, t) {
+    var A = chan(a), B = chan(b);
+    if (!A || !B) return a;
+    if (!(t > 0)) t = 0;
+    if (t > 1) t = 1;
+    return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' + Math.round(A[1] + (B[1] - A[1]) * t) + ',' + Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+  }
+  function al(c, a) {
+    var A = chan(c);
+    if (!A) return c;
+    if (!(a > 0)) a = 0;
+    if (a > 1) a = 1;
+    return 'rgba(' + Math.round(A[0]) + ',' + Math.round(A[1]) + ',' + Math.round(A[2]) + ',' + (Math.round(a * 1000) / 1000) + ')';
+  }
+
+  /* ---------- materials ----------
+     Whitewash is a neutral stone with a whisper of the tribe mixed in, so the
+     tower belongs to a side without ever being painted its colour. Every
+     shadow it casts is made out of that side's dark and edge, which is what
+     ties the palette together at the bottom end.                            */
+  var WASH = mix('#d4cec0', lightC, 0.10);
+  var wHi = mix(WASH, accC, 0.30);
+  var wLo = mix(mix(WASH, darkC, 0.55), edgeC, 0.30);
+  var tHi = mix('#5e5e6b', lightC, 0.16);          /* eave tile in the lamp   */
+  var tLo = mix('#131319', edgeC, 0.40);           /* eave tile turned away   */
+  var stoneHi = mix(WASH, darkC, 0.30);            /* terrace paving, lit     */
+  var stoneFr = mix(WASH, darkC, 0.52);
+  var stoneRt = mix(mix(WASH, darkC, 0.68), edgeC, 0.30);
+  var seamC = al(edgeC, 0.55);
+
+  /* facet tone tables, straight off the plan normals:
+     TW — the four vertical faces we can see, lit -> unlit
+     RT — all eight near-horizontal roof panels, same lamp, flatter spread    */
+  var TW = [1.00, 0.80, 0.38, 0.00];
+  var RT = [0.00, 0.19, 0.55, 0.89, 1.00, 0.81, 0.46, 0.11];
+  function wallC(i) { return mix(wLo, wHi, TW[i]); }
+  function roofC(k) { return mix(tLo, tHi, RT[k & 7]); }
+  function fascC(i) { return mix(tLo, tHi, TW[i] * 0.55); }
+
+  /* ---------- the oblique frame ---------- */
+  var KX = 0.60, KY = 0.33, PZF = 22;
+  function SX(px, pz) { return px + KX * pz; }
+  function SY(h, pz) { return -h - KY * (pz + PZF); }
+
+  /* octagon vertices at 22.5 + 45k, so faces sit square to the frame */
+  var OC = [0.92388, 0.38268, -0.38268, -0.92388, -0.92388, -0.38268, 0.38268, 0.92388];
+  var OS = [0.38268, 0.92388, 0.92388, 0.38268, -0.38268, -0.92388, -0.92388, -0.38268];
+  var VIS = [4, 5, 6, 7];                          /* faces facing lamp and eye */
+
+  g.translate(x, y);
+  g.scale(s, s);
+  g.lineJoin = 'round';
+  g.lineCap = 'butt';
+  var sc = Math.abs(s) || 1;
+  var lw = 1 / sc;
+  if (lw > 1.4) lw = 1.4;
+  if (lw < 0.35) lw = 0.35;
+  g.lineWidth = lw;
+
+  /* ---------- primitives ---------- */
+  function poly(pts, fill, stroke, w) {
+    var i;
+    if (!pts || pts.length < 3) return;
+    g.beginPath();
+    g.moveTo(pts[0][0], pts[0][1]);
+    for (i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]);
+    g.closePath();
+    if (fill) { g.fillStyle = fill; g.fill(); }
+    if (stroke) { g.strokeStyle = stroke; g.lineWidth = w || lw; g.stroke(); }
+  }
+  function seg(a, b, c, w) {
+    g.beginPath();
+    g.moveTo(a[0], a[1]);
+    g.lineTo(b[0], b[1]);
+    g.strokeStyle = c;
+    g.lineWidth = w || lw;
+    g.stroke();
+  }
+  /* a point on face k of a drum of radius r: u runs 0..1 across the face */
+  function fpt(k, r, u, h) {
+    var a = k & 7, b = (k + 1) & 7;
+    var px = r * (OC[a] + (OC[b] - OC[a]) * u);
+    var pz = r * (OS[a] + (OS[b] - OS[a]) * u);
+    return [SX(px, pz), SY(h, pz)];
+  }
+  function ovtx(r, h) {
+    var a = [], k;
+    for (k = 0; k < 8; k++) a.push([SX(r * OC[k], r * OS[k]), SY(h, r * OS[k])]);
+    return a;
+  }
+  /* the visible silhouette of a drum, used as a clip for anything painted on it */
+  function drumPath(lo, hi) {
+    var i, k;
+    g.beginPath();
+    g.moveTo(hi[4][0], hi[4][1]);
+    for (i = 5; i <= 8; i++) { k = i & 7; g.lineTo(hi[k][0], hi[k][1]); }
+    for (i = 8; i >= 4; i--) { k = i & 7; g.lineTo(lo[k][0], lo[k][1]); }
+    g.closePath();
+  }
+
+  /* ---------- an octagonal drum: four faces, each with its own tone ---------- */
+  function drum(r, h0, h1, nCourse) {
+    var lo = ovtx(r, h0), hi = ovtx(r, h1), i, k, b, q, gr;
+    var yT = SY(h1, -0.92388 * r), yB = SY(h0, -0.92388 * r);
+    for (i = 0; i < 4; i++) {
+      k = VIS[i]; b = (k + 1) & 7;
+      q = [hi[k], hi[b], lo[b], lo[k]];
+      /* stroked in its own fill so the facets tile without a hairline seam */
+      poly(q, wallC(i), wallC(i), lw * 0.7);
+      gr = g.createLinearGradient(0, yT, 0, yB);
+      gr.addColorStop(0, 'rgba(255,255,255,0.055)');
+      gr.addColorStop(0.55, 'rgba(0,0,0,0)');
+      gr.addColorStop(1, 'rgba(0,0,0,0.20)');
+      poly(q, gr);
+      if (nCourse > 1) courses(k, r, h0, h1, nCourse, 0.13);
+    }
+    /* the arris on the lamp side, the only line on the brick that catches */
+    seg(hi[4], lo[4], al(wHi, 0.32), lw);
+    return { lo: lo, hi: hi };
+  }
+  function courses(k, r, h0, h1, n, a) {
+    var j, hh, A, B;
+    for (j = 1; j < n; j++) {
+      hh = h0 + (h1 - h0) * j / n;
+      A = fpt(k, r, 0.06, hh); B = fpt(k, r, 0.94, hh);
+      seg(A, B, al(edgeC, a), lw * 0.8);
+    }
+  }
+  /* flat octagonal lid — a storey's walkway, or the cap of a plinth */
+  function lid(r, h, c) {
+    var v = ovtx(r, h), i;
+    g.beginPath();
+    g.moveTo(v[0][0], v[0][1]);
+    for (i = 1; i < 8; i++) g.lineTo(v[i][0], v[i][1]);
+    g.closePath();
+    g.fillStyle = c;
+    g.fill();
+  }
+
+  /* ---------- an arched niche cut into one face ---------- */
+  function niche(k, r, u0, u1, h0, h1, arch, litA) {
+    var N = 9, pts = [], j, t, u, hh, iu0, iu1;
+    pts.push(fpt(k, r, u0, h0));
+    pts.push(fpt(k, r, u1, h0));
+    pts.push(fpt(k, r, u1, h1));
+    for (j = 1; j < N; j++) {
+      t = j / N;
+      u = u1 + (u0 - u1) * t;
+      hh = h1 + arch * Math.sin(Math.PI * t);
+      pts.push(fpt(k, r, u, hh));
+    }
+    pts.push(fpt(k, r, u0, h1));
+    poly(pts, 'rgba(6,5,9,0.90)');
+    /* the reveal: the jamb on the lamp side still takes light */
+    iu0 = u0 + (u1 - u0) * 0.14;
+    poly([fpt(k, r, u0, h0), fpt(k, r, iu0, h0), fpt(k, r, iu0, h1 + arch * 0.55), fpt(k, r, u0, h1 + arch * 0.7)], al(wHi, 0.20));
+    if (litA > 0) {
+      iu0 = u0 + (u1 - u0) * 0.22;
+      iu1 = u1 - (u1 - u0) * 0.16;
+      poly([fpt(k, r, iu0, h0 + (h1 - h0) * 0.12), fpt(k, r, iu1, h0 + (h1 - h0) * 0.12),
+            fpt(k, r, iu1, h1 + arch * 0.42), fpt(k, r, iu0, h1 + arch * 0.42)],
+           al(mix(accC, '#ffffff', 0.35), litA));
+    }
+  }
+
+  /* ---------- the eave, in two halves ----------
+     eaveShade goes on before the roof (it belongs to the wall); eaveRoof goes
+     on after and covers the top of it.                                       */
+  function eaveShade(r, rE, hTop, hBot, drop, ft) {
+    var lo = ovtx(r, hBot), hi = ovtx(r, hTop);
+    var lip = ovtx(rE, hTop - drop - ft);
+    var D = (hTop - hBot) * 0.70;
+    if (D > 4.6) D = 4.6;
+    var bands = [[0, D * 0.15, 0.50], [D * 0.15, D * 0.44, 0.30], [D * 0.44, D * 0.73, 0.16], [D * 0.73, D, 0.07]];
+    var j, i, k;
+    g.save();
+    drumPath(lo, hi);
+    g.clip();
+    for (j = 0; j < bands.length; j++) {
+      g.beginPath();
+      g.moveTo(lip[4][0], lip[4][1] + bands[j][0]);
+      for (i = 5; i <= 8; i++) { k = i & 7; g.lineTo(lip[k][0], lip[k][1] + bands[j][0]); }
+      for (i = 8; i >= 4; i--) { k = i & 7; g.lineTo(lip[k][0], lip[k][1] + bands[j][1]); }
+      g.closePath();
+      g.fillStyle = 'rgba(0,0,0,' + bands[j][2] + ')';
+      g.fill();
+    }
+    g.restore();
+  }
+  function eaveRoof(r, rE, hTop, drop, ft) {
+    var inn = ovtx(r, hTop);
+    var lipT = ovtx(rE, hTop - drop);
+    var lipB = ovtx(rE, hTop - drop - ft);
+    var i, k, b, v, fl;
+
+    /* eight tile panels stepping out and down from the wall head */
+    for (k = 0; k < 8; k++) {
+      b = (k + 1) & 7;
+      poly([inn[k], inn[b], lipT[b], lipT[k]], roofC(k), roofC(k), lw * 0.7);
+    }
+    /* hip ridges, a shade up from the panels they part */
+    for (k = 4; k <= 8; k++) {
+      v = k & 7;
+      seg(inn[v], lipT[v], al(mix(tHi, accC, 0.30), 0.30), lw * 0.9);
+    }
+    /* the fascia at the lip: a vertical band, tone by facing like any wall */
+    for (i = 0; i < 4; i++) {
+      k = VIS[i]; b = (k + 1) & 7;
+      poly([lipT[k], lipT[b], lipB[b], lipB[k]], fascC(i), fascC(i), lw * 0.7);
+    }
+    /* the corner flares — a rise at the vertex, never a rotation */
+    fl = rE * 0.09;
+    for (k = 4; k <= 8; k++) {
+      v = k & 7;
+      poly([[lipT[v][0] - rE * 0.14, lipT[v][1] + 0.2], [lipT[v][0], lipT[v][1] - fl],
+            [lipT[v][0] + rE * 0.14, lipT[v][1] + 0.2], [lipT[v][0], lipT[v][1] + 0.9]],
+           mix(tLo, tHi, 0.62 - 0.08 * (k - 4)));
+    }
+    /* the two lines that make it an eave: a bright arris on the lip's top
+       edge, a hard dark terminator on its underside                        */
+    for (k = 4; k <= 7; k++) {
+      seg(lipT[k & 7], lipT[(k + 1) & 7], al(mix(tHi, accC, 0.55), 0.55), lw);
+      seg(lipB[k & 7], lipB[(k + 1) & 7], al(edgeC, 0.85), lw);
+    }
+  }
+
+  /* ---------- a flight of steps on one vertical plane ---------- */
+  function stair(pz, w0, w1, h0, h1, n, cRise, cTread) {
+    var j, t0, t1, a0, a1, b0, b1;
+    for (j = 0; j < n; j++) {
+      t0 = j / n; t1 = (j + 1) / n;
+      a0 = h0 + (h1 - h0) * t0; a1 = h0 + (h1 - h0) * t1;
+      b0 = w0 + (w1 - w0) * t0; b1 = w0 + (w1 - w0) * t1;
+      poly([[SX(-b0, pz), SY(a0, pz)], [SX(b0, pz), SY(a0, pz)], [SX(b1, pz), SY(a1, pz)], [SX(-b1, pz), SY(a1, pz)]], cRise);
+      seg([SX(-b1, pz), SY(a1, pz)], [SX(b1, pz), SY(a1, pz)], cTread, lw);
+    }
+  }
+
+  /* ============================================================ *
+   *  1. the glow the tribe keeps burning, and the ground shadow  *
+   * ============================================================ */
+  var gA = 0.09 + 0.11 * breath;
+  g.save();
+  g.translate(0, -40);
+  g.scale(1, 0.46);
+  var gg = g.createRadialGradient(0, 0, 5, 0, 0, 70);
+  gg.addColorStop(0, al(accC, gA));
+  gg.addColorStop(0.45, al(accC, gA * 0.40));
+  gg.addColorStop(1, al(accC, 0));
+  g.fillStyle = gg;
+  g.beginPath();
+  g.arc(0, 0, 70, 0, TAU);
+  g.fill();
+  g.restore();
+
+  g.fillStyle = 'rgba(0,0,0,0.20)';
+  g.beginPath();
+  g.ellipse(3, -6.4, 50, 13.5, 0, 0, TAU);
+  g.fill();
+  g.fillStyle = 'rgba(0,0,0,0.34)';
+  g.beginPath();
+  g.ellipse(1.5, -5.4, 41, 10, 0, 0, TAU);
+  g.fill();
+
+  /* ============================================================ *
+   *  2. the terrace — a battered retaining wall holding a hill    *
+   * ============================================================ */
+  var TWX = 29.5, TWB = 32, TPZ = 22, TH = 5;
+  var PWH = 4.0, PWT = 2.4;                        /* the low parapet         */
+  var GAP = 8.5;                                   /* the break for the stair */
+
+  /* right face first — it recedes into where the front face sits */
+  poly([[SX(TWX, -TPZ), SY(TH, -TPZ)], [SX(TWX, TPZ), SY(TH, TPZ)],
+        [SX(TWB, TPZ), SY(0, TPZ)], [SX(TWB, -TPZ), SY(0, -TPZ)]], stoneRt, seamC, lw);
+  /* the paved platform */
+  poly([[SX(-TWX, -TPZ), SY(TH, -TPZ)], [SX(TWX, -TPZ), SY(TH, -TPZ)],
+        [SX(TWX, TPZ), SY(TH, TPZ)], [SX(-TWX, TPZ), SY(TH, TPZ)]], stoneHi);
+  var pv;
+  for (pv = -1; pv <= 1; pv++) {
+    seg([SX(pv * 14, -TPZ + 1), SY(TH, -TPZ + 1)], [SX(pv * 14, TPZ - 1), SY(TH, TPZ - 1)], al(edgeC, 0.10), lw * 0.8);
+    seg([SX(-TWX + 1, pv * 12), SY(TH, pv * 12)], [SX(TWX - 1, pv * 12), SY(TH, pv * 12)], al(edgeC, 0.10), lw * 0.8);
+  }
+  /* front face, battered, with the flight cut into it */
+  poly([[SX(-TWX, -TPZ), SY(TH, -TPZ)], [SX(TWX, -TPZ), SY(TH, -TPZ)],
+        [SX(TWB, -TPZ), SY(0, -TPZ)], [SX(-TWB, -TPZ), SY(0, -TPZ)]], stoneFr, seamC, lw);
+  var cs;
+  for (cs = 1; cs <= 2; cs++) {
+    seg([SX(-TWB + cs * 0.6, -TPZ), SY(TH * cs / 3, -TPZ)], [SX(TWB - cs * 0.6, -TPZ), SY(TH * cs / 3, -TPZ)], al(edgeC, 0.16), lw * 0.8);
+  }
+  stair(-TPZ, GAP - 1.2, GAP - 3.4, 0, TH, 6, mix(stoneFr, edgeC, 0.30), al(wHi, 0.30));
+
+  /* far parapet: we see its inner face, so it goes down before the tower */
+  poly([[SX(-TWX, TPZ - PWT), SY(TH + PWH, TPZ - PWT)], [SX(TWX, TPZ - PWT), SY(TH + PWH, TPZ - PWT)],
+        [SX(TWX, TPZ - PWT), SY(TH, TPZ - PWT)], [SX(-TWX, TPZ - PWT), SY(TH, TPZ - PWT)]], mix(stoneFr, edgeC, 0.30));
+  poly([[SX(-TWX, TPZ - PWT), SY(TH + PWH, TPZ - PWT)], [SX(TWX, TPZ - PWT), SY(TH + PWH, TPZ - PWT)],
+        [SX(TWX, TPZ), SY(TH + PWH, TPZ)], [SX(-TWX, TPZ), SY(TH + PWH, TPZ)]], mix(stoneHi, accC, 0.10), seamC, lw);
+  /* left parapet, likewise inner face on */
+  poly([[SX(-TWX + PWT, -TPZ), SY(TH + PWH, -TPZ)], [SX(-TWX + PWT, TPZ), SY(TH + PWH, TPZ)],
+        [SX(-TWX + PWT, TPZ), SY(TH, TPZ)], [SX(-TWX + PWT, -TPZ), SY(TH, -TPZ)]], mix(stoneRt, edgeC, 0.10));
+  poly([[SX(-TWX, -TPZ), SY(TH + PWH, -TPZ)], [SX(-TWX + PWT, -TPZ), SY(TH + PWH, -TPZ)],
+        [SX(-TWX + PWT, TPZ), SY(TH + PWH, TPZ)], [SX(-TWX, TPZ), SY(TH + PWH, TPZ)]], mix(stoneHi, accC, 0.10), seamC, lw);
+
+  /* ============================================================ *
+   *  3. the plinth the pagoda stands on                          *
+   * ============================================================ */
+  var PR0 = 15;
+  poly([], null);
+  lid(PR0 + 0.9, 5.6, mix(stoneHi, darkC, 0.22));
+  drum(PR0 + 0.9, TH, 5.7, 0);                     /* base moulding           */
+  drum(PR0, 5.7, 10.4, 3);
+  drum(PR0 + 0.8, 10.4, 11, 0);                    /* cap moulding            */
+  lid(PR0 + 0.8, 11, mix(wHi, darkC, 0.16));
+  /* the approach from the platform up to the door */
+  stair(-0.92388 * (PR0 + 0.8) - 0.4, 5.6, 4.2, TH, 11, 5, mix(stoneFr, edgeC, 0.22), al(wHi, 0.28));
+
+  /* ============================================================ *
+   *  4. seven storeys                                            *
+   * ============================================================ */
+  /* pitch, radius, overhang, lamp lit in the front niche */
+  var ST = [
+    [9.2, 12.6, 3.60, 1],
+    [8.4, 11.6, 3.40, 0],
+    [7.8, 10.6, 3.20, 1],
+    [7.2, 9.70, 3.00, 0],
+    [6.7, 8.80, 2.85, 1],
+    [6.4, 8.00, 2.70, 0],
+    [6.3, 7.20, 2.55, 1]
+  ];
+  var hb = 11, i, st, r0, rE, hTop, drop, ft, litA, wallH, nx;
+  for (i = 0; i < 7; i++) {
+    st = ST[i];
+    r0 = st[1];
+    hTop = hb + st[0];
+    rE = r0 + st[2];
+    drop = st[2] * 0.20;
+    ft = 1.15 - i * 0.06;
+    wallH = st[0];
+    litA = st[3] ? (0.34 + 0.30 * breath) : 0;
+
+    drum(r0, hb, hTop, i < 4 ? 3 : 2);
+
+    if (i === 0) {
+      /* the door, and a slit either side of it */
+      niche(5, r0, 0.32, 0.68, hb, hb + wallH * 0.44, wallH * 0.16, 0.10 + 0.14 * breath);
+      niche(4, r0, 0.36, 0.60, hb + wallH * 0.30, hb + wallH * 0.56, wallH * 0.10, 0);
+      niche(6, r0, 0.40, 0.64, hb + wallH * 0.30, hb + wallH * 0.56, wallH * 0.10, litA * 0.5);
+    } else {
+      niche(5, r0, 0.36, 0.64, hb + wallH * 0.16, hb + wallH * 0.50, wallH * 0.13, litA);
+      if (i < 5) {
+        niche(4, r0, 0.38, 0.60, hb + wallH * 0.20, hb + wallH * 0.46, wallH * 0.10, litA ? 0 : 0.08 + 0.12 * breath);
+        niche(6, r0, 0.40, 0.62, hb + wallH * 0.20, hb + wallH * 0.46, wallH * 0.10, 0);
+      }
+    }
+
+    /* the walkway ring left exposed by the storey above stepping in */
+    nx = (i < 6) ? ST[i + 1][1] : 4.2;
+    lid(r0, hTop, mix(wHi, darkC, 0.14 + 0.05 * i));
+
+    eaveShade(r0, rE, hTop, hb, drop, ft);
+    eaveRoof(r0, rE, hTop, drop, ft);
+
+    /* two tribe banners, hung at the first eave only, stirring on ph */
+    if (i === 0) {
+      var bh = hTop - drop - ft, bl = 6.5, bi, bu, aT, sw, bx0, bx1;
+      for (bi = 0; bi < 2; bi++) {
+        bu = bi ? 0.83 : 0.17;
+        aT = fpt(5, rE, bu, bh);
+        sw = 0.55 * Math.sin(p * TAU + bi * 1.9);
+        bx0 = aT[0] - 1.15; bx1 = aT[0] + 1.15;
+        poly([[bx0, aT[1]], [bx1, aT[1]], [bx1 + sw, aT[1] + bl], [aT[0] + sw, aT[1] + bl - 1.5], [bx0 + sw, aT[1] + bl]], baseC);
+        poly([[aT[0], aT[1]], [bx1, aT[1]], [bx1 + sw, aT[1] + bl], [aT[0] + sw, aT[1] + bl - 1.5]], mix(baseC, darkC, 0.45));
+        seg([bx0 - 0.5, aT[1]], [bx1 + 0.5, aT[1]], al(edgeC, 0.8), lw);
+      }
+    }
+    hb = hTop;
+  }
+
+  /* ============================================================ *
+   *  5. the finial                                               *
+   * ============================================================ */
+  var fh = hb;                                     /* 63                       */
+  drum(4.2, fh, fh + 3.2, 0);
+  lid(4.2, fh + 3.2, mix(wHi, darkC, 0.10));
+
+  /* the bell — a turned surface, so it gets a sweep, not facets */
+  var dBot = SY(fh + 3.2, 0), dTop = SY(fh + 6.8, 0);
+  var dg = g.createLinearGradient(-4.6, 0, 4.6, 0);
+  dg.addColorStop(0, mix(wHi, '#ffffff', 0.12));
+  dg.addColorStop(0.42, wHi);
+  dg.addColorStop(1, mix(wLo, wHi, 0.25));
+  g.beginPath();
+  g.moveTo(-4.6, dBot);
+  g.bezierCurveTo(-4.7, dBot - 2.4, -3.1, dTop + 0.6, -1.1, dTop);
+  g.lineTo(1.1, dTop);
+  g.bezierCurveTo(3.1, dTop + 0.6, 4.7, dBot - 2.4, 4.6, dBot);
+  g.closePath();
+  g.fillStyle = dg;
+  g.fill();
+  g.strokeStyle = al(edgeC, 0.35);
+  g.lineWidth = lw;
+  g.stroke();
+  /* the bell's own contact shadow where it meets the drum */
+  g.fillStyle = 'rgba(0,0,0,0.22)';
+  g.beginPath();
+  g.ellipse(0, dBot - 0.3, 4.5, 1.35, 0, 0, TAU);
+  g.fill();
+
+  /* the rings on the mast: each is a lit disc over a dark rim */
+  var mastY = SY(fh + 6.8, 0), tipY = SY(fh + 8.5, 0);
+  seg([0, mastY + 0.4], [0, tipY], mix(tHi, wHi, 0.3), Math.max(lw, 0.6));
+  var RG = [[fh + 6.9, 2.3], [fh + 7.45, 1.8], [fh + 7.95, 1.35]];
+  var rgI, ry, ryY;
+  for (rgI = 0; rgI < 3; rgI++) {
+    ry = RG[rgI][1];
+    ryY = SY(RG[rgI][0], 0);
+    g.fillStyle = mix(tLo, tHi, 0.25);
+    g.beginPath();
+    g.ellipse(0, ryY + 0.42, ry, ry * KY, 0, 0, TAU);
+    g.fill();
+    g.fillStyle = mix(tHi, accC, 0.28);
+    g.beginPath();
+    g.ellipse(0, ryY, ry, ry * KY, 0, 0, TAU);
+    g.fill();
+  }
+  /* the bead, and the one light that carries at any size */
+  var bgd = g.createRadialGradient(0, tipY - 0.6, 0, 0, tipY - 0.6, 7);
+  bgd.addColorStop(0, al(accC, 0.34 + 0.22 * breath));
+  bgd.addColorStop(1, al(accC, 0));
+  g.fillStyle = bgd;
+  g.beginPath();
+  g.arc(0, tipY - 0.6, 7, 0, TAU);
+  g.fill();
+  g.fillStyle = mix(accC, '#ffffff', 0.35);
+  g.beginPath();
+  g.arc(0, tipY - 0.6, 1.05, 0, TAU);
+  g.fill();
+
+  /* ============================================================ *
+   *  6. the censer on the terrace, and its one thread of smoke   *
+   * ============================================================ */
+  var cx = SX(-21, -13), cy = SY(TH, -13);
+  g.fillStyle = 'rgba(0,0,0,0.30)';
+  g.beginPath();
+  g.ellipse(cx + 0.6, cy - 0.3, 3.6, 1.15, 0, 0, TAU);
+  g.fill();
+  poly([[cx - 2.5, cy - 0.6], [cx + 2.5, cy - 0.6], [cx + 1.9, cy - 3.2], [cx - 1.9, cy - 3.2]], mix(stoneRt, edgeC, 0.25));
+  poly([[cx - 2.5, cy - 0.6], [cx - 0.6, cy - 0.6], [cx - 0.9, cy - 3.2], [cx - 1.9, cy - 3.2]], mix(stoneFr, darkC, 0.20));
+  g.fillStyle = mix(stoneHi, accC, 0.20);
+  g.beginPath();
+  g.ellipse(cx, cy - 3.2, 2.0, 0.72, 0, 0, TAU);
+  g.fill();
+  g.fillStyle = al(mix(accC, '#ffffff', 0.2), 0.22 + 0.20 * breath);
+  g.beginPath();
+  g.ellipse(cx, cy - 3.3, 1.25, 0.44, 0, 0, TAU);
+  g.fill();
+
+  var smk = g.createLinearGradient(0, cy - 4, 0, cy - 17);
+  smk.addColorStop(0, al(accC, 0.26));
+  smk.addColorStop(0.45, al(accC, 0.13));
+  smk.addColorStop(1, al(accC, 0));
+  g.strokeStyle = smk;
+  g.lineWidth = Math.max(lw, 0.75);
+  g.lineCap = 'round';
+  g.beginPath();
+  g.moveTo(cx, cy - 4);
+  var sm, st2, sxo;
+  for (sm = 1; sm <= 12; sm++) {
+    st2 = sm / 12;
+    sxo = 2.6 * st2 * Math.sin(p * TAU + st2 * 3.1);
+    g.lineTo(cx + sxo, cy - 4 - 13 * st2);
+  }
+  g.stroke();
+  g.lineCap = 'butt';
+
+  /* ============================================================ *
+   *  7. the near parapet, last, so it stands in front of it all  *
+   * ============================================================ */
+  var fp;
+  for (fp = 0; fp < 2; fp++) {
+    var x0 = fp ? GAP : -TWX, x1 = fp ? TWX : -GAP;
+    poly([[SX(x0, -TPZ), SY(TH + PWH, -TPZ)], [SX(x1, -TPZ), SY(TH + PWH, -TPZ)],
+          [SX(x1, -TPZ), SY(TH, -TPZ)], [SX(x0, -TPZ), SY(TH, -TPZ)]], mix(stoneFr, darkC, 0.10), seamC, lw);
+    poly([[SX(x0, -TPZ), SY(TH + PWH, -TPZ)], [SX(x1, -TPZ), SY(TH + PWH, -TPZ)],
+          [SX(x1, -TPZ + PWT), SY(TH + PWH, -TPZ + PWT)], [SX(x0, -TPZ + PWT), SY(TH + PWH, -TPZ + PWT)]],
+         mix(stoneHi, accC, 0.14), seamC, lw);
+    seg([SX(x0, -TPZ), SY(TH + PWH, -TPZ)], [SX(x1, -TPZ), SY(TH + PWH, -TPZ)], al(wHi, 0.30), lw);
+    /* a course of coping joints, so the wall is cut stone and not a ribbon */
+    var cj;
+    for (cj = x0 + 5; cj < x1 - 2; cj += 6.5) {
+      seg([SX(cj, -TPZ), SY(TH + PWH, -TPZ)], [SX(cj, -TPZ), SY(TH + 0.6, -TPZ)], al(edgeC, 0.22), lw * 0.8);
+    }
+  }
+  /* right parapet: its outer face is the darkest plane on the terrace */
+  poly([[SX(TWX, -TPZ), SY(TH + PWH, -TPZ)], [SX(TWX, TPZ), SY(TH + PWH, TPZ)],
+        [SX(TWX, TPZ), SY(TH, TPZ)], [SX(TWX, -TPZ), SY(TH, -TPZ)]], stoneRt, seamC, lw);
+  poly([[SX(TWX, -TPZ), SY(TH + PWH, -TPZ)], [SX(TWX, TPZ), SY(TH + PWH, TPZ)],
+        [SX(TWX - PWT, TPZ), SY(TH + PWH, TPZ)], [SX(TWX - PWT, -TPZ), SY(TH + PWH, -TPZ)]],
+       mix(stoneHi, darkC, 0.12), seamC, lw);
+
+  g.restore();
+}
+
+/* =============================================================================
+   drawGateTower3D — the city gate tower of Chang'an (城楼).
+
+   Two things have to carry this at a glance, because it stands on the one
+   theatre that is actually being fought over: the MASS of the rammed-earth gate
+   platform, and against it the LIGHTNESS of the timber pavilion standing on top
+   of it. Everything else — the batter on the walls, the dark barrel-vaulted
+   mouth, the two sweeping tiled hip roofs — exists to make that one contrast
+   read at 60px as well as at 720px.
+
+   House rules, same as every other solid on this field:
+     · (x,y) is the ground UNDER the building; everything is drawn in -y and
+       scaled by s.
+     · one lamp, up and to the LEFT. Top faces lightest, front faces mid, right
+       faces and undersides darkest. Depth recedes to the upper right, so the
+       right side of every box is the one that shows and the one that is dark.
+     · nothing rotates — a turned solid takes its shading with it and the volume
+       dies. Mirrored shapes are written with the sign in the path.
+     · a flattened ground shadow goes down before the building does.
+     · colour comes from pal only; the greys here are structural, not a team.
+     · no random numbers anywhere: variation is a fixed table, and the only
+       movement is ph — it stirs the two banners and breathes the lamps in the
+       gate mouth and the upper windows. The building itself is dead still.
+============================================================================= */
+function drawGateTower3D(g, x, y, s, pal, ph){
+  g.save();
+
+  var TAU = Math.PI * 2;
+  var P     = pal || {};
+  var BASE  = P.base   || '#6b6d7c';
+  var LIGHT = P.light  || '#a8aab8';
+  var DARK  = P.dark   || '#3a3a44';
+  var EDGE  = P.edge   || '#0b0b11';
+  var ACC   = P.accent || '#e9e9f2';
+
+  var p = (typeof ph === 'number' && isFinite(ph)) ? ph - Math.floor(ph) : 0;
+  var breath = 0.5 - 0.5 * Math.cos(p * TAU);      /* 0..1, one slow beat */
+
+  /* ---------------------------- colour ---------------------------------- */
+  function chan(c){
+    if (typeof c !== 'string') return null;
+    var t = c.replace(/\s/g, ''), v;
+    if (t.charAt(0) === '#'){
+      if (t.length === 4) v = [parseInt(t.charAt(1) + t.charAt(1), 16), parseInt(t.charAt(2) + t.charAt(2), 16), parseInt(t.charAt(3) + t.charAt(3), 16)];
+      else if (t.length === 7) v = [parseInt(t.substr(1, 2), 16), parseInt(t.substr(3, 2), 16), parseInt(t.substr(5, 2), 16)];
+      else return null;
+    } else {
+      var m = t.match(/-?[0-9.]+/g);
+      if (!m || m.length < 3) return null;
+      v = [+m[0], +m[1], +m[2]];
+    }
+    if (isNaN(v[0]) || isNaN(v[1]) || isNaN(v[2])) return null;
+    return v;
+  }
+  function mix(a, b, t){
+    var A = chan(a), B = chan(b);
+    if (!A || !B) return a;
+    return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' + Math.round(A[1] + (B[1] - A[1]) * t) + ',' + Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+  }
+  function al(c, a){
+    var A = chan(c);
+    if (!A) return c;
+    if (!(a > 0)) a = 0;
+    if (a > 1) a = 1;
+    return 'rgba(' + Math.round(A[0]) + ',' + Math.round(A[1]) + ',' + Math.round(A[2]) + ',' + (Math.round(a * 1000) / 1000) + ')';
+  }
+
+  /* structural greys — masonry and tile are not team-coloured cloth, they only
+     carry the tribe's hue; mixing toward these keeps them from going candy */
+  var GY_D = '#1c1c22', GY_M = '#33333c', GY_L = '#50505c';
+
+  var earthF = mix(mix(BASE, EDGE, 0.62), GY_M, 0.44);   /* platform, front  */
+  var earthT = mix(mix(BASE, LIGHT, 0.40), GY_L, 0.36);  /* platform, top    */
+  var earthR = mix(mix(DARK, EDGE, 0.44), GY_D, 0.44);   /* platform, right  */
+  var stone  = mix(earthT, GY_L, 0.30);                  /* copings, voussoirs */
+  var stoneD = mix(stone, EDGE, 0.42);
+  var woodF  = mix(BASE, DARK, 0.26);                    /* columns, front   */
+  var woodL  = mix(BASE, LIGHT, 0.44);                   /* lit timber tops  */
+  var woodD  = mix(DARK, EDGE, 0.30);                    /* timber, right    */
+  var bayC   = mix(EDGE, DARK, 0.26);                    /* recessed wall    */
+  var tileL  = mix(mix(LIGHT, BASE, 0.5), '#70707d', 0.52);
+  var tileM  = mix(mix(BASE, DARK, 0.55), '#3c3c46', 0.5);
+  var tileD  = mix(mix(DARK, EDGE, 0.5), '#1a1a21', 0.5);
+  var seam   = al(EDGE, 0.6);
+  var rim    = al(LIGHT, 0.32);
+
+  /* ---------------------------- setup ----------------------------------- */
+  g.translate(x, y);
+  g.scale(s, s);
+  var sc = (s > 0.001 || s < -0.001) ? Math.abs(s) : 0.001;
+  var lw = 1 / sc;
+  if (lw > 1.5) lw = 1.5;
+  if (lw < 0.4) lw = 0.4;
+  g.lineJoin = 'round';
+  g.lineCap = 'butt';
+  g.lineWidth = lw;
+
+  function poly(q, f, st, w){
+    g.beginPath();
+    g.moveTo(q[0], q[1]);
+    for (var i = 2; i < q.length; i += 2) g.lineTo(q[i], q[i + 1]);
+    g.closePath();
+    if (f){ g.fillStyle = f; g.fill(); }
+    if (st){ g.strokeStyle = st; g.lineWidth = w || lw; g.stroke(); }
+  }
+  function ln(x1, y1, x2, y2, c, w){
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2);
+    g.strokeStyle = c; g.lineWidth = w || lw; g.stroke();
+  }
+  /* a solid: receding right face, lit top, mid front, light down the left arris */
+  function box(x0, yb, w, h, d, cF, cT, cR){
+    var x1 = x0 + w, yt = yb - h, dy = -d * 0.55;
+    poly([x1, yt, x1 + d, yt + dy, x1 + d, yb + dy, x1, yb], cR, seam);
+    poly([x0, yt, x1, yt, x1 + d, yt + dy, x0 + d, yt + dy], cT, seam);
+    poly([x0, yt, x1, yt, x1, yb, x0, yb], cF, seam);
+    ln(x0 + 0.4, yt + 0.6, x0 + 0.4, yb, rim);
+  }
+
+  /* ================= 0. the tribe is in it — a slow glow behind =========== */
+  g.save();
+  g.translate(6, -30);
+  g.scale(1, 0.44);
+  var gg = g.createRadialGradient(0, 0, 5, 0, 0, 72);
+  var ga = 0.085 + 0.105 * breath;
+  gg.addColorStop(0, al(ACC, ga));
+  gg.addColorStop(0.45, al(ACC, ga * 0.40));
+  gg.addColorStop(1, al(ACC, 0));
+  g.fillStyle = gg;
+  g.beginPath(); g.arc(0, 0, 72, 0, TAU); g.fill();
+  g.restore();
+
+  /* ================= 1. ground shadow ==================================== */
+  g.fillStyle = 'rgba(0,0,0,.18)';
+  g.beginPath(); g.ellipse(6, -2.6, 54, 13.2, 0, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.35)';
+  g.beginPath(); g.ellipse(2, -1.7, 44, 9.2, 0, 0, TAU); g.fill();
+
+  /* ================= 2. the gate platform (城台) ==========================
+     Battered: 80 wide on the ground, 73 at the walkway. The taper is the whole
+     reason it reads as earth rammed between boards rather than a wall. */
+  var HB = 40, HT = 36.5, PH0 = 22, D1 = 10.5, DY1 = -5.8;
+  function pwid(yy){
+    var f = -yy / PH0;
+    if (f < 0) f = 0; if (f > 1) f = 1;
+    return HB + (HT - HB) * f;
+  }
+  function faceFront(){
+    g.beginPath();
+    g.moveTo(-HB, 0); g.lineTo(HB, 0); g.lineTo(HT, -PH0); g.lineTo(-HT, -PH0);
+    g.closePath();
+  }
+
+  /* right cheek — recedes, so it is the darkest plane on the building */
+  poly([HB, 0, HB + D1, DY1, HT + D1, -PH0 + DY1, HT, -PH0], earthR, seam);
+  /* the walkway on top — the lit plane */
+  poly([-HT, -PH0, HT, -PH0, HT + D1, -PH0 + DY1, -HT + D1, -PH0 + DY1], earthT, seam);
+  ln(-HT, -PH0, HT, -PH0, al(EDGE, 0.45));
+
+  /* front face + the light falling down it */
+  faceFront();
+  g.fillStyle = earthF; g.fill();
+  var fg = g.createLinearGradient(-HB, -PH0, HB, 0);
+  fg.addColorStop(0, 'rgba(255,255,255,.085)');
+  fg.addColorStop(0.5, 'rgba(0,0,0,0)');
+  fg.addColorStop(1, 'rgba(0,0,0,.24)');
+  faceFront(); g.fillStyle = fg; g.fill();
+
+  /* courses and the staggered joints between them — texture from structure */
+  g.save();
+  faceFront(); g.clip();
+  var TICK = [-0.80, -0.53, -0.27, 0, 0.27, 0.53, 0.80];
+  for (var ci = 1; ci < 9; ci++){
+    var cy = -PH0 * ci / 9, cw = pwid(cy);
+    ln(-cw + 1, cy, cw - 1, cy, 'rgba(0,0,0,.17)');
+    ln(-cw + 1, cy + 0.55, cw - 1, cy + 0.55, al(LIGHT, 0.055));
+    if (ci % 2 === 0) continue;
+    for (var ti = 0; ti < TICK.length; ti++){
+      var tx = TICK[ti] * cw + (ci % 4 === 1 ? 3.4 : -3.4);
+      if (tx > -13 && tx < 13 && cy > -18) continue;      /* keep off the arch */
+      ln(tx, cy, tx, cy + PH0 / 9 - 0.4, 'rgba(0,0,0,.13)');
+    }
+  }
+  /* footing course, and a coping course under the walkway */
+  g.fillStyle = al(EDGE, 0.30);
+  g.fillRect(-HB - 2, -4.8, (HB + 2) * 2, 4.8);
+  g.fillStyle = al(stone, 0.30);
+  g.fillRect(-HB - 2, -PH0, (HB + 2) * 2, 2.4);
+  g.restore();
+  ln(-HB + 1.5, -4.8, HB - 1.5, -4.8, al(LIGHT, 0.16));
+  ln(-HT + 1, -PH0 + 2.4, HT - 1, -PH0 + 2.4, al(EDGE, 0.5));
+  /* the left arris, where the lamp catches the corner */
+  ln(-HB + 0.5, -0.6, -HT + 0.5, -PH0, al(LIGHT, 0.24), Math.max(lw, 0.9));
+
+  /* ================= 3. the barrel-vaulted mouth ========================= */
+  var AR = 7.5, ASP = -7, RING = 2.9;
+  function archPath(r, sp, ox, oy){
+    ox = ox || 0; oy = oy || 0;
+    g.beginPath();
+    g.moveTo(ox - r, oy);
+    g.lineTo(ox - r, sp + oy);
+    g.arc(ox, sp + oy, r, Math.PI, 0, false);
+    g.lineTo(ox + r, oy);
+    g.closePath();
+  }
+  /* voussoir ring */
+  archPath(AR + RING, ASP);
+  g.fillStyle = stone; g.fill();
+  g.strokeStyle = seam; g.lineWidth = lw; g.stroke();
+  var vg = g.createLinearGradient(-AR - RING, ASP - AR, AR + RING, 0);
+  vg.addColorStop(0, 'rgba(255,255,255,.10)');
+  vg.addColorStop(1, 'rgba(0,0,0,.26)');
+  archPath(AR + RING, ASP); g.fillStyle = vg; g.fill();
+  for (var vi = 0; vi <= 8; vi++){
+    var va = Math.PI + vi * Math.PI / 8, cs = Math.cos(va), sn = Math.sin(va);
+    ln(AR * cs, ASP + AR * sn, (AR + RING) * cs, ASP + (AR + RING) * sn, al(EDGE, 0.42));
+  }
+  ln(-AR - RING, ASP, -AR - RING, 0, al(EDGE, 0.42));
+  ln(AR + RING, ASP, AR + RING, 0, al(EDGE, 0.42));
+  /* keystone */
+  poly([-2.2, ASP - AR, 2.2, ASP - AR, 2.9, ASP - AR - RING, -2.9, ASP - AR - RING], mix(stone, LIGHT, 0.12), seam);
+
+  /* the mouth itself: dark, with the vault running away up-right */
+  g.save();
+  archPath(AR, ASP); g.clip();
+  var tg = g.createLinearGradient(-AR, ASP - AR, AR, 0);
+  tg.addColorStop(0, mix(GY_M, EDGE, 0.42));
+  tg.addColorStop(0.55, mix(GY_D, EDGE, 0.55));
+  tg.addColorStop(1, mix(GY_D, EDGE, 0.80));
+  archPath(AR, ASP); g.fillStyle = tg; g.fill();
+  archPath(AR - 1.3, ASP + 1.0, 5.4, -3.2);
+  g.fillStyle = 'rgba(4,4,8,.95)'; g.fill();
+  /* torchlight standing on the road under the vault */
+  var lg = g.createRadialGradient(1.6, -1.2, 0, 1.6, -1.2, 13);
+  lg.addColorStop(0, al(ACC, 0.30 + 0.24 * breath));
+  lg.addColorStop(0.55, al(ACC, 0.09 + 0.09 * breath));
+  lg.addColorStop(1, al(ACC, 0));
+  g.fillStyle = lg;
+  g.fillRect(-AR, ASP - AR, AR * 2, -(ASP - AR) + 1);
+  g.restore();
+  archPath(AR, ASP);
+  g.strokeStyle = al(EDGE, 0.85); g.lineWidth = lw; g.stroke();
+
+  /* ================= 4. the name board over the gate ===================== */
+  var plT = -20.4, plB = -17.4, plW = 10.5;
+  poly([-plW, plT, plW, plT, plW + 1.6, plT - 0.9, -plW + 1.6, plT - 0.9], mix(stone, LIGHT, 0.22), seam);
+  poly([plW, plT, plW + 1.6, plT - 0.9, plW + 1.6, plB - 0.9, plW, plB], stoneD, seam);
+  poly([-plW, plT, plW, plT, plW, plB, -plW, plB], mix(stone, EDGE, 0.18), seam);
+  poly([-plW + 1.1, plT + 0.9, plW - 1.1, plT + 0.9, plW - 1.1, plB - 0.9, -plW + 1.1, plB - 0.9], null, al(EDGE, 0.45));
+  ln(-plW + 0.4, plT + 0.5, -plW + 0.4, plB, al(LIGHT, 0.22));
+
+  /* ================= 5. shadow of the pavilion on the walkway ============ */
+  poly([-16.5, -PH0 - 2.2, 26, -PH0 - 2.2, 30, -PH0 - 4.2, -13, -PH0 - 4.2], 'rgba(0,0,0,.26)');
+
+  /* ================= 6. lower storey (下层): dark bays, round columns ===== */
+  var TL = -16, TR = 24, TB = -26, TT = -38, TD = 7.5, TDY = -4.1;
+  poly([TR, TT, TR + TD, TT + TDY, TR + TD, TB + TDY, TR, TB], woodD, seam);
+  poly([TL, TT, TR, TT, TR, TB, TL, TB], bayC, seam);
+  /* stone base the timber stands on */
+  poly([TL - 1.6, TB, TR + 1.6, TB, TR + 1.6, TB - 2.6, TL - 1.6, TB - 2.6], stone, seam);
+  ln(TL - 1.6, TB - 2.6, TR + 1.6, TB - 2.6, al(LIGHT, 0.26));
+
+  var CN = 6, colW = 2.9, run = (TR - TL) - 4.4 - colW;
+  function colX(i){ return TL + 2.2 + run * i / (CN - 1); }
+  /* bays first, so the columns sit in front of them */
+  for (var bi = 0; bi < CN - 1; bi++){
+    var b0 = colX(bi) + colW, b1 = colX(bi + 1);
+    if (bi === 2){
+      /* the way in — dark, with the same light as the gate below leaking out */
+      poly([b0 + 0.6, -28.6, b1 - 0.6, -28.6, b1 - 0.6, -35.6, b0 + 0.6, -35.6], 'rgba(5,5,9,.94)', al(EDGE, 0.8));
+      var dg2 = g.createLinearGradient(0, -28.6, 0, -34);
+      dg2.addColorStop(0, al(ACC, 0.30 + 0.20 * breath));
+      dg2.addColorStop(1, al(ACC, 0));
+      poly([b0 + 1.4, -28.6, b1 - 1.4, -28.6, b1 - 1.4, -34, b0 + 1.4, -34], dg2);
+      continue;
+    }
+    /* lattice screen: a grid, not an outline */
+    poly([b0 + 0.6, -30.2, b1 - 0.6, -30.2, b1 - 0.6, -36.4, b0 + 0.6, -36.4], mix(EDGE, DARK, 0.12));
+    var lw2 = Math.max(lw * 0.85, 0.4);
+    for (var li = 1; li < 3; li++) ln(b0 + 0.6 + (b1 - b0 - 1.2) * li / 3, -30.4, b0 + 0.6 + (b1 - b0 - 1.2) * li / 3, -36.2, al(woodF, 0.42), lw2);
+    ln(b0 + 0.8, -32.3, b1 - 0.8, -32.3, al(woodF, 0.42), lw2);
+    ln(b0 + 0.8, -34.3, b1 - 0.8, -34.3, al(woodF, 0.42), lw2);
+    poly([b0 + 0.6, -30.2, b1 - 0.6, -30.2, b1 - 0.6, -36.4, b0 + 0.6, -36.4], null, al(EDGE, 0.7));
+  }
+  /* columns — each one round, so it runs light on the left to dark on the right */
+  for (var xi = 0; xi < CN; xi++){
+    var cx0 = colX(xi);
+    var cgr = g.createLinearGradient(cx0, 0, cx0 + colW, 0);
+    cgr.addColorStop(0, mix(BASE, LIGHT, 0.24));
+    cgr.addColorStop(0.34, woodF);
+    cgr.addColorStop(1, woodD);
+    poly([cx0, -28.6, cx0 + colW, -28.6, cx0 + colW, TT, cx0, TT], cgr);
+    ln(cx0 + 0.35, -29, cx0 + 0.35, TT + 0.4, al(LIGHT, 0.3));
+    /* plinth stone under each column */
+    poly([cx0 - 0.7, -28.6, cx0 + colW + 0.7, -28.6, cx0 + colW + 0.7, -29.9, cx0 - 0.7, -29.9], stoneD, seam);
+  }
+
+  /* ================= 7. bracket sets (斗栱) under each eave =============== */
+  function brackets(x0, x1, yb, h, d){
+    var dy = -d * 0.55;
+    poly([x1, yb - h, x1 + d, yb - h + dy, x1 + d, yb + dy, x1, yb], woodD, seam);
+    poly([x0, yb, x1, yb, x1, yb - h, x0, yb - h], mix(bayC, EDGE, 0.25));
+    /* architrave under the blocks */
+    poly([x0, yb, x1, yb, x1, yb - 1.5, x0, yb - 1.5], woodF, seam);
+    ln(x0, yb - 1.5, x1, yb - 1.5, al(LIGHT, 0.24));
+    var n = Math.round((x1 - x0) / 6.2), bw = 3.4;
+    if (n < 3) n = 3;
+    for (var k = 0; k <= n; k++){
+      var bx = x0 + (x1 - x0) * k / n - bw / 2;
+      if (bx < x0 + 0.3) bx = x0 + 0.3;
+      if (bx + bw > x1 - 0.3) bx = x1 - 0.3 - bw;
+      poly([bx, yb - 1.5, bx + bw, yb - 1.5, bx + bw, yb - h + 1.1, bx, yb - h + 1.1], woodF);
+      ln(bx + 0.3, yb - 1.8, bx + 0.3, yb - h + 1.3, al(LIGHT, 0.3));
+      ln(bx + bw - 0.3, yb - 1.8, bx + bw - 0.3, yb - h + 1.3, al(EDGE, 0.5));
+    }
+    /* the plate the rafters land on */
+    poly([x0 - 0.8, yb - h + 1.1, x1 + 0.8, yb - h + 1.1, x1 + 0.8, yb - h, x0 - 0.8, yb - h], woodL, seam);
+  }
+  brackets(TL - 2, TR + 2, -38, 3.2, TD);
+
+  /* ================= 8. the roofs ======================================== */
+  /* the eave is a curve, not a line: nearly flat at the middle and lifting hard
+     into the last fifth. That lift is the whole signature of the building. */
+  function eaveY(u, yE, lift){
+    var a = u < 0 ? -u : u;
+    return yE - lift * a * a * a;
+  }
+  function eaveTrace(cx, hw, yE, lift, u0, u1, n, off){
+    for (var i = 0; i <= n; i++){
+      var u = u0 + (u1 - u0) * i / n;
+      g.lineTo(cx + u * hw, eaveY(u, yE, lift) + (off || 0));
+    }
+  }
+  /* the flying corner (翼角): a horn off the eave tip, out and up */
+  function tipHorn(px, py, dir, col){
+    g.beginPath();
+    g.moveTo(px - dir * 2.4, py - 0.4);
+    g.quadraticCurveTo(px + dir * 2.6, py - 1.0, px + dir * 5.0, py - 4.0);
+    g.quadraticCurveTo(px + dir * 3.0, py + 0.6, px - dir * 2.0, py + 2.6);
+    g.closePath();
+    g.fillStyle = col; g.fill();
+    g.strokeStyle = seam; g.lineWidth = lw; g.stroke();
+  }
+  /* one hip roof. yT is the ridge (or, on the skirt, where it dies into the
+     upper wall); dep is how far the far slope recedes — always less than the
+     rise, so the back of the roof stays hidden behind its own ridge. */
+  function roof(cx, yE, hw, hr, yT, lift, dep, ridge){
+    var dpy = -dep * 0.55;
+    var tipL = eaveY(-1, yE, lift), tipR = eaveY(1, yE, lift);
+
+    /* right end slope — turned away from the lamp, and it recedes, so first */
+    poly([cx + hw, tipR, cx + hw + dep, tipR + dpy, cx + hr, yT], tileD, seam);
+
+    /* front slope */
+    g.beginPath();
+    g.moveTo(cx - hw, tipL);
+    eaveTrace(cx, hw, yE, lift, -1, 1, 28);
+    g.lineTo(cx + hr, yT);
+    g.lineTo(cx - hr, yT);
+    g.closePath();
+    var rg = g.createLinearGradient(cx - hw, yT, cx + hw, yE);
+    rg.addColorStop(0, tileL);
+    rg.addColorStop(0.42, tileM);
+    rg.addColorStop(1, mix(tileM, tileD, 0.75));
+    g.fillStyle = rg; g.fill();
+
+    /* tile runs: they fan from the ridge to the eave, so they carry the sweep */
+    g.save();
+    g.beginPath();
+    g.moveTo(cx - hw, tipL);
+    eaveTrace(cx, hw, yE, lift, -1, 1, 28);
+    g.lineTo(cx + hr, yT);
+    g.lineTo(cx - hr, yT);
+    g.closePath();
+    g.clip();
+    for (var k = 1; k < 13; k++){
+      var f = k / 13, uu = -1 + 2 * f;
+      var xa = cx - hr + 2 * hr * f, xb = cx + uu * hw, yb2 = eaveY(uu, yE, lift);
+      ln(xa, yT, xb, yb2, 'rgba(0,0,0,.20)');
+      ln(xa + 0.55, yT, xb + 0.55, yb2, al(LIGHT, 0.09));
+    }
+    g.restore();
+
+    /* eave band: the cut ends of the tiles, turned down and away from the lamp */
+    g.beginPath();
+    g.moveTo(cx - hw, tipL);
+    eaveTrace(cx, hw, yE, lift, -1, 1, 28);
+    eaveTrace(cx, hw, yE, lift, 1, -1, 28, 2.5);
+    g.closePath();
+    var eg = g.createLinearGradient(cx - hw, 0, cx + hw, 0);
+    eg.addColorStop(0, mix(tileM, tileL, 0.30));
+    eg.addColorStop(1, mix(tileD, tileM, 0.20));
+    g.fillStyle = eg; g.fill();
+    g.strokeStyle = seam; g.lineWidth = lw; g.stroke();
+
+    /* hip ridges, down from the ridge ends to the flying corners */
+    ln(cx - hr, yT, cx - hw, tipL + 1.2, mix(tileL, LIGHT, 0.22), Math.max(lw, 1.5));
+    ln(cx + hr, yT, cx + hw, tipR + 1.2, mix(tileM, tileD, 0.45), Math.max(lw, 1.5));
+
+    tipHorn(cx - hw, tipL + 0.6, -1, mix(tileL, LIGHT, 0.15));
+    tipHorn(cx + hw, tipR + 0.6, 1, mix(tileM, tileD, 0.35));
+
+    if (ridge){
+      var rh = 2.8, rx0 = cx - hr - 2.2, rx1 = cx + hr + 2.2;
+      poly([rx1, yT - rh, rx1 + 3, yT - rh - 1.6, rx1 + 3, yT - 1.6, rx1, yT], tileD, seam);
+      poly([rx0, yT, rx1, yT, rx1 + 3, yT - 1.6, rx0 + 3, yT - 1.6], mix(tileL, LIGHT, 0.10), seam);
+      poly([rx0, yT, rx1, yT, rx1, yT - rh, rx0, yT - rh], mix(tileM, tileL, 0.40), seam);
+      ln(rx0 + 0.4, yT - rh + 0.6, rx1 - 0.4, yT - rh + 0.6, al(LIGHT, 0.34));
+      /* the two owl-tails on the ends of the ridge, mirrored by sign only */
+      for (var oi = 0; oi < 2; oi++){
+        var dr = oi ? 1 : -1, ox = oi ? rx1 : rx0;
+        g.beginPath();
+        g.moveTo(ox, yT - rh + 0.6);
+        g.quadraticCurveTo(ox - dr * 1.3, yT - rh - 2.9, ox + dr * 2.6, yT - rh - 3.9);
+        g.quadraticCurveTo(ox + dr * 1.0, yT - rh - 1.5, ox + dr * 2.2, yT - rh + 0.9);
+        g.closePath();
+        g.fillStyle = oi ? mix(tileM, tileD, 0.30) : mix(tileL, LIGHT, 0.18);
+        g.fill();
+        g.strokeStyle = seam; g.lineWidth = lw; g.stroke();
+      }
+    } else {
+      ln(cx - hr, yT, cx + hr, yT, al(EDGE, 0.5));
+    }
+  }
+
+  /* ---- upper storey goes down BEFORE the skirt roof, which laps its foot -- */
+  var UL = -11.5, UR = 19.5, UB = -52.5, UT = -62, UD = 6.5, UDY = -3.6;
+  poly([UR, UT, UR + UD, UT + UDY, UR + UD, UB + UDY, UR, UB], woodD, seam);
+  poly([UL, UT, UR, UT, UR, UB, UL, UB], bayC, seam);
+  /* three lattice windows, lit from inside and breathing */
+  for (var wi = 0; wi < 3; wi++){
+    var wx = UL + 2.125 + wi * 9.625, ww = 7.5, wt = -60, wb = -54.6;
+    poly([wx, wt, wx + ww, wt, wx + ww, wb, wx, wb], mix(EDGE, DARK, 0.2));
+    var wg = g.createLinearGradient(0, wt, 0, wb);
+    wg.addColorStop(0, al(ACC, 0.46 + 0.26 * breath));
+    wg.addColorStop(1, al(ACC, 0.16 + 0.16 * breath));
+    poly([wx + 0.7, wt + 0.7, wx + ww - 0.7, wt + 0.7, wx + ww - 0.7, wb - 0.7, wx + 0.7, wb - 0.7], wg);
+    var lw3 = Math.max(lw * 0.8, 0.4);
+    for (var mi = 1; mi < 4; mi++) ln(wx + ww * mi / 4, wt + 0.7, wx + ww * mi / 4, wb - 0.7, al(EDGE, 0.75), lw3);
+    ln(wx + 0.7, wt + 2.6, wx + ww - 0.7, wt + 2.6, al(EDGE, 0.75), lw3);
+    poly([wx, wt, wx + ww, wt, wx + ww, wb, wx, wb], null, al(EDGE, 0.85));
+  }
+  /* corner posts */
+  for (var pi2 = 0; pi2 < 2; pi2++){
+    var px2 = pi2 ? UR - 3 : UL;
+    var pgr = g.createLinearGradient(px2, 0, px2 + 3, 0);
+    pgr.addColorStop(0, woodL); pgr.addColorStop(0.34, woodF); pgr.addColorStop(1, woodD);
+    poly([px2, UB, px2 + 3, UB, px2 + 3, UT, px2, UT], pgr, seam);
+  }
+  brackets(UL - 2, UR + 2, -62, 3, UD);
+
+  /* skirt roof (腰檐) — no ridge; it dies into the upper wall */
+  roof(5, -41, 25, 14, -50, 6, 12, 0);
+
+  /* the balcony that rides on the skirt roof (平坐) */
+  var BL = -14.5, BR = 22.5, BT = -53.5, BB = -50;
+  poly([BR, BT, BR + 5, BT - 2.75, BR + 5, BB - 2.75, BR, BB], woodD, seam);
+  poly([BL, BT, BR, BT, BR + 5, BT - 2.75, BL + 5, BT - 2.75], woodL, seam);
+  poly([BL, BT, BR, BT, BR, BT + 1.3, BL, BT + 1.3], mix(woodF, LIGHT, 0.18), seam);
+  poly([BL, BB - 0.9, BR, BB - 0.9, BR, BB, BL, BB], woodD, seam);
+  for (var ri = 0; ri <= 16; ri++){
+    var rx = BL + 1 + (BR - BL - 2) * ri / 16;
+    ln(rx, BT + 1.3, rx, BB - 0.9, al(woodF, 0.85), Math.max(lw, 0.8));
+  }
+  poly([BL, BT + 1.3, BR, BT + 1.3, BR, BB - 0.9, BL, BB - 0.9], null, al(EDGE, 0.55));
+
+  /* the great roof */
+  roof(5, -65, 21, 9.5, -75, 7, 12, 1);
+
+  /* ================= 9. banner poles on the walkway ====================== */
+  function banner(px, py, hgt, dir, phase){
+    var top = py - hgt;
+    /* pole */
+    ln(px, py, px, top, mix(GY_M, EDGE, 0.25), Math.max(lw, 1.6));
+    ln(px - 0.45, py - 1, px - 0.45, top + 1, al(LIGHT, 0.22), Math.max(lw * 0.8, 0.5));
+    g.fillStyle = al(mix(ACC, BASE, 0.4), 0.9);
+    g.beginPath(); g.arc(px, top - 1.0, 0.9, 0, TAU); g.fill();
+    /* crossbar the cloth hangs from */
+    ln(px, top + 1.6, px + dir * 7.6, top + 1.6, mix(GY_D, EDGE, 0.3), Math.max(lw, 1.2));
+
+    var a = Math.sin((p + phase) * TAU);
+    var b = Math.sin((p + phase) * TAU + 1.9);
+    var w = 7.2, bot = top + 1.6 + 15.5;
+    var e1 = px + dir * (w * 0.55 + a * 1.5);
+    var e2 = px + dir * (w + a * 2.3);
+    var e3 = px + dir * (w * 0.92 + b * 2.4);
+    /* cloth */
+    g.beginPath();
+    g.moveTo(px, top + 1.6);
+    g.quadraticCurveTo(e1, top + 6.5, e2, top + 10.5);
+    g.quadraticCurveTo(px + dir * (w + b * 1.6), bot - 6, e3, bot);
+    g.lineTo(px + dir * (w * 0.48 + b * 1.0), bot - 4.4);
+    g.lineTo(px + dir * 0.6, bot - 1.2);
+    g.closePath();
+    var bg = dir < 0
+      ? g.createLinearGradient(px + dir * w, 0, px, 0)
+      : g.createLinearGradient(px, 0, px + dir * w, 0);
+    bg.addColorStop(0, mix(BASE, LIGHT, 0.30));
+    bg.addColorStop(0.55, BASE);
+    bg.addColorStop(1, mix(DARK, EDGE, 0.18));
+    g.fillStyle = bg; g.fill();
+    g.strokeStyle = al(EDGE, 0.7); g.lineWidth = lw; g.stroke();
+    /* the fold the stir puts in it */
+    g.beginPath();
+    g.moveTo(px + dir * (w * 0.5 + a * 0.9), top + 4.5);
+    g.quadraticCurveTo(px + dir * (w * 0.72 + b * 1.5), top + 12, px + dir * (w * 0.55 + b * 1.4), bot - 2.2);
+    g.lineTo(px + dir * (w * 0.92 + b * 2.0), bot - 1.2);
+    g.quadraticCurveTo(px + dir * (w + b * 1.4), top + 11, px + dir * (w * 0.78 + a * 1.2), top + 5.2);
+    g.closePath();
+    g.fillStyle = al(EDGE, 0.24); g.fill();
+    /* the hoist edge, lit */
+    ln(px + dir * 0.7, top + 2.2, px + dir * 0.9, bot - 1.6, al(LIGHT, 0.32), Math.max(lw, 0.8));
+  }
+  banner(-32, -23.5, 32, -1, 0);
+  banner(40.5, -25.5, 33, 1, 0.42);
+
+  /* ================= 10. the parapet, nearest thing of all (女墙) ========= */
+  var mW = 6.4, mN = 7, mGap = (HT * 2 - mN * mW) / (mN - 1);
+  var mF = mix(earthF, LIGHT, 0.09), mT = mix(earthT, LIGHT, 0.06), mR = mix(earthR, LIGHT, 0.04);
+  for (var mi2 = 0; mi2 < mN; mi2++){
+    var mx = -HT + mi2 * (mW + mGap);
+    box(mx, -PH0, mW, 5, 4, mF, mT, mR);
+    ln(mx + 0.9, -PH0 - 2.4, mx + mW - 0.9, -PH0 - 2.4, 'rgba(0,0,0,.16)');
+  }
+
+  g.restore();
+}
+
+/* ================= 撒马尔罕 · 雷吉斯坦 =================
+   The Registan, standing where the keep stands on the Samarkand field.
+
+   One enormous pointed iwan recessed into a rectangular screen wall, a ribbed
+   dome rising behind it and to the right, a cylindrical minaret standing clear
+   at either end. Same contract as every other solid on this page: (x,y) is the
+   ground the thing stands on, everything is drawn in negative y, one lamp up
+   and to the LEFT — top faces lightest, front faces mid, right returns and
+   undersides darkest — and nothing rotates, because a rotated solid drags its
+   shading round with it and stops reading as a solid.
+
+   Three things carry the identification and everything else is in service of
+   them: the ogive (a true two-centred point, never a semicircle) recessed into
+   a rectangular frame; the ribbed dome; the two minarets clear of the wall.
+
+   Colour is `pal`, or a neutral fired brick mixed a fifth of the way toward it.
+   The masonry stays quiet so the glaze is the only saturated thing on the
+   field, and pal.accent is spent only on the knots of the tilework, the glaze
+   highlights and the lamps. `ph` moves the lamps and the standard; the building
+   itself is a pure function of nothing. */
+function drawRegistan3D(g, x, y, s, pal, ph){
+  g.save();
+
+  /* ---------------- guards ---------------- */
+  var TAU = Math.PI * 2;
+  s = (typeof s === 'number' && isFinite(s) && s !== 0) ? s : 1;
+  var p = (typeof ph === 'number' && isFinite(ph)) ? ph - Math.floor(ph) : 0;
+
+  var P     = pal || {};
+  var BASE  = P.base   || '#6b6d7c';
+  var LIGHT = P.light  || '#a8aab8';
+  var DARK  = P.dark   || '#3a3a44';
+  var EDGE  = P.edge   || '#0b0b11';
+  var ACC   = P.accent || '#e9e9f2';
+
+  /* accepts #rgb, #rrggbb and rgb()/rgba(), so a mixed colour can be mixed again */
+  function chan(c){
+    if (typeof c !== 'string') return null;
+    var t = c.replace(/\s/g, ''), v = null, m;
+    if (t.charAt(0) === '#'){
+      if (t.length === 4) v = [parseInt(t.charAt(1) + t.charAt(1), 16), parseInt(t.charAt(2) + t.charAt(2), 16), parseInt(t.charAt(3) + t.charAt(3), 16)];
+      else if (t.length >= 7) v = [parseInt(t.substr(1, 2), 16), parseInt(t.substr(3, 2), 16), parseInt(t.substr(5, 2), 16)];
+    } else if (t.substr(0, 3).toLowerCase() === 'rgb'){
+      m = t.match(/-?[0-9.]+/g);
+      if (m && m.length >= 3) v = [+m[0], +m[1], +m[2]];
+    }
+    if (!v || !isFinite(v[0]) || !isFinite(v[1]) || !isFinite(v[2])) return null;
+    return v;
+  }
+  function mix(a, b, t){
+    var A = chan(a), B = chan(b);
+    if (!A || !B) return t < 0.5 ? a : b;
+    if (t < 0) t = 0; if (t > 1) t = 1;
+    return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' +
+                    Math.round(A[1] + (B[1] - A[1]) * t) + ',' +
+                    Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+  }
+  function al(c, a){
+    var A = chan(c);
+    if (a < 0) a = 0; if (a > 1) a = 1;
+    if (!A) return 'rgba(110,110,120,' + a + ')';
+    return 'rgba(' + Math.round(A[0]) + ',' + Math.round(A[1]) + ',' + Math.round(A[2]) + ',' + (Math.round(a * 1000) / 1000) + ')';
+  }
+
+  /* ---------------- palette ----------------
+     Fired brick is neutral and dusty, pulled only a fifth of the way toward the
+     garrison's colour: enough that the block belongs to whoever holds the
+     field, not enough to turn the whole thing into a painted toy. */
+  var N_L = '#8f8a95', N_M = '#6d6874', N_D = '#474351', N_X = '#25232d';
+  var SL = mix(N_L, LIGHT, 0.17);          /* lit tops        */
+  var SM = mix(N_M, BASE,  0.19);          /* front faces     */
+  var SD = mix(N_D, DARK,  0.40);          /* right returns   */
+  var SX = mix(N_X, EDGE,  0.55);          /* deepest shadow  */
+  var SEAM = al(EDGE,  0.55);
+  var RIM  = al(LIGHT, 0.30);
+
+  /* the glaze: the only saturated surface on the building */
+  var TILE   = mix(BASE, DARK,  0.60);
+  var TILE_L = mix(BASE, LIGHT, 0.42);
+  var TILE_D = mix(DARK, EDGE,  0.40);
+  var VOID   = mix(EDGE, DARK,  0.20);     /* the inside of any opening */
+
+  /* ---------------- the beat ----------------
+     Slow, and nothing structural is allowed to read it. */
+  var breath = 0.5 - 0.5 * Math.cos(p * TAU);
+  var stir   = Math.sin(p * TAU);
+  function lamp(lag){ return 0.5 - 0.5 * Math.cos((p + lag) * TAU); }
+
+  g.translate(x, y);
+  g.scale(s, s);
+  g.lineJoin = 'round';
+  g.lineCap  = 'butt';
+
+  var sc = Math.abs(s);
+  var lw = 1 / sc; if (lw > 1.5) lw = 1.5; if (lw < 0.4) lw = 0.4;
+  var fine = sc >= 0.62;                   /* below this the tile knots are sub-pixel */
+  g.lineWidth = lw;
+
+  /* ================= primitives ================= */
+
+  /* A faceted box: front face at depth 0, top and right return receding to the
+     upper right. Draw down-LEFT masses first — a later box's front face is what
+     is allowed to cover an earlier box's return, never the other way round. */
+  function box(x0, yb, w, h, d, shade, cF, cT, cR){
+    cF = cF || SM; cT = cT || SL; cR = cR || SD;
+    var x1 = x0 + w, yt = yb - h, dx = d, dy = -d * 0.55;
+    var sh = 'rgba(0,0,0,' + shade + ')';
+    g.lineWidth = lw;
+    g.strokeStyle = SEAM;
+
+    /* right return — darkest */
+    g.beginPath();
+    g.moveTo(x1, yt); g.lineTo(x1 + dx, yt + dy); g.lineTo(x1 + dx, yb + dy); g.lineTo(x1, yb);
+    g.closePath();
+    g.fillStyle = cR; g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.13)'; g.fill();
+    if (shade > 0){ g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    /* top — lightest */
+    g.beginPath();
+    g.moveTo(x0, yt); g.lineTo(x1, yt); g.lineTo(x1 + dx, yt + dy); g.lineTo(x0 + dx, yt + dy);
+    g.closePath();
+    g.fillStyle = cT; g.fill();
+    if (shade > 0){ g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    /* front — mid, with the wall's own fall-off down it */
+    g.beginPath();
+    g.rect(x0, yt, w, h);
+    g.fillStyle = cF; g.fill();
+    var gr = g.createLinearGradient(0, yt, 0, yb);
+    gr.addColorStop(0,   'rgba(255,255,255,0.07)');
+    gr.addColorStop(0.5, 'rgba(0,0,0,0)');
+    gr.addColorStop(1,   'rgba(0,0,0,0.20)');
+    g.fillStyle = gr; g.fill();
+    if (shade > 0){ g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    /* the lit arris on the left — the one edge the lamp actually catches */
+    g.strokeStyle = RIM;
+    g.beginPath(); g.moveTo(x0 + 0.4, yt + 0.5); g.lineTo(x0 + 0.4, yb); g.stroke();
+    g.strokeStyle = SEAM;
+  }
+
+  /* brick courses across a front face */
+  function courses(x0, yb, w, h, n){
+    g.strokeStyle = 'rgba(0,0,0,0.12)';
+    g.lineWidth = lw;
+    for (var i = 1; i < n; i++){
+      var yy = yb - h * i / n;
+      g.beginPath(); g.moveTo(x0 + 0.7, yy); g.lineTo(x0 + w - 0.7, yy); g.stroke();
+    }
+    g.strokeStyle = SEAM;
+  }
+
+  /* A true two-centred ogive: vertical at the springing, arriving at the apex
+     on a ~70 degree tangent so it comes to a POINT. Not a semicircle — that one
+     silhouette is the difference between Timurid and Roman. */
+  function ogive(cx, ysp, w, rise, yBot){
+    g.beginPath();
+    g.moveTo(cx - w, yBot);
+    g.lineTo(cx - w, ysp);
+    g.bezierCurveTo(cx - w, ysp - rise * 0.56, cx - w * 0.17, ysp - rise * 0.79, cx, ysp - rise);
+    g.bezierCurveTo(cx + w * 0.17, ysp - rise * 0.79, cx + w, ysp - rise * 0.56, cx + w, ysp);
+    g.lineTo(cx + w, yBot);
+    g.closePath();
+  }
+
+  /* A hanging muqarnas cell — the same curve upside down. */
+  function cell(cx, yTop, hw, hh){
+    g.beginPath();
+    g.moveTo(cx - hw, yTop);
+    g.bezierCurveTo(cx - hw, yTop + hh * 0.56, cx - hw * 0.17, yTop + hh * 0.79, cx, yTop + hh);
+    g.bezierCurveTo(cx + hw * 0.17, yTop + hh * 0.79, cx + hw, yTop + hh * 0.56, cx + hw, yTop);
+    g.closePath();
+  }
+
+  /* A drum of a cylinder. The camera looks slightly down, so every horizontal
+     circle reads as an ellipse whose near half bulges DOWN. */
+  function drum(cx, yTop, yBot, rT, rB){
+    var eT = rT * 0.40, eB = rB * 0.40;
+    g.beginPath();
+    g.moveTo(cx - rT, yTop);
+    g.lineTo(cx - rB, yBot);
+    g.ellipse(cx, yBot, rB, eB, 0, Math.PI, 0, true);
+    g.lineTo(cx + rT, yTop);
+    g.ellipse(cx, yTop, rT, eT, 0, 0, Math.PI, false);
+    g.closePath();
+  }
+  /* the shading of a round shaft: highlight left of centre, terminator right */
+  function shaft(cx, r, cLit, cMid, cDark){
+    var gr = g.createLinearGradient(cx - r, 0, cx + r, 0);
+    gr.addColorStop(0,    mix(cMid, cDark, 0.34));
+    gr.addColorStop(0.28, cLit);
+    gr.addColorStop(0.58, cMid);
+    gr.addColorStop(1,    cDark);
+    return gr;
+  }
+
+  /* Glazed tile as structure rather than outline: a girih lattice of hairlines,
+     with the accent spent only on the knots. Always call inside a clip — the
+     lattice does not know what shape it is filling. */
+  function girih(x0, yTop, x1, yBot, step, aLine, aKnot){
+    if (!(step > 0.4)) return;
+    var h = yBot - yTop, u, v, r = 0;
+    g.lineWidth = lw;
+    g.strokeStyle = al(TILE_L, aLine);
+    g.beginPath();
+    for (u = x0 - h; u <= x1 + 0.001; u += step){ g.moveTo(u, yBot); g.lineTo(u + h, yTop); }
+    for (u = x0; u <= x1 + h + 0.001; u += step){ g.moveTo(u, yBot); g.lineTo(u - h, yTop); }
+    g.stroke();
+    if (!(aKnot > 0) || !fine) return;
+    g.fillStyle = al(ACC, aKnot);
+    for (v = yTop; v <= yBot + 0.001; v += step * 0.5, r++){
+      for (u = x0 + (r % 2 ? step * 0.5 : 0); u <= x1 + 0.001; u += step){
+        g.beginPath();
+        g.moveTo(u, v - 0.6); g.lineTo(u + 0.6, v); g.lineTo(u, v + 0.6); g.lineTo(u - 0.6, v);
+        g.closePath(); g.fill();
+      }
+    }
+  }
+
+  /* ---------------- the massing, in one place ---------------- */
+  var PL_X = -42, PL_W = 84, PL_H = 6.5, PL_D = 7;
+  var WG_Y = -10, WG_H = 34, WG_D = 7, WG_W = 18;      /* the two wings     */
+  var LW_X = -32, RW_X = 14, WG_T = WG_Y - WG_H;       /* wing tops: -44    */
+  var PQ_X = -16, PQ_W = 32, PQ_Y = -7.5, PQ_H = 55, PQ_D = 4.2;
+  var PQ_T = PQ_Y - PQ_H;                              /* portal top: -62.5 */
+  var MN_X = 36;                                       /* minarets, at the ends */
+
+  /* ================= 1. ground shadow ================= */
+  g.fillStyle = 'rgba(0,0,0,0.17)';
+  g.beginPath(); g.ellipse(5, -2.0, 51, 12.0, 0, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(0,0,0,0.34)';
+  g.beginPath(); g.ellipse(2, -1.4, 43, 8.6, 0, 0, TAU); g.fill();
+
+  /* ================= 2. the ribbed dome, behind everything =================
+     A dome of revolution: one profile r(t), and every rib is that same profile
+     scaled by sin(azimuth). Ribs are filled, never outlined — each carries its
+     own small left-to-right gradient, so the melon reads as a row of convex
+     swells while the lamp still runs across the dome as a whole. */
+  var DM_X = 22, DM_R = 11.2, DM_RD = 12.0;
+  var DM_BOT = -42, DM_DTOP = -53.5, DM_SPR = -56, DM_APEX = -74;
+  var DM_H = DM_SPR - DM_APEX;
+
+  /* The profile, and the one number that decides whether this is a dome or a
+     circus tent: the exponent. Below about 2 the radius falls away linearly
+     from the springing and the thing reads as a cone; at 2.2 it keeps a full
+     shoulder to two thirds height and then draws in hard to a point, which is
+     the Timurid section. */
+  function domeR(t){
+    if (t <= 0) return 1;
+    if (t >= 1) return 0;
+    return (1 + 0.09 * Math.sin(Math.PI * Math.pow(t, 0.75))) * Math.cos(Math.PI / 2 * Math.pow(t, 2.2));
+  }
+  /* one rib, from azimuth a0 to a1, on a dome of revolution */
+  function rib(cx, yb, H, R, m0, m1, steps){
+    var j, t;
+    g.beginPath();
+    for (j = 0; j <= steps; j++){ t = j / steps; if (j) g.lineTo(cx + m0 * domeR(t) * R, yb - H * t); else g.moveTo(cx + m0 * R, yb); }
+    for (j = steps; j >= 0; j--){ t = j / steps; g.lineTo(cx + m1 * domeR(t) * R, yb - H * t); }
+    g.closePath();
+  }
+  /* the lamp, laid across a dome from left rim to right rim */
+  function ribShade(mm, hi){
+    var L = 0.5 - 0.55 * mm;
+    if (L < 0) L = 0; if (L > 1) L = 1;
+    return L > 0.5 ? mix(BASE, mix(BASE, LIGHT, hi), (L - 0.5) * 2)
+                   : mix(mix(DARK, EDGE, 0.30), BASE, L * 2);
+  }
+  function melon(cx, yb, H, R, n, hi, steps){
+    var i, m0, m1, gx0, gx1, cMid, gg;
+    for (i = 0; i < n; i++){
+      m0 = Math.sin(-Math.PI / 2 + Math.PI * i / n);
+      m1 = Math.sin(-Math.PI / 2 + Math.PI * (i + 1) / n);
+      cMid = ribShade((m0 + m1) / 2, hi);
+      rib(cx, yb, H, R, m0, m1, steps);
+      gx0 = cx + m0 * R; gx1 = cx + m1 * R;
+      if (gx1 - gx0 > 0.35){
+        gg = g.createLinearGradient(gx0, 0, gx1, 0);
+        gg.addColorStop(0,    mix(cMid, LIGHT, 0.24));
+        gg.addColorStop(0.42, cMid);
+        gg.addColorStop(1,    mix(cMid, EDGE, 0.32));
+        g.fillStyle = gg;
+      } else {
+        g.fillStyle = mix(cMid, EDGE, 0.20);
+      }
+      g.fill();
+      g.strokeStyle = al(EDGE, 0.40); g.lineWidth = lw; g.stroke();
+    }
+    /* the light coming down onto the cap, over the whole thing at once */
+    g.save();
+    g.beginPath();
+    for (i = 0; i <= 16; i++){ if (i) g.lineTo(cx - domeR(i / 16) * R, yb - H * i / 16); else g.moveTo(cx - R, yb); }
+    for (i = 16; i >= 0; i--) g.lineTo(cx + domeR(i / 16) * R, yb - H * i / 16);
+    g.closePath(); g.clip();
+    var dv = g.createLinearGradient(0, yb - H, 0, yb);
+    dv.addColorStop(0,   'rgba(255,255,255,0.12)');
+    dv.addColorStop(0.5, 'rgba(255,255,255,0)');
+    dv.addColorStop(1,   'rgba(0,0,0,0.26)');
+    g.fillStyle = dv;
+    g.fillRect(cx - R - 1, yb - H - 1, R * 2 + 2, H + 2);
+    g.restore();
+  }
+
+  /* drum */
+  drum(DM_X, DM_DTOP, DM_BOT, DM_R, DM_R);
+  g.fillStyle = shaft(DM_X, DM_R, mix(SM, SL, 0.55), SM, mix(SD, SX, 0.30));
+  g.fill();
+  g.strokeStyle = SEAM; g.lineWidth = lw; g.stroke();
+
+  /* the inscription band round the drum — kufic as texture, from a fixed table */
+  var KUF = [3, 1, 2, 1, 3, 2, 1, 2, 3, 1, 1, 2, 3, 2, 1, 3, 2, 1, 2, 3];
+  g.save();
+  drum(DM_X, DM_DTOP, DM_BOT, DM_R, DM_R); g.clip();
+  g.fillStyle = TILE;
+  g.fillRect(DM_X - DM_R, -53.2, DM_R * 2, 5.6);
+  g.fillStyle = al(ACC, 0.38);
+  for (var ki = 0; ki < 18; ki++){
+    var kh = 1.2 + KUF[ki % KUF.length] * 0.72;
+    g.fillRect(DM_X - DM_R + 1.2 + ki * 1.14, -48.4 - kh, 0.58, kh);
+  }
+  g.fillStyle = al(ACC, 0.26);
+  g.fillRect(DM_X - DM_R, -53.2, DM_R * 2, 0.4);
+  g.fillRect(DM_X - DM_R, -48.0, DM_R * 2, 0.4);
+  g.fillStyle = shaft(DM_X, DM_R, 'rgba(255,255,255,0.10)', 'rgba(0,0,0,0.06)', 'rgba(0,0,0,0.34)');
+  g.fillRect(DM_X - DM_R, DM_DTOP, DM_R * 2, DM_BOT - DM_DTOP);
+  g.restore();
+
+  /* the collar the dome sits on */
+  drum(DM_X, DM_SPR, DM_DTOP, 11.8, 11.8);
+  g.fillStyle = shaft(DM_X, 11.8, mix(SL, SM, 0.35), SM, SX);
+  g.fill();
+  g.strokeStyle = SEAM; g.lineWidth = lw; g.stroke();
+
+  melon(DM_X, DM_SPR, DM_H, DM_RD, 11, 0.45, 14);
+
+  /* one glaze highlight down the ribs the lamp actually reaches */
+  g.strokeStyle = al(ACC, 0.26); g.lineWidth = lw;
+  for (var hi2 = 1; hi2 <= 3; hi2++){
+    var mh = Math.sin(-Math.PI / 2 + Math.PI * hi2 / 11);
+    g.beginPath();
+    for (var hj = 0; hj <= 12; hj++){
+      var ht = hj / 12;
+      if (hj) g.lineTo(DM_X + mh * domeR(ht) * DM_RD, DM_SPR - DM_H * ht); else g.moveTo(DM_X + mh * DM_RD, DM_SPR);
+    }
+    g.stroke();
+  }
+
+  /* finial */
+  g.strokeStyle = mix(SL, SM, 0.4); g.lineWidth = Math.max(lw, 1.0);
+  g.beginPath(); g.moveTo(DM_X, DM_APEX + 0.6); g.lineTo(DM_X, DM_APEX - 4.0); g.stroke();
+  g.fillStyle = mix(ACC, LIGHT, 0.4);
+  g.beginPath(); g.arc(DM_X, DM_APEX - 1.9, 1.05, 0, TAU); g.fill();
+  g.fillStyle = al(ACC, 0.85);
+  g.beginPath(); g.arc(DM_X, DM_APEX - 4.4, 0.8, 0, TAU); g.fill();
+
+  /* ================= 3. the plinth ================= */
+  box(PL_X, 0, PL_W, PL_H, PL_D, 0.22);
+  courses(PL_X, 0, PL_W, PL_H, 2);
+  g.strokeStyle = 'rgba(0,0,0,0.15)'; g.lineWidth = lw;
+  for (var pi = -3; pi <= 3; pi++){
+    g.beginPath(); g.moveTo(pi * 11.8, -0.5); g.lineTo(pi * 11.8, -PL_H + 0.4); g.stroke();
+  }
+  g.strokeStyle = SEAM;
+  /* the step up to the portal, so the iwan does not float */
+  box(-19, 0, 38, 2.2, 2.4, 0.10, mix(SM, SL, 0.16), SL, SD);
+
+  /* ================= 4/5. the two wings ================= */
+  /* Two storeys of student cells behind pointed niches. Which are lit, and how
+     far each lags the beat, is a table — never a dice roll. */
+  var LAG_L = [[0.00, -1, 0.37], [-1, 0.61, -1]];
+  var LAG_R = [[0.18, -1, -1], [-1, 0.79, 0.44]];
+
+  function niche(cx, sill, hw, rise){
+    ogive(cx, sill, hw + 1.05, rise + 1.4, sill + 0.9);
+    g.fillStyle = TILE; g.fill();
+    g.strokeStyle = al(EDGE, 0.45); g.lineWidth = lw; g.stroke();
+    ogive(cx, sill, hw + 0.45, rise + 0.6, sill + 0.4);
+    g.fillStyle = mix(SD, SX, 0.45); g.fill();
+    ogive(cx, sill, hw, rise, sill);
+    g.fillStyle = VOID; g.fill();
+    /* the left reveal takes what little light gets in */
+    g.strokeStyle = al(LIGHT, 0.15); g.lineWidth = lw;
+    g.beginPath(); g.moveTo(cx - hw + 0.35, sill); g.lineTo(cx - hw + 0.35, sill - rise * 0.55); g.stroke();
+    g.strokeStyle = SEAM;
+  }
+
+  function wing(x0, lag, shade){
+    box(x0, WG_Y, WG_W, WG_H, WG_D, shade);
+    courses(x0, WG_Y, WG_W, WG_H, 6);
+
+    var st, b, cx, sill, lg;
+    for (st = 0; st < 2; st++){
+      sill = st ? -28 : -13;
+      for (b = 0; b < 3; b++){
+        cx = x0 + 4.0 + b * 5.0;
+        niche(cx, sill, 1.7, 7.4);
+        lg = lag[st][b];
+        if (lg >= 0){
+          g.fillStyle = al(ACC, 0.09 + 0.19 * lamp(lg));
+          g.beginPath(); g.ellipse(cx, sill - 1.2, 1.4, 2.5, 0, 0, TAU); g.fill();
+        }
+      }
+    }
+    /* string course between the storeys, and the tiled frieze under the parapet */
+    box(x0 - 0.6, -24.0, WG_W + 1.2, 1.5, WG_D + 0.4, shade + 0.06, mix(SM, SL, 0.26), SL, SD);
+    g.save();
+    g.beginPath(); g.rect(x0, -41.4, WG_W, 3.6); g.clip();
+    g.fillStyle = TILE; g.fillRect(x0, -41.4, WG_W, 3.6);
+    girih(x0, -41.4, x0 + WG_W, -37.8, 3.0, 0.34, 0.22);
+    g.restore();
+    g.strokeStyle = al(EDGE, 0.5); g.lineWidth = lw;
+    g.beginPath(); g.rect(x0, -41.4, WG_W, 3.6); g.stroke();
+  }
+
+  wing(LW_X, LAG_L, 0.04);
+  wing(RW_X, LAG_R, 0.18);
+  /* the parapets are shallower than the wall so their returns stay behind the
+     minarets instead of poking out past them as a shelf */
+  box(LW_X - 1.2, WG_T, WG_W + 2.4, 3.4, WG_D - 1.0, 0.09);
+  box(RW_X - 1.2, WG_T, WG_W + 2.4, 3.4, WG_D - 1.0, 0.17);
+
+  /* ================= 6. the pishtaq ================= */
+  box(PQ_X, PQ_Y, PQ_W, PQ_H, PQ_D, 0.0);
+  courses(PQ_X, PQ_Y, PQ_W, PQ_H, 7);
+
+  /* the tiled frame: three strips round the opening, one lattice across all
+     three so the pattern runs the corner instead of stopping at it */
+  var FBX = 13.8, FBT = -60.6, FBW = 3.4;
+  function frameBand(){
+    g.beginPath();
+    g.rect(-FBX, FBT, FBW, -FBT + PQ_Y);
+    g.rect(FBX - FBW, FBT, FBW, -FBT + PQ_Y);
+    g.rect(-FBX, FBT, FBX * 2, FBW);
+  }
+  frameBand();
+  g.fillStyle = TILE; g.fill();
+  g.save(); frameBand(); g.clip();
+  girih(-FBX, FBT, FBX, PQ_Y, 3.4, 0.38, 0.22);
+  var fv = g.createLinearGradient(-FBX, 0, FBX, 0);
+  fv.addColorStop(0, 'rgba(255,255,255,0.08)');
+  fv.addColorStop(1, 'rgba(0,0,0,0.18)');
+  g.fillStyle = fv; g.fillRect(-FBX, FBT, FBX * 2, -FBT + PQ_Y);
+  g.restore();
+  frameBand();
+  g.strokeStyle = al(EDGE, 0.6); g.lineWidth = lw; g.stroke();
+  g.strokeStyle = al(ACC, 0.22);
+  g.beginPath();
+  g.moveTo(-FBX + 0.5, PQ_Y); g.lineTo(-FBX + 0.5, FBT + 0.5); g.lineTo(FBX - 0.5, FBT + 0.5);
+  g.stroke();
+
+  /* the spandrel field inside the frame */
+  var INX = FBX - FBW, INT = FBT + FBW;
+  g.save();
+  g.beginPath(); g.rect(-INX, INT, INX * 2, PQ_Y - INT); g.clip();
+  g.fillStyle = mix(TILE, TILE_D, 0.50);
+  g.fillRect(-INX, INT, INX * 2, PQ_Y - INT);
+  girih(-INX, INT, INX, PQ_Y, 4.6, 0.26, 0.16);
+  g.restore();
+
+  /* ---- the iwan itself ---- */
+  var AW = 9.4, ASP = -34, ARI = 19, FLR = -7.5;
+  var RD = 6.5, RDY = -RD * 0.55;
+  var AAPEX = ASP - ARI;
+
+  /* the archivolt: one band of tile following the arch */
+  ogive(0, ASP, AW + 1.6, ARI + 2.2, FLR);
+  g.fillStyle = TILE; g.fill();
+  g.save(); ogive(0, ASP, AW + 1.6, ARI + 2.2, FLR); g.clip();
+  girih(-AW - 2, AAPEX - 3, AW + 2, FLR, 3.0, 0.34, 0.20);
+  g.restore();
+  ogive(0, ASP, AW + 1.6, ARI + 2.2, FLR);
+  g.strokeStyle = al(EDGE, 0.55); g.lineWidth = lw; g.stroke();
+  g.strokeStyle = al(ACC, 0.28);
+  g.beginPath();
+  g.moveTo(-AW - 1.1, FLR);
+  g.lineTo(-AW - 1.1, ASP);
+  g.bezierCurveTo(-AW - 1.1, ASP - (ARI + 2.2) * 0.56, -(AW + 1.6) * 0.17, ASP - (ARI + 2.2) * 0.79, 0, ASP - (ARI + 2.2));
+  g.stroke();
+
+  /* The recess. The opening is a hole going back to the upper right, so the
+     reveals that show are the LEFT jamb — turned away from the lamp — and the
+     floor, turned up into it. That asymmetry is the whole reason the arch reads
+     as a hollow instead of as an arch painted on a wall. */
+  g.save();
+  ogive(0, ASP, AW, ARI, FLR); g.clip();
+  var rv = g.createLinearGradient(0, AAPEX, 0, FLR);
+  rv.addColorStop(0,   mix(SD, SX, 0.55));
+  rv.addColorStop(0.7, mix(SD, SX, 0.25));
+  rv.addColorStop(1,   mix(SM, SL, 0.30));
+  g.fillStyle = rv;
+  g.fillRect(-AW - 1, AAPEX - 1, AW * 2 + 2, FLR - AAPEX + 2);
+
+  /* the back of the iwan, one recess depth up and to the right */
+  ogive(RD, ASP + RDY, AW, ARI, FLR + RDY);
+  g.fillStyle = mix(EDGE, DARK, 0.14); g.fill();
+
+  /* the half-dome: three rows of muqarnas cells hanging in the arch head */
+  var ROWS = [[-55.2, 3], [-52.1, 5], [-49.0, 7]];
+  for (var mr = 0; mr < ROWS.length; mr++){
+    var yTop = ROWS[mr][0], nc = ROWS[mr][1];
+    for (var mc = 0; mc < nc; mc++){
+      var mx = RD + (mc - (nc - 1) / 2) * 2.4;
+      var lt = 0.5 - 0.42 * ((mc - (nc - 1) / 2) / ((nc - 1) / 2 || 1));
+      cell(mx, yTop, 1.2, 2.9);
+      g.fillStyle = mix(mix(DARK, EDGE, 0.40), mix(BASE, DARK, 0.40), lt);
+      g.fill();
+      g.strokeStyle = al(EDGE, 0.5); g.lineWidth = lw; g.stroke();
+    }
+    g.strokeStyle = al(ACC, 0.14); g.lineWidth = lw;
+    g.beginPath(); g.moveTo(RD - nc * 1.2, yTop); g.lineTo(RD + nc * 1.2, yTop); g.stroke();
+  }
+
+  /* the lamp burning at the back of it */
+  var lg1 = 0.15 + 0.19 * breath;
+  var ig = g.createRadialGradient(RD, -16 + RDY, 0, RD, -16 + RDY, 17);
+  ig.addColorStop(0,    al(ACC, lg1));
+  ig.addColorStop(0.45, al(ACC, lg1 * 0.34));
+  ig.addColorStop(1,    al(ACC, 0));
+  g.fillStyle = ig;
+  g.fillRect(-AW - 1, AAPEX - 1, AW * 2 + 2, FLR - AAPEX + 2);
+
+  /* the doorway in the back wall */
+  ogive(RD, -18 + RDY, 3.2, 5.6, FLR + RDY);
+  g.fillStyle = mix(EDGE, '#000000', 0.55); g.fill();
+  g.fillStyle = al(ACC, 0.22 + 0.22 * breath);
+  g.beginPath(); g.ellipse(RD, FLR + RDY - 0.4, 2.9, 1.9, 0, Math.PI, TAU); g.fill();
+  g.restore();
+
+  /* the jamb that catches the light, outside the clip so it stays crisp */
+  g.strokeStyle = al(LIGHT, 0.20); g.lineWidth = lw;
+  g.beginPath(); g.moveTo(-AW + 0.4, FLR); g.lineTo(-AW + 0.4, ASP - 2); g.stroke();
+  g.strokeStyle = SEAM;
+
+  /* ================= 7. cornice, and the standard on it ================= */
+  box(PQ_X - 1.4, PQ_T, PQ_W + 2.8, 3.6, PQ_D + 1.0, 0.06);
+  g.fillStyle = al(ACC, 0.16);
+  g.fillRect(PQ_X - 1.4, PQ_T - 2.9, PQ_W + 2.8, 0.45);
+
+  /* one standard, stirring. The only thing on the whole building that moves. */
+  var stX = -11, stTop = PQ_T - 3.6;
+  g.strokeStyle = mix(SM, SX, 0.4); g.lineWidth = Math.max(lw, 1.0);
+  g.beginPath(); g.moveTo(stX, stTop + 0.4); g.lineTo(stX, stTop - 7.6); g.stroke();
+  g.fillStyle = al(ACC, 0.75);
+  g.beginPath(); g.arc(stX, stTop - 8.2, 0.85, 0, TAU); g.fill();
+  function standard(){
+    g.beginPath();
+    g.moveTo(stX + 0.5, stTop - 7.2);
+    g.lineTo(stX + 8.2 + stir * 1.0, stTop - 6.6 + stir * 0.7);
+    g.lineTo(stX + 8.2 + stir * 1.0, stTop - 2.9 + stir * 0.7);
+    g.quadraticCurveTo(stX + 4.4, stTop - 2.4 - stir * 0.6, stX + 0.5, stTop - 3.2);
+    g.closePath();
+  }
+  standard(); g.fillStyle = TILE; g.fill();
+  g.beginPath();
+  g.moveTo(stX + 0.5, stTop - 5.2);
+  g.lineTo(stX + 8.2 + stir * 1.0, stTop - 4.7 + stir * 0.7);
+  g.lineTo(stX + 8.2 + stir * 1.0, stTop - 2.9 + stir * 0.7);
+  g.quadraticCurveTo(stX + 4.4, stTop - 2.4 - stir * 0.6, stX + 0.5, stTop - 3.2);
+  g.closePath();
+  g.fillStyle = al(TILE_D, 0.8); g.fill();
+  standard(); g.strokeStyle = al(EDGE, 0.6); g.lineWidth = lw; g.stroke();
+
+  /* ================= 8. the minarets ================= */
+  var BND = [-21, -34, -47];                 /* glazed bands up the shaft */
+  var SLOT = [-4.2, -2.8, -1.4, 0, 1.4, 2.8, 4.2];
+
+  function minaret(cx, lagA, lagB){
+    var rSoc = 5.8, rB = 5.0, rT = 3.6;
+    var yFoot = -6.5, ySoc = -12.5, yTop = -56;
+    var i, t, r0, r1, y0, y1;
+
+    /* contact shadow, so the shaft stands ON the plinth and not in front of it */
+    g.fillStyle = 'rgba(0,0,0,0.30)';
+    g.beginPath(); g.ellipse(cx + 1.2, yFoot + 0.6, rSoc * 1.15, rSoc * 0.40, 0, 0, TAU); g.fill();
+
+    /* socle */
+    drum(cx, ySoc, yFoot, rSoc * 0.93, rSoc);
+    g.fillStyle = shaft(cx, rSoc, mix(SM, SL, 0.5), SM, SX);
+    g.fill();
+    g.strokeStyle = SEAM; g.lineWidth = lw; g.stroke();
+
+    /* the shaft, in courses so the taper is legible */
+    for (i = 0; i < 8; i++){
+      t = i / 8;
+      y0 = ySoc + (yTop - ySoc) * t; y1 = ySoc + (yTop - ySoc) * (i + 1) / 8;
+      r0 = rB + (rT - rB) * t; r1 = rB + (rT - rB) * (i + 1) / 8;
+      drum(cx, y1, y0, r1, r0);
+      g.fillStyle = shaft(cx, r0, mix(SM, SL, 0.44), SM, mix(SD, SX, 0.35));
+      g.fill();
+      g.strokeStyle = al(EDGE, 0.26); g.lineWidth = lw; g.stroke();
+    }
+
+    /* glazed bands: the shaft's only ornament, and the thing that says minaret
+       rather than chimney */
+    for (i = 0; i < BND.length; i++){
+      y0 = BND[i]; y1 = y0 - 2.4;
+      t = (y0 - ySoc) / (yTop - ySoc);
+      r0 = rB + (rT - rB) * t + 0.22;
+      drum(cx, y1, y0, r0, r0);
+      g.fillStyle = TILE; g.fill();
+      g.save(); drum(cx, y1, y0, r0, r0); g.clip();
+      girih(cx - r0 - 1, y1 - 1, cx + r0 + 1, y0 + 1, 1.9, 0.42, 0.24);
+      g.fillStyle = shaft(cx, r0, 'rgba(255,255,255,0.10)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.38)');
+      g.fillRect(cx - r0 - 1, y1 - 1, (r0 + 1) * 2, y0 - y1 + 2);
+      g.restore();
+      g.strokeStyle = al(EDGE, 0.45); g.lineWidth = lw;
+      drum(cx, y1, y0, r0, r0); g.stroke();
+    }
+
+    /* muqarnas corbel flaring out under the gallery */
+    var CB = [[3.7, 4.2], [4.2, 4.8], [4.8, 5.5]];
+    for (i = 0; i < 3; i++){
+      y0 = yTop - i * 1.5; y1 = y0 - 1.5;
+      drum(cx, y1, y0, CB[i][1], CB[i][0]);
+      g.fillStyle = shaft(cx, CB[i][1], mix(SL, SM, 0.30), SM, SX);
+      g.fill();
+      g.strokeStyle = al(EDGE, 0.45); g.lineWidth = lw; g.stroke();
+    }
+    var yGal = yTop - 4.5;
+
+    /* the gallery floor — a lit top face, the one plane the lamp lands square on */
+    g.beginPath(); g.ellipse(cx, yGal, 5.9, 2.36, 0, 0, TAU);
+    g.fillStyle = mix(SL, LIGHT, 0.14); g.fill();
+    g.strokeStyle = SEAM; g.lineWidth = lw; g.stroke();
+
+    /* its parapet, pierced */
+    drum(cx, yGal - 4.4, yGal, 5.4, 5.5);
+    g.fillStyle = shaft(cx, 5.5, mix(SM, SL, 0.5), SM, SX);
+    g.fill();
+    g.strokeStyle = SEAM; g.lineWidth = lw; g.stroke();
+    g.fillStyle = al(EDGE, 0.70);
+    for (i = 0; i < SLOT.length; i++){
+      g.fillRect(cx + SLOT[i] * 1.2 - 0.4, yGal - 3.5, 0.8, 2.6);
+    }
+    g.strokeStyle = al(ACC, 0.18); g.lineWidth = lw;
+    g.beginPath(); g.moveTo(cx - 5.4, yGal - 4.4); g.lineTo(cx + 5.4, yGal - 4.4); g.stroke();
+
+    /* the lantern above it, with the muezzin's lamp in the centre opening */
+    var yLb = yGal - 4.4, yLt = yLb - 7.2;
+    drum(cx, yLt, yLb, 2.9, 3.2);
+    g.fillStyle = shaft(cx, 3.2, mix(SM, SL, 0.5), SM, SX);
+    g.fill();
+    g.strokeStyle = SEAM; g.lineWidth = lw; g.stroke();
+    var OPN = [-1.7, 0.05, 1.75];
+    for (i = 0; i < OPN.length; i++){
+      ogive(cx + OPN[i], yLb - 1.4, 0.7, 2.5, yLb - 1.4);
+      g.fillStyle = VOID; g.fill();
+    }
+    g.fillStyle = al(ACC, 0.20 + 0.28 * lamp(lagA));
+    g.beginPath(); g.ellipse(cx + OPN[1], yLb - 2.5, 0.7, 1.4, 0, 0, TAU); g.fill();
+
+    /* the little ribbed cap: the big dome again, five ribs and a spike */
+    var yCb = yLt, rc = 3.0, ch = 4.2;
+    melon(cx, yCb, ch, rc, 5, 0.34, 8);
+    g.strokeStyle = mix(SL, SM, 0.4); g.lineWidth = Math.max(lw, 1.0);
+    g.beginPath(); g.moveTo(cx, yCb - ch + 0.5); g.lineTo(cx, yCb - ch - 3.6); g.stroke();
+    g.fillStyle = al(ACC, 0.85);
+    g.beginPath(); g.arc(cx, yCb - ch - 4.1, 0.8, 0, TAU); g.fill();
+
+    if (lagB >= 0){
+      g.fillStyle = al(ACC, 0.05 + 0.09 * lamp(lagB));
+      g.beginPath(); g.ellipse(cx, yGal - 2.0, 7.4, 5.2, 0, 0, TAU); g.fill();
+    }
+  }
+
+  minaret(-MN_X, 0.00, 0.25);
+  minaret(MN_X, 0.53, 0.68);
+
+  g.restore();
+}
+
+/* Hagia Sophia — the landmark of 君士坦丁堡, standing where drawKeep3D stands as
+   the Bear Tribe's seat on that theatre.
+
+   Same contract as every other solid on this field: the point handed in is the
+   ground UNDER the building, everything is drawn in negative y, one lamp sits up
+   and to the LEFT (top faces lightest, left/front faces mid, right faces and
+   undersides darkest), depth recedes to the upper right, and nothing rotates —
+   a rotated solid takes its shading with it and stops being a solid.
+
+   What makes this Hagia Sophia and not a dome on a box is the CASCADE, and the
+   cascade is authored in the massing before a single stone is drawn: one vast
+   SHALLOW dome on a drum of windows, two lower half-domes stepping down beside
+   it, and under both of those the heavy buttressed square mass. Three tiers,
+   each clearly below the last. Four thin minarets stand at the corners of the
+   terrace — two in front, two at the back corners so they rise out from behind
+   the roof — and they break the skyline well above the dome, which is the other
+   half of the reading. At s=0.5 in a 60px strip the silhouette is all that
+   survives, so the silhouette carries the identity and the masonry is only ever
+   laid on top of it.
+
+   Colour comes from `pal`. The masonry is a neutral stone carrying a trace of it
+   rather than the flat team colour — a garrison flag says whose it is; a scarlet
+   cathedral just says nothing. */
+function drawHagia3D(g, x, y, s, pal, ph) {
+  g.save();
+
+  var TAU = Math.PI * 2;
+
+  /* ---- everything resolved before the first stroke, so a bad argument can
+     never strand the save() ------------------------------------------------ */
+  var S = (typeof s === 'number' && isFinite(s) && s !== 0) ? s : 1;
+  var P = pal || {};
+  var C_BASE  = P.base   || '#8a8d99';
+  var C_LIGHT = P.light  || '#c8cad6';
+  var C_DARK  = P.dark   || '#3a3a45';
+  var C_EDGE  = P.edge   || '#0b0b11';
+  var C_ACC   = P.accent || '#e9e9f2';
+
+  var p = (typeof ph === 'number' && isFinite(ph)) ? ph - Math.floor(ph) : 0;
+  var breath = 0.5 - 0.5 * Math.cos(p * TAU);   /* lamps behind the glass */
+  var stir   = Math.sin(p * TAU);               /* the banner — the only thing that moves */
+
+  /* ---- colour arithmetic (accepts #rgb, #rrggbb, rgb(), rgba()) ---------- */
+  function chan(c){
+    if (typeof c !== 'string') return null;
+    var t = c.replace(/\s/g, ''), v;
+    if (t.charAt(0) === '#'){
+      if (t.length === 4) v = [parseInt(t.charAt(1) + t.charAt(1), 16), parseInt(t.charAt(2) + t.charAt(2), 16), parseInt(t.charAt(3) + t.charAt(3), 16)];
+      else if (t.length === 7) v = [parseInt(t.substr(1, 2), 16), parseInt(t.substr(3, 2), 16), parseInt(t.substr(5, 2), 16)];
+      else return null;
+    } else {
+      var m = t.match(/-?[0-9.]+/g);
+      if (!m || m.length < 3) return null;
+      v = [+m[0], +m[1], +m[2]];
+    }
+    if (isNaN(v[0]) || isNaN(v[1]) || isNaN(v[2])) return null;
+    return v;
+  }
+  function mix(a, b, t){
+    var A = chan(a), B = chan(b);
+    if (!A || !B) return a;
+    return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' +
+                    Math.round(A[1] + (B[1] - A[1]) * t) + ',' +
+                    Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+  }
+  function al(c, a){
+    var A = chan(c);
+    if (!A) return c;
+    if (!(a > 0)) a = 0;
+    if (a > 1) a = 1;
+    return 'rgba(' + Math.round(A[0]) + ',' + Math.round(A[1]) + ',' + Math.round(A[2]) + ',' +
+           (Math.round(a * 1000) / 1000) + ')';
+  }
+
+  /* ---- three tones per material: top / front / right --------------------- */
+  var ST_T = mix('#a49d92', C_LIGHT, 0.13);   /* cut stone, sunlit top plane   */
+  var ST_F = mix('#6d6862', C_BASE,  0.15);   /*            front plane        */
+  var ST_R = mix('#332f33', C_DARK,  0.20);   /*            receding plane     */
+  var ST_N = mix(ST_F, C_EDGE, 0.30);         /* a recessed bay, back of a niche */
+  var LD_T = mix('#9298a4', C_LIGHT, 0.10);   /* lead roofing reads cooler than */
+  var LD_F = mix('#5b5e67', C_BASE,  0.10);   /* the walls it sits on           */
+  var LD_R = mix('#282a31', C_DARK,  0.16);
+  var seam = al(C_EDGE, 0.60);
+  var rimL = al(ST_T, 0.40);
+
+  g.translate(x, y);
+  g.scale(S, S);
+
+  var sc = Math.abs(S) || 1;
+  var lw = 1 / sc;
+  if (lw > 1.5) lw = 1.5;
+  if (lw < 0.35) lw = 0.35;
+
+  g.lineCap = 'butt';
+  g.lineJoin = 'round';
+  g.lineWidth = lw;
+  g.globalAlpha = 1;
+
+  /* ================= primitives =========================================== */
+
+  /* A faceted box: right face (receding, darkest), top face (lightest), front
+     face (mid). All front faces live at depth 0, so a box's receding faces must
+     never be painted over a box that stands in front of it — masses are authored
+     back-to-front and left-to-right, and the piers that project forward of the
+     wall go on last. */
+  function box(x0, yb, w, h, d, shade, cF, cT, cR){
+    var x1 = x0 + w, yt = yb - h, dx = d, dy = -d * 0.55;
+    var sh = 'rgba(0,0,0,' + shade + ')';
+    g.lineWidth = lw;
+    g.strokeStyle = seam;
+
+    g.beginPath();
+    g.moveTo(x1, yt);
+    g.lineTo(x1 + dx, yt + dy);
+    g.lineTo(x1 + dx, yb + dy);
+    g.lineTo(x1, yb);
+    g.closePath();
+    g.fillStyle = cR; g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.12)'; g.fill();
+    if (shade > 0){ g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    g.beginPath();
+    g.moveTo(x0, yt);
+    g.lineTo(x1, yt);
+    g.lineTo(x1 + dx, yt + dy);
+    g.lineTo(x0 + dx, yt + dy);
+    g.closePath();
+    g.fillStyle = cT; g.fill();
+    if (shade > 0){ g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    g.beginPath();
+    g.rect(x0, yt, w, h);
+    g.fillStyle = cF; g.fill();
+    var fg = g.createLinearGradient(0, yt, 0, yb);
+    fg.addColorStop(0, 'rgba(255,255,255,0.075)');
+    fg.addColorStop(0.5, 'rgba(0,0,0,0)');
+    fg.addColorStop(1, 'rgba(0,0,0,0.22)');
+    g.fillStyle = fg; g.fill();
+    if (shade > 0){ g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    g.strokeStyle = rimL;                       /* the arris the lamp catches */
+    g.beginPath();
+    g.moveTo(x0, yt + 0.5);
+    g.lineTo(x0, yb);
+    g.stroke();
+    g.strokeStyle = seam;
+  }
+
+  /* masonry courses on a front face — structure, not outline */
+  function courses(x0, yb, w, h, n){
+    g.strokeStyle = 'rgba(0,0,0,0.14)';
+    g.lineWidth = lw;
+    for (var i = 1; i < n; i++){
+      var yy = yb - h * i / n;
+      g.beginPath();
+      g.moveTo(x0 + 0.8, yy);
+      g.lineTo(x0 + w - 0.8, yy);
+      g.stroke();
+    }
+    g.strokeStyle = seam;
+  }
+
+  /* a round-headed opening: straight jambs, a true semicircular head */
+  function archPath(cx, sill, w, h){
+    var hw = w / 2;
+    if (h < hw * 1.15) h = hw * 1.15;           /* keeps the head a true half circle */
+    var spr = sill - h + hw;
+    g.beginPath();
+    g.moveTo(cx - hw, sill);
+    g.lineTo(cx - hw, spr);
+    g.arc(cx, spr, hw, Math.PI, 0);
+    g.lineTo(cx + hw, sill);
+    g.closePath();
+  }
+
+  /* a window: a hole, then the lamp behind it, then one lit jamb and one
+     shadowed one. No outline — the two jambs are the drawing. */
+  function win(cx, sill, w, h, lit){
+    if (!(w > 0.45) || !(h > 1.0)) return;
+    archPath(cx, sill, w, h);
+    g.fillStyle = 'rgba(8,8,12,0.90)';
+    g.fill();
+    if (lit > 0 && w > 1.1 && h > 1.8){
+      g.globalAlpha = lit;
+      archPath(cx, sill - 0.4, w - 0.85, h - 0.9);
+      g.fillStyle = C_ACC;
+      g.fill();
+      g.globalAlpha = 1;
+    }
+    g.lineWidth = lw;
+    g.strokeStyle = al(ST_T, 0.32);
+    g.beginPath(); g.moveTo(cx - w / 2 - 0.45, sill); g.lineTo(cx - w / 2 - 0.45, sill - h + w / 2); g.stroke();
+    g.strokeStyle = al(C_EDGE, 0.55);
+    g.beginPath(); g.moveTo(cx + w / 2 + 0.45, sill); g.lineTo(cx + w / 2 + 0.45, sill - h + w / 2); g.stroke();
+    g.strokeStyle = seam;
+  }
+
+  /* a recessed bay: the wall stepped back inside a great arch */
+  function niche(cx, sill, w, h){
+    archPath(cx, sill, w, h);
+    g.fillStyle = ST_N;
+    g.fill();
+    g.lineWidth = lw;
+    g.strokeStyle = al(C_EDGE, 0.55);
+    g.stroke();
+    archPath(cx - 0.5, sill, w, h);             /* the lit reveal on the lamp side */
+    g.strokeStyle = al(ST_T, 0.26);
+    g.stroke();
+    g.strokeStyle = seam;
+  }
+
+  /* a vertical cylinder wall: the band between two stacked ellipses. The bright
+     band sits IN from the left edge, which is the whole difference between a
+     cylinder and a flat plank. */
+  function cylinder(cx, yTop, yBot, rx, ry, cT, cF, cR){
+    g.beginPath();
+    g.ellipse(cx, yTop, rx, ry, 0, 0, Math.PI);
+    g.lineTo(cx - rx, yBot);
+    g.ellipse(cx, yBot, rx, ry, 0, Math.PI, 0, true);
+    g.closePath();
+    var bg = g.createLinearGradient(cx - rx, 0, cx + rx, 0);
+    bg.addColorStop(0,    mix(cF, cR, 0.42));
+    bg.addColorStop(0.17, mix(cT, cF, 0.30));
+    bg.addColorStop(0.48, cF);
+    bg.addColorStop(1,    cR);
+    g.fillStyle = bg;
+    g.fill();
+    g.lineWidth = lw;
+    g.strokeStyle = al(C_EDGE, 0.45);
+    g.stroke();
+    g.strokeStyle = seam;
+  }
+
+  /* a flat ring of stone. Its front half hanging below the springing is what
+     tells the eye the thing above it is round and not a semicircle stuck on. */
+  function cornice(cx, cy, rx, ry, cT, cF, cR){
+    g.beginPath();
+    g.ellipse(cx, cy + Math.max(0.7, ry * 0.28), rx, ry, 0, 0, TAU);
+    g.fillStyle = mix(cR, C_EDGE, 0.40);
+    g.fill();
+    var cg = g.createLinearGradient(cx - rx, cy - ry, cx + rx, cy + ry);
+    cg.addColorStop(0,    cT);
+    cg.addColorStop(0.42, cF);
+    cg.addColorStop(1,    cR);
+    g.beginPath();
+    g.ellipse(cx, cy, rx, ry, 0, 0, TAU);
+    g.fillStyle = cg;
+    g.fill();
+    g.lineWidth = lw;
+    g.strokeStyle = al(C_EDGE, 0.5);
+    g.stroke();
+    g.strokeStyle = seam;
+  }
+
+  /* A dome. The shading gradient is built in a circular space and squashed on
+     the way out — a radial gradient laid straight onto a flattened ellipse pools
+     in the wrong place and the dome goes flat. The meridians are the structure:
+     each rib lit on its left flank, shadowed on its right, all converging on the
+     apex, which is what a shallow dome actually looks like. */
+  function domeCap(cx, cy, rx, ry, cT, cF, cR, ribbed){
+    g.save();
+    g.beginPath();
+    g.ellipse(cx, cy, rx, ry, 0, Math.PI, TAU);
+    g.closePath();
+    g.clip();
+
+    g.save();
+    g.translate(cx, cy);
+    g.scale(1, ry / rx);
+    var dg = g.createRadialGradient(-rx * 0.40, -rx * 0.56, rx * 0.04,
+                                    -rx * 0.06, -rx * 0.20, rx * 1.38);
+    dg.addColorStop(0,    mix(cT, '#ffffff', 0.10));
+    dg.addColorStop(0.32, cT);
+    dg.addColorStop(0.60, cF);
+    dg.addColorStop(1,    cR);
+    g.fillStyle = dg;
+    g.beginPath();
+    g.arc(0, 0, rx * 1.9, 0, TAU);
+    g.fill();
+    g.restore();
+
+    if (ribbed){
+      var RIB = [-0.91, -0.71, -0.48, -0.22, 0.06, 0.34, 0.60, 0.82];
+      for (var i = 0; i < RIB.length; i++){
+        var u = RIB[i];
+        var ex = cx + u * rx;
+        var kx = cx + u * rx * 0.56, ky = cy - ry * 0.74;
+        g.lineWidth = lw;
+        g.beginPath();
+        g.moveTo(cx, cy - ry);
+        g.quadraticCurveTo(kx, ky, ex, cy);
+        g.strokeStyle = u < 0 ? al(cT, 0.24) : al(cT, 0.10);
+        g.stroke();
+        g.beginPath();
+        g.moveTo(cx + rx * 0.045, cy - ry);
+        g.quadraticCurveTo(kx + rx * 0.055, ky + ry * 0.05, ex + rx * 0.055, cy);
+        g.strokeStyle = al(C_EDGE, 0.22);
+        g.stroke();
+      }
+    }
+
+    /* the crescent where the dome turns away, and the rim the lamp catches */
+    g.lineWidth = Math.max(lw, rx * 0.075);
+    g.strokeStyle = al(C_EDGE, 0.30);
+    g.beginPath();
+    g.ellipse(cx, cy, rx, ry, 0, Math.PI * 1.74, TAU);
+    g.stroke();
+    g.lineWidth = Math.max(lw, rx * 0.045);
+    g.strokeStyle = al(cT, 0.45);
+    g.beginPath();
+    g.ellipse(cx, cy, rx - rx * 0.035, ry - ry * 0.035, 0, Math.PI * 1.05, Math.PI * 1.44);
+    g.stroke();
+
+    g.restore();
+    g.lineWidth = lw;
+    g.strokeStyle = seam;
+  }
+
+  /* a finial: a small stepped base, a mast, a ball. Vertical, so it needs the
+     same three tones as anything else. */
+  function finial(cx, base, h, r){
+    g.fillStyle = mix(LD_F, LD_R, 0.35);
+    g.beginPath();
+    g.ellipse(cx, base, r * 2.1, r * 0.75, 0, 0, TAU);
+    g.fill();
+    g.fillStyle = LD_T;
+    g.beginPath();
+    g.ellipse(cx - r * 0.25, base - r * 0.3, r * 1.5, r * 0.5, 0, 0, TAU);
+    g.fill();
+    g.strokeStyle = mix(LD_F, LD_T, 0.4);
+    g.lineWidth = Math.max(lw, r * 0.5);
+    g.beginPath();
+    g.moveTo(cx, base);
+    g.lineTo(cx, base - h);
+    g.stroke();
+    g.strokeStyle = al(C_EDGE, 0.6);
+    g.lineWidth = Math.max(lw * 0.8, r * 0.2);
+    g.beginPath();
+    g.moveTo(cx + r * 0.28, base);
+    g.lineTo(cx + r * 0.28, base - h);
+    g.stroke();
+    var bg2 = g.createRadialGradient(cx - r * 0.4, base - h - r * 0.4, 0, cx, base - h, r * 1.4);
+    bg2.addColorStop(0, mix(LD_T, C_ACC, 0.35));
+    bg2.addColorStop(0.6, LD_F);
+    bg2.addColorStop(1, LD_R);
+    g.fillStyle = bg2;
+    g.beginPath();
+    g.arc(cx, base - h, r, 0, TAU);
+    g.fill();
+    g.lineWidth = lw;
+    g.strokeStyle = seam;
+  }
+
+  /* A minaret. Slender — 6 units across a 62 unit shaft — because that ratio is
+     the only thing that keeps it from reading as a chimney. Built as a cylinder:
+     a horizontal gradient across the shaft, string courses as flattened
+     ellipses, one corbelled gallery, a cone cap split at its axis into a lit
+     left flank and a dark right one. `back` dims and slims it so the rear pair
+     sit behind the roof instead of racing the front pair. */
+  function minaret(cx, gy, k, back){
+    var d = back ? 1 : 0;
+    var T = d ? mix(ST_T, C_EDGE, 0.34) : ST_T;
+    var F = d ? mix(ST_F, C_EDGE, 0.34) : ST_F;
+    var R = d ? mix(ST_R, C_EDGE, 0.30) : ST_R;
+    var lT = d ? mix(LD_T, C_EDGE, 0.34) : LD_T;
+    var lF = d ? mix(LD_F, C_EDGE, 0.34) : LD_F;
+    var lR = d ? mix(LD_R, C_EDGE, 0.30) : LD_R;
+
+    g.save();
+    g.translate(cx, gy);
+    g.scale(k, k);
+
+    /* its own contact shadow, flattened, before anything stands up */
+    g.fillStyle = 'rgba(0,0,0,0.30)';
+    g.beginPath();
+    g.ellipse(0.8, -0.4, 5.6, 1.7, 0, 0, TAU);
+    g.fill();
+
+    /* socle */
+    box(-4.0, 0, 8, 6, 4.5, 0.16, F, T, R);
+
+    /* shaft, tapering, with the bright band held in from the left edge */
+    var b0 = -6, b1 = -50, hw0 = 3.0, hw1 = 2.45;
+    g.beginPath();
+    g.moveTo(-hw0, b0); g.lineTo(hw0, b0); g.lineTo(hw1, b1); g.lineTo(-hw1, b1);
+    g.closePath();
+    var sg = g.createLinearGradient(-hw0, 0, hw0, 0);
+    sg.addColorStop(0,    mix(F, R, 0.42));
+    sg.addColorStop(0.18, mix(T, F, 0.25));
+    sg.addColorStop(0.50, F);
+    sg.addColorStop(1,    R);
+    g.fillStyle = sg;
+    g.fill();
+    g.lineWidth = lw;
+    g.strokeStyle = al(C_EDGE, 0.5);
+    g.stroke();
+
+    /* string courses: flat rings, each a lit top and a dark underside */
+    var RING = [-14, -26, -38];
+    for (var i = 0; i < RING.length; i++){
+      var ry0 = RING[i];
+      var t = (ry0 - b0) / (b1 - b0);
+      var hw = hw0 + (hw1 - hw0) * t + 0.45;
+      g.fillStyle = mix(R, C_EDGE, 0.3);
+      g.beginPath(); g.ellipse(0, ry0 + 0.5, hw, hw * 0.34, 0, 0, TAU); g.fill();
+      var rg2 = g.createLinearGradient(-hw, 0, hw, 0);
+      rg2.addColorStop(0, mix(T, F, 0.35)); rg2.addColorStop(0.5, F); rg2.addColorStop(1, R);
+      g.fillStyle = rg2;
+      g.beginPath(); g.ellipse(0, ry0, hw, hw * 0.34, 0, 0, TAU); g.fill();
+    }
+
+    /* gallery: corbel, plate, parapet — the one place a minaret gets wider */
+    g.fillStyle = mix(R, C_EDGE, 0.25);
+    g.beginPath();
+    g.moveTo(-2.6, -48.4); g.lineTo(2.6, -48.4); g.lineTo(4.1, -51.0); g.lineTo(-4.1, -51.0);
+    g.closePath();
+    g.fill();
+    g.fillStyle = mix(F, C_EDGE, 0.45);
+    g.beginPath(); g.ellipse(0, -50.4, 4.5, 1.5, 0, 0, TAU); g.fill();
+    var pg = g.createLinearGradient(-4.5, 0, 4.5, 0);
+    pg.addColorStop(0, T); pg.addColorStop(0.45, F); pg.addColorStop(1, R);
+    g.fillStyle = pg;
+    g.beginPath(); g.ellipse(0, -51.2, 4.5, 1.5, 0, 0, TAU); g.fill();
+    g.fillStyle = mix(F, T, 0.15);
+    g.beginPath();
+    g.moveTo(-4.0, -51.2); g.lineTo(4.0, -51.2); g.lineTo(3.7, -54.4); g.lineTo(-3.7, -54.4);
+    g.closePath();
+    g.fill();
+    g.fillStyle = al(C_EDGE, 0.55);
+    for (var q = -2; q <= 2; q++){
+      g.fillRect(q * 1.5 - 0.22, -54.2, 0.44, 2.6);
+    }
+    g.fillStyle = mix(T, C_ACC, 0.2);
+    g.fillRect(-4.0, -54.8, 8.0, 0.6);
+
+    /* upper shaft above the gallery */
+    g.beginPath();
+    g.moveTo(-2.15, -54.6); g.lineTo(2.15, -54.6); g.lineTo(1.85, -62.0); g.lineTo(-1.85, -62.0);
+    g.closePath();
+    var ug = g.createLinearGradient(-2.15, 0, 2.15, 0);
+    ug.addColorStop(0, mix(F, R, 0.4)); ug.addColorStop(0.2, mix(T, F, 0.3));
+    ug.addColorStop(0.5, F); ug.addColorStop(1, R);
+    g.fillStyle = ug;
+    g.fill();
+
+    /* cone cap: two flanks split on the axis, so the lamp survives the taper */
+    g.fillStyle = mix(lF, lR, 0.55);
+    g.beginPath(); g.ellipse(0, -62.0, 2.6, 0.85, 0, 0, TAU); g.fill();
+    g.beginPath();
+    g.moveTo(-2.6, -62.0); g.lineTo(0, -73.0); g.lineTo(0, -61.6);
+    g.closePath();
+    g.fillStyle = mix(lT, lF, 0.35);
+    g.fill();
+    g.beginPath();
+    g.moveTo(2.6, -62.0); g.lineTo(0, -73.0); g.lineTo(0, -61.6);
+    g.closePath();
+    g.fillStyle = lR;
+    g.fill();
+    g.lineWidth = lw;
+    g.strokeStyle = al(C_EDGE, 0.45);
+    g.beginPath();
+    g.moveTo(-2.6, -62.0); g.lineTo(0, -73.0); g.lineTo(2.6, -62.0);
+    g.stroke();
+
+    finial(0, -72.6, 3.4, 0.85);
+
+    g.restore();
+    g.lineWidth = lw;
+    g.strokeStyle = seam;
+  }
+
+  /* ================= occupied glow — behind everything, breathing ========== */
+  var glowA = 0.09 + 0.12 * breath;
+  g.save();
+  g.translate(0, -34);
+  g.scale(1, 0.44);
+  var gg = g.createRadialGradient(0, 0, 6, 0, 0, 76);
+  gg.addColorStop(0, al(C_ACC, glowA));
+  gg.addColorStop(0.45, al(C_ACC, glowA * 0.40));
+  gg.addColorStop(1, al(C_ACC, 0));
+  g.fillStyle = gg;
+  g.beginPath(); g.arc(0, 0, 76, 0, TAU); g.fill();
+  g.restore();
+
+  /* ================= ground shadow, flattened, under the whole footprint === */
+  g.fillStyle = 'rgba(0,0,0,0.32)';
+  g.beginPath();
+  g.ellipse(3, -2.0, 50, 12.5, 0, 0, TAU);
+  g.fill();
+  g.fillStyle = 'rgba(0,0,0,0.22)';
+  g.beginPath();
+  g.ellipse(1, -1.2, 41, 8.6, 0, 0, TAU);
+  g.fill();
+
+  /* ================= the two rear minarets ================================
+     They stand on the BACK corners of the terrace, so they rise out from behind
+     the roof — which is the cheapest honest depth cue this drawing has. Dimmed,
+     slightly smaller, and drawn before the mass so the mass buries their feet. */
+  minaret(-29, -13, 0.92, 1);
+  minaret( 39, -13, 0.92, 1);
+
+  /* ================= terrace ============================================== */
+  box(-43, 0, 76, 7, 10, 0.22, ST_F, ST_T, ST_R);
+  courses(-43, 0, 76, 7, 2);
+  g.strokeStyle = 'rgba(0,0,0,0.16)';
+  g.lineWidth = lw;
+  for (var pj = -2; pj <= 2; pj++){
+    if (pj === 0) continue;
+    g.beginPath();
+    g.moveTo(pj * 14, -0.6);
+    g.lineTo(pj * 14, -6.6);
+    g.stroke();
+  }
+  g.strokeStyle = seam;
+
+  /* steps up to the portal, back tread first so the front one overlaps it */
+  for (var si = 2; si >= 0; si--){
+    box(-16 + si * 1.6, -si * 2.34, 22 - si * 3.2, 2.34, 2.2, 0.14, ST_F, ST_T, ST_R);
+  }
+
+  /* ================= the square mass ====================================== */
+  box(-38, -7, 66, 25, 10, 0.05, ST_F, ST_T, ST_R);
+  courses(-38, -7, 66, 25, 5);
+
+  /* three bays of blind arcade, each with its own lit lights. The wall is not a
+     flat panel: it steps back inside a great arch, then the windows sit in that. */
+  var BAY = [[-24, 12], [-5, 14], [14, 12]];
+  var LITB = [0.85, 0.45, 0.70];
+  for (var b = 0; b < BAY.length; b++){
+    var bc = BAY[b][0], bw = BAY[b][1];
+    niche(bc, -10, bw - 2.5, 20);
+    var n3 = 3, gap = (bw - 6.5) / 2;
+    for (var wj = 0; wj < n3; wj++){
+      var wxx = bc + (wj - 1) * gap;
+      win(wxx, -17.5, 2.3, 7.0, 0.20 + 0.46 * LITB[(b + wj) % 3] * (0.55 + 0.45 * breath));
+    }
+    if (b !== 1){
+      win(bc, -11.5, 3.0, 5.4, 0.12 + 0.22 * breath);
+    }
+  }
+
+  /* the great portal, warm from inside */
+  archPath(-5, -7, 10, 16);
+  g.fillStyle = 'rgba(6,6,10,0.93)';
+  g.fill();
+  g.lineWidth = lw;
+  g.strokeStyle = al(C_EDGE, 0.7);
+  g.stroke();
+  g.globalAlpha = 0.14 + 0.22 * breath;
+  g.beginPath();
+  g.ellipse(-5, -7.4, 4.1, 3.4, 0, Math.PI, TAU);
+  g.fillStyle = C_ACC;
+  g.fill();
+  g.globalAlpha = 1;
+  g.strokeStyle = seam;
+
+  /* ================= main cornice ========================================= */
+  box(-40, -32, 70, 4, 11, 0.10, ST_F, ST_T, ST_R);
+
+  /* ================= attic: the platform both roofs stand on ============== */
+  box(-34, -36, 58, 7, 9, 0.08, ST_F, ST_T, ST_R);
+  courses(-34, -36, 58, 7, 2);
+  var ALIT = [0.9, 0.4, 0.75, 0.35, 0.8, 0.5, 0.95];
+  for (var ai = 0; ai < 7; ai++){
+    win(-28 + ai * 8.6, -37.2, 2.0, 4.6, 0.16 + 0.34 * ALIT[ai] * (0.5 + 0.5 * breath));
+  }
+
+  /* ================= tier 1: the drum, and the great dome on it ===========
+     Drawn before the half-domes, because the half-domes lean against it and must
+     therefore overlap it — that overlap is the cascade. */
+  cornice(0, -46.6, 13.6, 3.9, ST_T, ST_F, ST_R);
+  cylinder(0, -55, -46.6, 12.6, 3.7, ST_T, ST_F, ST_R);
+
+  /* the ring of windows — the signature of the drum. Spaced by ANGLE, not by x,
+     and each one narrows and rides up as the cylinder turns away. */
+  var NW = 9, SPR = 1.17;
+  var DLIT = [0.95, 0.40, 0.80, 0.55, 1.0, 0.45, 0.85, 0.35, 0.75];
+  for (var di = 0; di < NW; di++){
+    var th = -SPR + (2 * SPR) * (di / (NW - 1));
+    var kk = Math.cos(th);
+    var wx2 = 12.6 * Math.sin(th);
+    var sill2 = -46.6 + 3.7 * kk - 1.4;
+    var head2 = -55 + 3.7 * kk + 2.1;
+    win(wx2, sill2, 2.9 * kk, sill2 - head2, 0.24 + 0.52 * DLIT[di] * (0.5 + 0.5 * breath));
+  }
+  /* the cornice the dome springs from, wider than the drum it caps */
+  cornice(0, -55, 14.6, 4.2, ST_T, ST_F, ST_R);
+  domeCap(0, -55, 14, 8.4, LD_T, LD_F, LD_R, 1);
+  finial(0, -63.4, 4.6, 1.15);
+
+  /* ================= tier 2: the two half-domes stepping down ==============
+     Their centres are offset by half the depth vector, the same as the drum's,
+     so the three of them sit on one axis instead of drifting apart. */
+  cornice(-20, -43, 9.6, 2.9, ST_T, ST_F, ST_R);
+  domeCap(-20, -43, 9.0, 5.4, LD_T, LD_F, LD_R, 1);
+  cornice(20, -43, 9.6, 2.9, ST_T, ST_F, ST_R);
+  domeCap(20, -43, 9.0, 5.4, LD_T, LD_F, LD_R, 1);
+
+  /* ================= the garrison's banner =================================
+     The only moving part. Everything else here is masonry and stays put. */
+  var mastX = -31, mastB = -43, mastT = -60.5;
+  g.strokeStyle = mix(ST_F, ST_R, 0.4);
+  g.lineWidth = Math.max(lw, 0.9);
+  g.beginPath();
+  g.moveTo(mastX, mastB);
+  g.lineTo(mastX, mastT);
+  g.stroke();
+  g.strokeStyle = al(ST_T, 0.5);
+  g.lineWidth = Math.max(lw * 0.8, 0.4);
+  g.beginPath();
+  g.moveTo(mastX - 0.35, mastB);
+  g.lineTo(mastX - 0.35, mastT);
+  g.stroke();
+  g.fillStyle = al(C_ACC, 0.85);
+  g.beginPath();
+  g.arc(mastX, mastT - 0.9, 1.0, 0, TAU);
+  g.fill();
+
+  function pennant(){
+    g.beginPath();
+    g.moveTo(mastX + 0.6, -59.4);
+    g.quadraticCurveTo(mastX + 5.4, -58.2 + stir * 1.0, mastX + 10.4, -56.0 + stir * 1.6);
+    g.quadraticCurveTo(mastX + 5.4, -55.0 - stir * 0.8, mastX + 0.6, -52.6);
+    g.closePath();
+  }
+  pennant();
+  g.fillStyle = C_BASE;
+  g.fill();
+  g.beginPath();
+  g.moveTo(mastX + 0.6, -56.2);
+  g.quadraticCurveTo(mastX + 5.4, -55.6 - stir * 0.1, mastX + 10.4, -56.0 + stir * 1.6);
+  g.quadraticCurveTo(mastX + 5.4, -55.0 - stir * 0.8, mastX + 0.6, -52.6);
+  g.closePath();
+  g.fillStyle = al(C_DARK, 0.7);
+  g.fill();
+  pennant();
+  g.lineWidth = lw;
+  g.strokeStyle = seam;
+  g.stroke();
+
+  /* ================= tier 3: the buttress piers ===========================
+     Last of the masonry, because they project FORWARD of the wall — their
+     receding faces are supposed to fall across it. The outer pair carry past the
+     cornice as stubby turrets, which is what gives the mass its shoulders. */
+  function pier(x0, w, top, shade){
+    box(x0, -7, w, -7 - top, 10, shade, ST_F, ST_T, ST_R);
+    courses(x0, -7, w, -7 - top, 4);
+    box(x0 - 1.1, top, w + 2.2, 2.2, 11, shade + 0.04, ST_F, ST_T, ST_R);
+  }
+  pier(-38, 8, -38.5, 0.02);
+  pier(-18, 6, -35.0, 0.06);
+  pier(2, 6, -35.0, 0.13);
+  pier(20, 8, -38.5, 0.19);
+
+  /* ================= the two front minarets =============================== */
+  minaret(-39, -7.5, 1, 0);
+  minaret( 29, -7.5, 1, 0);
+
+  g.restore();
+}
+
+/* ============================ 伦敦战役 — the Elizabeth Tower ==================
+   The Bear Tribe's hold at the end of the silk road, standing where the keep
+   stands on the other fields. Same contract as drawKeep3D: (x,y) is the ground
+   under the building, everything is built in negative y and scaled by s, one
+   lamp up and to the LEFT, and nothing turns — a solid that rotates takes its
+   light with it and stops being a solid.
+
+   Three facts have to survive being forty pixels tall in a strip, and every
+   decision below is subordinate to them:
+
+     1. the shaft is very tall and very thin  — 16 wide against 82 high
+     2. a pale disc sits high on it            — the one bright thing on the mass
+     3. the point above that is STEEP          — 13.4 high on a 5.5 half-base
+
+   Everything else (tracery, courses, battlements, louvres) is built so that
+   when it stops resolving it averages into a tone rather than into noise. The
+   palace runs off to the left and is deliberately kept to a third of the
+   tower's height: it is there to make the tower look tall.
+
+   Depth recedes to the upper right at a fixed rate, dy = -d * 0.55. Every front
+   face lives at depth 0, so a mass's receding faces must never be painted over
+   a nearer mass's front face — the composition is therefore authored down-left
+   first, exactly as the keep is.                                             */
+function drawBigBen3D(g, x, y, s, pal, ph) {
+  g.save();
+
+  var TAU = Math.PI * 2;
+
+  var baseC   = (pal && pal.base)   || '#6b6d7c';
+  var lightC  = (pal && pal.light)  || '#a8aab8';
+  var darkC   = (pal && pal.dark)   || '#3a3a44';
+  var edgeC   = (pal && pal.edge)   || '#0b0b11';
+  var accentC = (pal && pal.accent) || '#e9e9f2';
+
+  /* ---- colour plumbing: accepts #rgb / #rrggbb / rgb(), so a mixed tone can
+     be mixed again and no literal team colour is ever needed ---- */
+  function chan(c) {
+    if (typeof c !== 'string') return null;
+    var t = c.replace(/\s/g, ''), v = null, h, n, m;
+    if (t.charAt(0) === '#') {
+      h = t.slice(1);
+      if (h.length === 3) h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2);
+      if (h.length >= 6) {
+        n = parseInt(h.slice(0, 6), 16);
+        if (isFinite(n)) v = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      }
+    } else if (t.substr(0, 3).toLowerCase() === 'rgb') {
+      m = t.match(/-?[0-9.]+/g);
+      if (m && m.length >= 3) v = [+m[0], +m[1], +m[2]];
+    }
+    if (!v || !isFinite(v[0]) || !isFinite(v[1]) || !isFinite(v[2])) return null;
+    return v;
+  }
+  function toRGBA(c, a) {
+    var A = chan(c);
+    if (!A) return c;
+    if (!(a > 0)) a = 0; if (a > 1) a = 1;
+    return 'rgba(' + Math.round(A[0]) + ',' + Math.round(A[1]) + ',' + Math.round(A[2]) + ',' + (Math.round(a * 1000) / 1000) + ')';
+  }
+  function mix(a, b, t) {
+    var A = chan(a), B = chan(b);
+    if (!A || !B) return t < 0.5 ? a : b;
+    return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' + Math.round(A[1] + (B[1] - A[1]) * t) + ',' + Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+  }
+
+  /* ---- the only clock in the sprite: ph, 0..1, wrapping ---- */
+  var p = (typeof ph === 'number' && isFinite(ph)) ? ph - Math.floor(ph) : 0;
+  var breath = 0.5 - 0.5 * Math.cos(p * TAU);      /* lamps behind glass */
+  var stir   = Math.sin(p * TAU);                  /* the standard on the pavilion */
+
+  g.translate(x, y);
+  g.scale(s, s);
+
+  var sc = (s > 0.001 || s < -0.001) ? Math.abs(s) : 0.001;
+  var lw = 1 / sc;
+  if (lw > 1.4) lw = 1.4;
+  if (lw < 0.32) lw = 0.32;
+
+  g.lineCap = 'butt';
+  g.lineJoin = 'round';
+  g.lineWidth = lw;
+  g.globalAlpha = 1;
+
+  var seam = toRGBA(edgeC, 0.48);
+  var rim  = toRGBA(lightC, 0.34);
+
+  /* stone: walls. lead: roofs, spire, pinnacle caps — pulled toward a
+     structural grey so the point separates from the shaft instead of merging
+     into it, while still carrying the side's tint. */
+  var stoneF = baseC, stoneT = lightC, stoneR = darkC;
+  var leadF  = mix(darkC, '#2c2c35', 0.55);
+  var leadR  = mix(leadF, edgeC, 0.42);
+  var roofT  = mix(leadF, lightC, 0.20);           /* a lead roof read from above */
+  var holeC  = toRGBA(mix(edgeC, darkC, 0.12), 0.95);
+
+  /* ---------------------------------------------------------------------
+     box: front (mid) + top (lightest) + right (darkest). Three faces every
+     time — a solid missing one of them stops being a solid. cT/cR override
+     the tone when the top of a mass is a roof rather than cut stone.
+     --------------------------------------------------------------------- */
+  function box(x0, yb, w, h, d, shade, cF, cT, cR) {
+    var x1 = x0 + w, yt = yb - h, dx = d, dy = -d * 0.55;
+    var sh = 'rgba(0,0,0,' + shade + ')';
+    cF = cF || stoneF; cT = cT || stoneT; cR = cR || stoneR;
+    g.lineWidth = lw;
+    g.strokeStyle = seam;
+
+    /* right face — turned away from the lamp */
+    g.beginPath();
+    g.moveTo(x1, yt); g.lineTo(x1 + dx, yt + dy); g.lineTo(x1 + dx, yb + dy); g.lineTo(x1, yb);
+    g.closePath();
+    g.fillStyle = cR; g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.16)'; g.fill();
+    if (shade > 0) { g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    /* top face — square into the lamp */
+    g.beginPath();
+    g.moveTo(x0, yt); g.lineTo(x1, yt); g.lineTo(x1 + dx, yt + dy); g.lineTo(x0 + dx, yt + dy);
+    g.closePath();
+    g.fillStyle = cT; g.fill();
+    if (shade > 0) { g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    /* front face — mid, raked diagonally so the lamp is legible across it */
+    g.beginPath();
+    g.rect(x0, yt, w, h);
+    g.fillStyle = cF; g.fill();
+    var gr = g.createLinearGradient(x0, yt, x1, yb);
+    gr.addColorStop(0, 'rgba(255,255,255,0.09)');
+    gr.addColorStop(0.46, 'rgba(0,0,0,0)');
+    gr.addColorStop(1, 'rgba(0,0,0,0.25)');
+    g.fillStyle = gr; g.fill();
+    if (shade > 0) { g.fillStyle = sh; g.fill(); }
+    g.stroke();
+
+    /* the lit arris down the left corner */
+    g.strokeStyle = rim;
+    g.beginPath(); g.moveTo(x0, yt + 0.6); g.lineTo(x0, yb); g.stroke();
+    g.strokeStyle = seam;
+  }
+
+  /* the band an overhang throws on the wall beneath it — undersides are the
+     darkest thing on the building, and this is what stops the stacked stages
+     of the tower from reading as one extruded slab */
+  function soffit(x0, x1, yUnder, h) {
+    var sg = g.createLinearGradient(0, yUnder, 0, yUnder + h);
+    sg.addColorStop(0, 'rgba(0,0,0,0.36)');
+    sg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = sg;
+    g.fillRect(x0, yUnder, x1 - x0, h);
+  }
+
+  /* horizontal masonry joints, faint, so a big flat face is not flat */
+  function courses(x0, yb, w, h, n) {
+    g.strokeStyle = 'rgba(0,0,0,0.11)';
+    g.lineWidth = lw * 0.75;
+    for (var i = 1; i < n; i++) {
+      var yy = yb - h * i / n;
+      g.beginPath(); g.moveTo(x0 + 0.7, yy); g.lineTo(x0 + w - 0.7, yy); g.stroke();
+    }
+    g.lineWidth = lw;
+    g.strokeStyle = seam;
+  }
+
+  /* ---------------------------------------------------------------------
+     Gothic vertical tracery — repeated hairlines, deliberately NOT drawn
+     windows. A mullion is a rib standing off the wall, so it is one lit
+     hairline and one shadow hairline a unit apart, closed by a small point.
+     Kept quiet on purpose: at the scales this sprite is used the pair merges
+     into a vertical grain, which is what the real thing does from across the
+     river. Loud tracery here would read as scratches.
+     --------------------------------------------------------------------- */
+  function tracery(x0, x1, yb, yt, n) {
+    var span = x1 - x0, hd = 1.6, i, xx;
+    g.lineWidth = lw * 0.7;
+    for (i = 0; i < n; i++) {
+      xx = x0 + span * (i + 0.5) / n;
+      g.strokeStyle = 'rgba(0,0,0,0.24)';
+      g.beginPath(); g.moveTo(xx + 0.5, yb); g.lineTo(xx + 0.5, yt + hd); g.stroke();
+      g.strokeStyle = toRGBA(lightC, 0.13);
+      g.beginPath(); g.moveTo(xx - 0.5, yb); g.lineTo(xx - 0.5, yt + hd); g.stroke();
+      g.strokeStyle = 'rgba(0,0,0,0.16)';
+      g.beginPath();
+      g.moveTo(xx - 0.5, yt + hd);
+      g.quadraticCurveTo(xx - 0.5, yt + hd * 0.1666, xx, yt);
+      g.quadraticCurveTo(xx + 0.5, yt + hd * 0.1666, xx + 0.5, yt + hd);
+      g.stroke();
+    }
+    /* one transom, so the grain does not read as a picket fence */
+    g.strokeStyle = 'rgba(0,0,0,0.15)';
+    g.beginPath();
+    g.moveTo(x0, (yb + yt) * 0.5); g.lineTo(x1, (yb + yt) * 0.5); g.stroke();
+    g.strokeStyle = seam;
+    g.lineWidth = lw;
+  }
+
+  /* One tooth of a battlement. Its depth is the thickness of the parapet, NOT
+     the depth of the building under it — give a merlon the building's depth
+     and the row of pale top faces turns into a striped awning. */
+  function tooth(mx, ytop, w, h, d) {
+    var x1 = mx + w, yt = ytop - h, dx = d, dy = -d * 0.55;
+    g.beginPath();
+    g.moveTo(x1, yt); g.lineTo(x1 + dx, yt + dy); g.lineTo(x1 + dx, ytop + dy); g.lineTo(x1, ytop);
+    g.closePath();
+    g.fillStyle = mix(stoneR, edgeC, 0.22); g.fill();
+    g.beginPath();
+    g.moveTo(mx, yt); g.lineTo(x1, yt); g.lineTo(x1 + dx, yt + dy); g.lineTo(mx + dx, yt + dy);
+    g.closePath();
+    g.fillStyle = mix(stoneT, stoneF, 0.58); g.fill();
+    g.fillStyle = mix(stoneF, stoneR, 0.26);
+    g.fillRect(mx, yt, w, h);
+    g.fillStyle = toRGBA(lightC, 0.24);
+    g.fillRect(mx, yt, Math.min(0.5, w * 0.3), h);
+  }
+  function merlons(x0, x1, ytop, h, n, d) {
+    var pitch = (x1 - x0) / n, w = pitch * 0.56, i;
+    /* the walk behind the teeth, so the gaps are holes and not sky */
+    g.fillStyle = 'rgba(0,0,0,0.22)';
+    g.fillRect(x0, ytop - h * 0.62, x1 - x0, h * 0.62);
+    for (i = 0; i < n; i++) tooth(x0 + pitch * i + (pitch - w) * 0.5, ytop, w, h, d);
+  }
+
+  /* A true pointed arch. The control point sits where the vertical tangent at
+     the springing meets the tangent at the apex, which puts a corner at the
+     top instead of a dome — the difference between gothic and a bus shelter. */
+  function lancetPath(cx, hw, yb, ySpring, hd) {
+    var yt = ySpring - hd;
+    g.beginPath();
+    g.moveTo(cx - hw, yb);
+    g.lineTo(cx - hw, ySpring);
+    g.quadraticCurveTo(cx - hw, yt + hd * 0.1666, cx, yt);
+    g.quadraticCurveTo(cx + hw, yt + hd * 0.1666, cx + hw, ySpring);
+    g.lineTo(cx + hw, yb);
+    g.closePath();
+  }
+  /* An opening is a hole with a lit jamb on the lamp side and a dark one on
+     the other. Filled flat black it reads as a die-cut, not a window. */
+  function opening(cx, hw, yb, ySpring, hd, lit) {
+    lancetPath(cx, hw, yb, ySpring, hd);
+    g.fillStyle = holeC; g.fill();
+    if (lit > 0) {
+      g.globalAlpha = lit;
+      lancetPath(cx, hw * 0.62, yb - 0.4, ySpring + hd * 0.28, hd * 0.66);
+      g.fillStyle = accentC; g.fill();
+      g.globalAlpha = 1;
+    }
+    g.lineWidth = lw * 0.75;
+    g.strokeStyle = toRGBA(lightC, 0.30);
+    g.beginPath(); g.moveTo(cx - hw, yb); g.lineTo(cx - hw, ySpring); g.stroke();
+    g.strokeStyle = toRGBA(edgeC, 0.55);
+    g.beginPath(); g.moveTo(cx + hw, yb); g.lineTo(cx + hw, ySpring); g.stroke();
+    g.lineWidth = lw;
+    g.strokeStyle = seam;
+  }
+
+  /* A square pyramid seen from the front left: front slope, right slope, and a
+     lit hip between them. No top face, because a spire has no top — that is
+     the whole point of one. */
+  function pyramid(x0, x1, yb, h, d, cF, cR) {
+    var dx = d, dy = -d * 0.55;
+    var ax = (x0 + x1) * 0.5 + dx * 0.5, ay = yb - h + dy * 0.5;
+    g.beginPath();
+    g.moveTo(x1, yb); g.lineTo(x1 + dx, yb + dy); g.lineTo(ax, ay);
+    g.closePath();
+    g.fillStyle = cR; g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.18)'; g.fill();
+    g.lineWidth = lw; g.strokeStyle = seam; g.stroke();
+
+    g.beginPath();
+    g.moveTo(x0, yb); g.lineTo(x1, yb); g.lineTo(ax, ay);
+    g.closePath();
+    g.fillStyle = cF; g.fill();
+    var pg = g.createLinearGradient(x0, yb, x1, ay);
+    pg.addColorStop(0, 'rgba(255,255,255,0.12)');
+    pg.addColorStop(0.5, 'rgba(0,0,0,0)');
+    pg.addColorStop(1, 'rgba(0,0,0,0.24)');
+    g.fillStyle = pg; g.fill();
+    g.stroke();
+
+    /* ribs up the slope: cast iron, not a cone */
+    g.lineWidth = lw * 0.65;
+    g.strokeStyle = 'rgba(0,0,0,0.20)';
+    var ribs = [0.28, 0.53, 0.75], k, t;
+    for (k = 0; k < ribs.length; k++) {
+      t = ribs[k];
+      g.beginPath();
+      g.moveTo(x0 + (ax - x0) * t, yb + (ay - yb) * t);
+      g.lineTo(x1 + (ax - x1) * t, yb + (ay - yb) * t);
+      g.stroke();
+    }
+    /* the lit hip last, over the ribs */
+    g.lineWidth = lw;
+    g.strokeStyle = toRGBA(lightC, 0.46);
+    g.beginPath(); g.moveTo(x0, yb); g.lineTo(ax, ay); g.stroke();
+    g.strokeStyle = seam;
+    return [ax, ay];
+  }
+
+  /* a corner pinnacle: slim stub, then its own steep cap. Fat ones turn the
+     top of the tower into a fantasy castle. */
+  function pinnacle(cx, yb, w, h, d) {
+    var hw = w * 0.5;
+    box(cx - hw, yb, w, h * 0.26, d, 0.06);
+    pyramid(cx - hw * 0.78, cx + hw * 0.78, yb - h * 0.26, h * 0.74, d * 0.78, leadF, leadR);
+  }
+
+  /* ---------------------------------------------------------------------
+     The clock. A pale disc high on a dark shaft is the strongest single cue
+     the sprite has, so it is built to hold up at four pixels across: one
+     bright dial, one dark ring, two dark hands. Everything finer is allowed
+     to disappear.
+     --------------------------------------------------------------------- */
+  function clockFace(cx, cy, r, lit) {
+    var i, a, r0, r1;
+
+    /* it is lit from behind at night — a halo that breathes, under the stone */
+    var hg = g.createRadialGradient(cx, cy, r * 0.55, cx, cy, r * 2.6);
+    hg.addColorStop(0, toRGBA(accentC, 0.05 + 0.14 * lit));
+    hg.addColorStop(1, toRGBA(accentC, 0));
+    g.fillStyle = hg;
+    g.beginPath(); g.arc(cx, cy, r * 2.6, 0, TAU); g.fill();
+
+    /* stone surround, raked by the same lamp as everything else */
+    var sg = g.createLinearGradient(cx - r * 1.2, cy - r * 1.2, cx + r * 1.2, cy + r * 1.2);
+    sg.addColorStop(0, mix(lightC, accentC, 0.42));
+    sg.addColorStop(0.52, stoneF);
+    sg.addColorStop(1, mix(stoneR, edgeC, 0.28));
+    g.beginPath(); g.arc(cx, cy, r * 1.18, 0, TAU);
+    g.fillStyle = sg; g.fill();
+
+    /* the dial is set back inside the surround, so the reveal is dark */
+    g.beginPath(); g.arc(cx, cy, r * 1.05, 0, TAU);
+    g.fillStyle = 'rgba(0,0,0,0.42)'; g.fill();
+
+    /* the dial */
+    var dg = g.createRadialGradient(cx - r * 0.38, cy - r * 0.42, r * 0.08, cx, cy, r * 1.02);
+    dg.addColorStop(0, mix(accentC, '#ffffff', 0.65));
+    dg.addColorStop(0.60, mix(lightC, accentC, 0.72));
+    dg.addColorStop(1, mix(lightC, stoneF, 0.50));
+    g.beginPath(); g.arc(cx, cy, r, 0, TAU);
+    g.fillStyle = dg; g.fill();
+
+    /* twelve marks, the quarters longer. Fixed geometry — no dice in here. */
+    g.lineWidth = lw * 0.75;
+    for (i = 0; i < 12; i++) {
+      a = i / 12 * TAU;
+      r0 = (i % 3 === 0) ? r * 0.72 : r * 0.82;
+      r1 = r * 0.94;
+      g.strokeStyle = (i % 3 === 0) ? toRGBA(edgeC, 0.60) : toRGBA(edgeC, 0.30);
+      g.beginPath();
+      g.moveTo(cx + Math.sin(a) * r0, cy - Math.cos(a) * r0);
+      g.lineTo(cx + Math.sin(a) * r1, cy - Math.cos(a) * r1);
+      g.stroke();
+    }
+
+    /* hands fixed at ten to five: a clean diagonal, which never collapses into
+       the symmetrical logo that twelve o'clock makes */
+    var am = 50 / 60 * TAU, ah = (4 + 50 / 60) / 12 * TAU;
+    g.strokeStyle = toRGBA(edgeC, 0.88);
+    g.lineWidth = Math.max(lw, r * 0.12);
+    g.beginPath();
+    g.moveTo(cx - Math.sin(ah) * r * 0.13, cy + Math.cos(ah) * r * 0.13);
+    g.lineTo(cx + Math.sin(ah) * r * 0.52, cy - Math.cos(ah) * r * 0.52);
+    g.stroke();
+    g.lineWidth = Math.max(lw * 0.8, r * 0.09);
+    g.beginPath();
+    g.moveTo(cx - Math.sin(am) * r * 0.15, cy + Math.cos(am) * r * 0.15);
+    g.lineTo(cx + Math.sin(am) * r * 0.82, cy - Math.cos(am) * r * 0.82);
+    g.stroke();
+    g.fillStyle = toRGBA(edgeC, 0.9);
+    g.beginPath(); g.arc(cx, cy, Math.max(0.3, r * 0.09), 0, TAU); g.fill();
+
+    g.lineWidth = lw;
+    g.strokeStyle = toRGBA(edgeC, 0.5);
+    g.beginPath(); g.arc(cx, cy, r * 1.02, 0, TAU); g.stroke();
+    g.strokeStyle = seam;
+  }
+
+  /* ======================= 0. haze behind the shaft ======================= */
+  g.save();
+  g.translate(3, -34);
+  g.scale(0.62, 0.85);
+  var ha = 0.05 + 0.07 * breath;
+  var hz = g.createRadialGradient(0, 0, 4, 0, 0, 60);
+  hz.addColorStop(0, toRGBA(accentC, ha));
+  hz.addColorStop(0.5, toRGBA(accentC, ha * 0.36));
+  hz.addColorStop(1, toRGBA(accentC, 0));
+  g.fillStyle = hz;
+  g.beginPath(); g.arc(0, 0, 60, 0, TAU); g.fill();
+  g.restore();
+
+  /* ======================= 1. ground shadow ============================== */
+  g.fillStyle = 'rgba(0,0,0,0.30)';
+  g.beginPath(); g.ellipse(-14, -1.5, 43, 10.5, 0, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(0,0,0,0.22)';
+  g.beginPath(); g.ellipse(-17, -1.0, 35, 7.4, 0, 0, TAU); g.fill();
+  /* the tower is a separate mass on the terrace and gets its own contact patch */
+  g.fillStyle = 'rgba(0,0,0,0.26)';
+  g.beginPath(); g.ellipse(4, -1.2, 17, 5.6, 0, 0, TAU); g.fill();
+
+  /* ======================= 2. the embankment terrace ===================== */
+  box(-49, 0, 64, 5, 8, 0.27);
+  courses(-49, 0, 64, 5, 2);
+  g.strokeStyle = 'rgba(0,0,0,0.16)';
+  g.lineWidth = lw * 0.75;
+  var piers = [-37, -25, -13, -1, 9], pi;
+  for (pi = 0; pi < piers.length; pi++) {
+    g.beginPath(); g.moveTo(piers[pi], -0.5); g.lineTo(piers[pi], -4.6); g.stroke();
+  }
+  g.lineWidth = lw;
+  g.strokeStyle = seam;
+
+  /* ======================= 3. the far pavilion (down-left first) ========= */
+  box(-47, -5, 14, 27, 6, 0.08, null, roofT);
+  courses(-47, -5, 14, 27, 5);
+  tracery(-45.6, -34.4, -8, -29, 3);
+  opening(-43.6, 1.25, -8.2, -12.2, 2.1, 0.16 + 0.26 * breath);
+  opening(-40.0, 1.25, -8.2, -12.2, 2.1, 0);
+  opening(-36.4, 1.25, -8.2, -12.2, 2.1, 0.12 + 0.20 * breath);
+  opening(-41.8, 1.3, -17.6, -22.2, 2.3, 0.10 + 0.18 * breath);
+  opening(-37.4, 1.3, -17.6, -22.2, 2.3, 0);
+  soffit(-47, -33, -32, 1.4);
+  box(-48.6, -32, 17.2, 2.0, 2.6, 0.12);
+  merlons(-48.6, -31.4, -34.0, 2.3, 5, 1.4);
+
+  /* the standard: the only thing in the sprite that moves, and it moves slowly */
+  g.strokeStyle = mix(darkC, '#4a4a56', 0.5);
+  g.lineWidth = Math.max(lw, 0.8);
+  g.beginPath(); g.moveTo(-40, -35.9); g.lineTo(-40, -47.5); g.stroke();
+  g.fillStyle = toRGBA(accentC, 0.78);
+  g.beginPath(); g.arc(-40, -48.0, 0.9, 0, TAU); g.fill();
+
+  function banner() {
+    g.beginPath();
+    g.moveTo(-39.5, -46.9);
+    g.quadraticCurveTo(-35.0, -46.1 + stir * 0.8, -30.5, -46.7 + stir * 1.3);
+    g.lineTo(-30.5, -42.1 + stir * 1.3);
+    g.quadraticCurveTo(-35.0, -41.5 - stir * 0.8, -39.5, -42.4);
+    g.closePath();
+  }
+  banner();
+  g.fillStyle = stoneF; g.fill();
+  /* the lower half falls away from the lamp */
+  g.beginPath();
+  g.moveTo(-39.5, -44.6);
+  g.quadraticCurveTo(-35.0, -43.8 + stir * 0.2, -30.5, -44.4 + stir * 1.3);
+  g.lineTo(-30.5, -42.1 + stir * 1.3);
+  g.quadraticCurveTo(-35.0, -41.5 - stir * 0.8, -39.5, -42.4);
+  g.closePath();
+  g.fillStyle = toRGBA(darkC, 0.68); g.fill();
+  banner();
+  g.lineWidth = lw; g.strokeStyle = seam; g.stroke();
+
+  /* ======================= 4. the range =================================== */
+  /* seventeen units tall against the tower's eighty-two. It is here to make
+     the tower look tall, and any taller it stops doing that job. */
+  box(-33, -5, 29, 16, 7, 0.04, null, roofT);
+  courses(-33, -5, 29, 16, 3);
+  tracery(-31.5, -5.5, -8.5, -18.5, 7);
+  var rw = [-28.5, -23.5, -18.5, -13.5, -8.5], rlit = [1, 0, 1, 0, 1], ri;
+  for (ri = 0; ri < rw.length; ri++) {
+    opening(rw[ri], 1.3, -6.2, -10.4, 2.2, rlit[ri] ? (0.15 + 0.24 * breath) : 0);
+  }
+  soffit(-33, -4, -21, 1.3);
+  box(-34.3, -21, 31.6, 1.7, 2.6, 0.10);
+  merlons(-34.3, -2.7, -22.7, 2.2, 9, 1.3);
+  /* two spirelets on the roofline — Westminster bristles with them, and they
+     stop the range from ending in a flat rule */
+  pinnacle(-27.0, -24.7, 2.2, 7.6, 0.9);
+  pinnacle(-12.0, -24.7, 2.2, 7.6, 0.9);
+
+  /* ======================= 5. the Elizabeth Tower ========================= */
+  /* the shaft. 16 wide, 35 tall before the clock even starts — this ratio is
+     the sprite, everything after it is decoration on top. */
+  box(-5, -5, 16, 33, 6, 0.0);
+  courses(-5, -5, 16, 33, 9);
+  tracery(-3.6, 9.6, -8.5, -36.4, 3);
+  opening(3, 2.1, -5, -9.6, 3.4, 0.18 + 0.28 * breath);
+
+  /* string course under the clock stage */
+  soffit(-5, 11, -38, 1.2);
+  box(-6.8, -38, 19.6, 2.1, 7.1, 0.09);
+
+  /* the clock stage */
+  box(-5, -40.1, 16, 11.6, 6, 0.02);
+  g.fillStyle = toRGBA(lightC, 0.13);
+  g.fillRect(-5, -40.1, 16, 0.8);
+  g.fillStyle = 'rgba(0,0,0,0.16)';
+  g.fillRect(-5, -29.3, 16, 0.8);
+  /* the near dial, and the same dial on the receding face, foreshortened and
+     in shadow — four faces is the fact that makes it Ben and not a town hall */
+  clockFace(3, -45.9, 5.15, breath);
+  var rcx = 11 + 6 * 0.5, rcy = -45.9 - 6 * 0.55 * 0.5;
+  g.beginPath(); g.ellipse(rcx, rcy, 5.15 * 0.30 * 1.18, 5.15 * 1.18, 0, 0, TAU);
+  g.fillStyle = mix(stoneR, edgeC, 0.22); g.fill();
+  g.beginPath(); g.ellipse(rcx, rcy, 5.15 * 0.30, 5.15, 0, 0, TAU);
+  g.fillStyle = mix(mix(lightC, accentC, 0.5), darkC, 0.44); g.fill();
+  g.lineWidth = lw * 0.75; g.strokeStyle = toRGBA(edgeC, 0.45);
+  g.beginPath(); g.ellipse(rcx, rcy, 5.15 * 0.30, 5.15, 0, 0, TAU); g.stroke();
+  g.lineWidth = lw;
+
+  /* belfry cornice */
+  soffit(-5, 11, -51.7, 1.1);
+  box(-6.8, -51.7, 19.6, 1.9, 7.1, 0.11);
+
+  /* the belfry: three louvred openings, and the bell chamber glowing dully */
+  box(-3.4, -53.6, 12.8, 6.6, 4.9, 0.02);
+  g.beginPath(); rr(g, -2.4, -59.7, 10.8, 5.3, 0.5);
+  g.fillStyle = 'rgba(0,0,0,0.22)'; g.fill();
+  var bel = [0.0, 3.0, 6.0], bi, bj, by;
+  for (bi = 0; bi < bel.length; bi++) {
+    opening(bel[bi], 1.05, -54.7, -57.3, 1.9, 0.14 + 0.22 * breath);
+    /* louvres run across, not down — that is what a bell stage looks like */
+    g.strokeStyle = 'rgba(0,0,0,0.50)';
+    g.lineWidth = lw * 0.7;
+    for (bj = 1; bj <= 3; bj++) {
+      by = -54.7 - bj * 0.78;
+      g.beginPath(); g.moveTo(bel[bi] - 0.95, by); g.lineTo(bel[bi] + 0.95, by); g.stroke();
+    }
+  }
+  g.lineWidth = lw;
+  g.strokeStyle = seam;
+
+  /* the parapet the spire springs from */
+  soffit(-3.4, 9.4, -60.2, 1.0);
+  box(-5.2, -60.2, 16.4, 1.8, 5.9, 0.11);
+
+  /* the far pinnacle goes down before the spire; the two near ones after it */
+  pinnacle(16.0, -65.245, 2.2, 9.0, 0.8);
+  var apex = pyramid(-2, 8, -62, 15.5, 3.6, leadF, leadR);
+  /* two lucarnes on the front slope — small, and they keep the slope from
+     reading as a plain triangle */
+  g.fillStyle = mix(leadF, edgeC, 0.40);
+  lancetPath(1.6, 0.55, -64.6, -65.7, 1.0); g.fill();
+  lancetPath(4.6, 0.55, -64.6, -65.7, 1.0); g.fill();
+  g.fillStyle = toRGBA(lightC, 0.18);
+  lancetPath(1.6, 0.22, -64.8, -65.6, 0.75); g.fill();
+  pinnacle(-4.0, -62, 2.2, 9.0, 0.8);
+  pinnacle(10.0, -62, 2.2, 9.0, 0.8);
+
+  /* ======================= 6. finial and the lamp on top ================== */
+  var fx = apex[0], fy = apex[1];
+  g.strokeStyle = mix(leadF, lightC, 0.45);
+  g.lineWidth = Math.max(lw, 0.75);
+  g.beginPath(); g.moveTo(fx, fy + 0.4); g.lineTo(fx, fy - 4.1); g.stroke();
+  g.fillStyle = mix(leadF, accentC, 0.45);
+  g.beginPath(); g.arc(fx, fy - 1.1, 0.95, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(0,0,0,0.30)';
+  g.beginPath(); g.arc(fx + 0.3, fy - 0.9, 0.7, 0, TAU); g.fill();
+
+  /* the lamp that says the house is sitting: the only light above the clock,
+     and the second of the two things ph is allowed to touch */
+  var la = 0.28 + 0.55 * breath;
+  var lg = g.createRadialGradient(fx, fy - 2.9, 0, fx, fy - 2.9, 6.5);
+  lg.addColorStop(0, toRGBA(accentC, 0.52 * la));
+  lg.addColorStop(0.35, toRGBA(accentC, 0.17 * la));
+  lg.addColorStop(1, toRGBA(accentC, 0));
+  g.fillStyle = lg;
+  g.beginPath(); g.arc(fx, fy - 2.9, 6.5, 0, TAU); g.fill();
+  g.fillStyle = toRGBA(accentC, 0.5 + 0.42 * breath);
+  g.beginPath(); g.arc(fx, fy - 2.9, 0.8, 0, TAU); g.fill();
+
+  g.globalAlpha = 1;
+  g.restore();
+}
+
+/* Which building stands at the end of each stretch of the road. Falls back to
+   the keep so a new theatre is never blank. */
+function drawLandmark(g,id,x,y,s,pal,ph){
+  if(id==='launch')return drawPagoda3D(g,x,y,s,pal,ph);
+  if(id==='live')return drawGateTower3D(g,x,y,s,pal,ph);
+  if(id==='t50')return drawRegistan3D(g,x,y,s,pal,ph);
+  if(id==='t500')return drawHagia3D(g,x,y,s,pal,ph);
+  if(id==='t5000')return drawBigBen3D(g,x,y,s,pal,ph);
+  return drawKeep3D(g,x,y,s,pal,ph);
+}
+
 function drawShell(g,x,y,side,rot,ph){
   const col=side==='blue'?'#c8ffe4':'#ffd7d7';
   const hot=side==='blue'?'#22d18c':'#ff4d4d';
@@ -3426,6 +6638,7 @@ const engine=(function(){
   const BUILD=1400;                                  // and how far apart the barracks go up
   const WORKS=6400;                                  // how long a works party stays on the ground
   const ROUT=3600;                                   // how long a shelled barracks stays knocked back
+  const SIEGE=R*0.19;                                // how far an overrun barracks falls back
   const LMAX=R*0.90;                                   // half-width of the front
   const BOW=R*0.11;                                    // how deep the line bends
   /* A big order does not shove the whole front; it opens a hole where it landed.
@@ -3440,6 +6653,7 @@ const engine=(function(){
   let built=[];                                      // barracks still to be raised out of the rubble
   let marks=[],mcur=0,fx=[],refK=0,smK=2;            // the second timeline, and what it has let onto the field
   let odinFill=0;                                    // how far through the launch odin.fun's own pool is
+  let holds=[];                                      // ground that falls whole or not at all
   let standing={blue:[],red:[]};                     // who is holding the line, per side
   let cursor=0;                                      // the next man due to arrive
   let pending={blue:0,red:0};                        // launched, still marching
@@ -3496,6 +6710,13 @@ const engine=(function(){
      of it, which is the whole point: these are cells of one front. */
   const SQ=0.86;
   function sqx(x){return C+(x-C)*SQ;}
+  /* The block itself. R is still the half-extent, so every coordinate in this
+     file means what it always meant; only the edge is different. */
+  const BR=18;                                 // the corner radius of a block
+  function blockPath(gg,pad){
+    const p=pad||0;
+    rr(gg,C-R-p,C-R-p,(R+p)*2,(R+p)*2,Math.max(2,BR+p*0.5));
+  }
   let walkCb=null;
 
   /* Depth: the ground recedes upward, so anything low on screen is nearer the
@@ -3522,7 +6743,7 @@ const engine=(function(){
   }
   function layoutPools(chefs){
     const list=(chefs||[]).slice(0,12);
-    if(!list.length)return [{idx:0,name:'',share:1,band:'camp',x:BLUE.x,y:BLUE.y,s:1.5}];
+    if(!list.length)return [{idx:0,name:'',share:1,band:'camp',x:BLUE.x,x0:BLUE.x,y:BLUE.y,s:1.5}];
     const out=[];
     RINGS.forEach(ring=>{
       const men=list.filter(c=>ringOf(c.days)===ring);
@@ -3537,6 +6758,7 @@ const engine=(function(){
           name:c.name,share:c.share,days:c.days,band:ring.band,
           /* the ring bows toward the field, deepest in the middle */
           x:BLUE.x+R*ring.dx-Math.abs(off)*0.10+(i%2?16:-8),
+          x0:BLUE.x+R*ring.dx-Math.abs(off)*0.10+(i%2?16:-8),
           y:C+off,
           s:(ring.band==='camp'?1.35:ring.band==='inner'?1.15:0.98)
             +Math.min(c.share,0.28)*2.6
@@ -3591,9 +6813,8 @@ const engine=(function(){
   function seedStars(){
     stars=[];
     for(let i=0;i<90;i++){
-      const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*R*0.98;
-      stars.push({x:C+Math.cos(a)*r,y:C+Math.sin(a)*r,r:0.6+Math.random()*1.7,
-                  p:Math.random()*6.28});
+      stars.push({x:C+(Math.random()*2-1)*R*0.97,y:C+(Math.random()*2-1)*R*0.97,
+                  r:0.6+Math.random()*1.7,p:Math.random()*6.28});
     }
   }
 
@@ -3637,6 +6858,7 @@ const engine=(function(){
     standing={blue:[],red:[]};cursor=0;lastDeathAt=0;pending={blue:0,red:0};
     mcur=0;fx=[];                       // and nothing has happened off the line either
     salCur=0;salients=[];               // and no ground has been broken yet
+    pools.forEach(p=>{if(p.x0!=null)p.x=p.x0;});   // and every barracks stands again
     units.forEach(u=>{u.remain=u.btc;u.deathAt=null;u.stack=0;pending[u.side]++;});
     shown=-1;
   }
@@ -3719,6 +6941,54 @@ const engine=(function(){
     });
   }
 
+  /* Who holds each stronghold, at every point in the battle. The front has to
+     be pushed a clear distance past a place before it falls, and pushed back
+     the same distance before it can be lost — a deadband, which is the whole
+     reason a lake stops flickering. Walked once, here, so the draw code does a
+     lookup and the answer is the same whether the clock stepped or jumped. */
+  function buildHolds(){
+    holds=[];
+    const T=(typeof TERRAIN!=='undefined')&&scene&&TERRAIN[scene.id];
+    if(!T||!T.holds)return;
+    const start=scene.held==='blue'?1:0;
+    holds=T.holds.map(h=>{
+      const x=C+R*h.u, band=R*(h.take||0.05);
+      const own=new Uint8Array(Math.max(1,timeline.length));
+      let cur=start;
+      for(let i=0;i<timeline.length;i++){
+        /* where the line stands at this order, in the same units as the map */
+        const fx=C+(timeline[i].f||0)*R*0.28+BOW*0.45;
+        if(fx>x+band)cur=1; else if(fx<x-band)cur=0;
+        own[i]=cur;
+      }
+      if(!timeline.length)own[0]=start;
+      return {h,own,start};
+    });
+  }
+
+  /* Painted as one piece, over the top of the front-curve shading, because that
+     is the point: a stronghold is never half taken. */
+  function drawHolds(shown){
+    if(!holds.length)return;
+    const i=Math.max(0,Math.min((holds[0].own.length||1)-1,shown-1));
+    holds.forEach(hd=>{
+      const blue=(hd.own.length?hd.own[i]:hd.start)===1;
+      const h=hd.h;
+      const cx=C+R*h.u, cy=C+R*h.v, rx=R*h.rx, ry=R*h.ry;
+      g.save();
+      g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,7);
+      g.fillStyle=blue?'rgba(34,209,140,.14)':'rgba(255,77,77,.13)';
+      g.fill();
+      g.setLineDash([7,5]);
+      g.strokeStyle=blue?'rgba(34,209,140,.40)':'rgba(255,77,77,.36)';
+      g.lineWidth=1.4;g.stroke();
+      g.setLineDash([]);
+      g.restore();
+      const nm=lang==='zh'?h.zh:h.en;
+      if(nm)label(cx,cy-ry-6,nm,blue?'rgba(143,233,194,.86)':'rgba(255,176,176,.82)',11.5,600);
+    });
+  }
+
   /* The middle order by size, which is what "a big one" is measured against. */
   function medianBtc(list){
     const v=[];
@@ -3746,7 +7016,7 @@ const engine=(function(){
        day this token opened there were no Chefs yet. Their barracks are what
        gets built at the end of it, out of what is left of the enemy keep. */
     pools=s.odin
-      ?[{idx:0,name:'',odin:true,share:1,band:'camp',x:BLUE.x,y:BLUE.y,s:1.1}]
+      ?[{idx:0,name:'',odin:true,share:1,band:'camp',x:BLUE.x,x0:BLUE.x,y:BLUE.y,s:1.1}]
       :layoutPools(s.chefs);
     built=s.odin?layoutPools(s.chefs):[];
     units=[];orderNo=0;
@@ -3807,6 +7077,21 @@ const engine=(function(){
       salAll.sort((a,b)=>a.t-b.t);
     }
     marks=(s.marks||[]).slice().sort((a,b)=>a.t-b.t);
+    /* Where the line runs over a barracks, and where it lets go of it again.
+       The outer ring is the one this reaches — which is the ring the layout's
+       own comment calls the easiest to withdraw from, so the field ends up
+       saying the same thing the liquidity does. */
+    pools.forEach(p=>{
+      if(p.x0==null)return;
+      let cur=0;
+      for(let i=0;i<timeline.length;i++){
+        const fx2=C+(timeline[i].f||0)*R*0.28+BOW*0.45;
+        const over=fx2<p.x0-16?1:0;
+        if(over!==cur){cur=over;marks.push({t:i*SPACING,kind:'siege',pi:p.idx,on:over===1});}
+      }
+    });
+    marks.sort((a,b)=>a.t-b.t);
+    buildHolds();
     tFirst=units.length?units[0].arrive:0;
     tEnd=units.reduce((m,u)=>Math.max(m,u.arrive),0)+FIGHT+DEATH+400;
     /* A battle that ends by taking the ground has an aftermath to play — the
@@ -3887,7 +7172,7 @@ const engine=(function(){
       g.setTransform(dpr*box/W,0,0,dpr*box/W,0,0);
       g.clearRect(0,0,W,W);
       g.save();
-      g.beginPath();g.arc(C,C,R,0,7);g.clip();
+      blockPath(g,0);g.clip();
       const sky=g.createRadialGradient(C,C,R*0.1,C,C,R);
       sky.addColorStop(0,'#171219');sky.addColorStop(1,'#0b0b11');
       g.fillStyle=sky;g.fillRect(0,0,W,W);
@@ -3903,14 +7188,12 @@ const engine=(function(){
       g.translate(C,0);g.scale(SQ,1);g.translate(-C,0);
       drawTerrain(scene);
       drawTerrainNames(scene);
+      drawHolds(0);
       drawHeld(now,scene);
       g.restore();
       flushLabels();                    // type is drawn straight, outside the cell
       g.restore();
-      g.strokeStyle='#2e2e38';g.lineWidth=9;
-      g.beginPath();g.arc(C,C,R+4,0,7);g.stroke();
-      g.strokeStyle='rgba(255,77,77,.16)';g.lineWidth=2;
-      g.beginPath();g.arc(C,C,R-6,0,7);g.stroke();
+      drawRim('rgba(255,77,77,.16)');
       return;
     }
     /* With motion off there is nothing to watch unfold, so the frame is the end
@@ -3977,7 +7260,7 @@ const engine=(function(){
 
     // ---- the bowl: NOODL NOVA, seen from above ----
     g.save();
-    g.beginPath();g.arc(C,C,R,0,7);g.clip();
+    blockPath(g,0);g.clip();
     const sky=g.createRadialGradient(C,C,R*0.1,C,C,R);
     sky.addColorStop(0,'#161622');sky.addColorStop(1,'#0b0b11');
     g.fillStyle=sky;g.fillRect(0,0,W,W);
@@ -4006,9 +7289,10 @@ const engine=(function(){
       wash.addColorStop(0,'rgba(34,209,140,.05)');
       wash.addColorStop(1,'rgba(34,209,140,.15)');
       g.fillStyle=wash;
-      g.beginPath();g.arc(C,C,R,0,7);g.fill();
+      blockPath(g,0);g.fill();
       g.restore();
     }
+    drawHolds(shown);
     drawBaseGlow(BLUE,'blue');
     drawBaseGlow(RED,'red');
     /* The last act of a field won outright: the keep comes down. Every beat is
@@ -4019,7 +7303,7 @@ const engine=(function(){
        in among them — four things were stacked on the same strip of ground. */
     const kx=RED.x-(razed>=0?R*0.10:0), ky=RED.y+R*0.10;
     if(razed<0){
-      drawKeep3D(g,kx,ky,1.5,PAL.red,(t/2600)%1);
+      drawLandmark(g,scene?scene.id:'',kx,ky,1.5,PAL.red,(t/2600)%1);
       if(loaded)drawGarrison(RED,loaded.red.map(o=>o.name),'red');
     }else{
       drawRuins3D(g,kx,ky,1.5,PAL.red,(now/3400)%1);
@@ -4084,10 +7368,7 @@ const engine=(function(){
     g.restore();
 
     // rim
-    g.strokeStyle='#2e2e38';g.lineWidth=9;
-    g.beginPath();g.arc(C,C,R+4,0,7);g.stroke();
-    g.strokeStyle='rgba(0,255,255,.16)';g.lineWidth=2;
-    g.beginPath();g.arc(C,C,R-6,0,7);g.stroke();
+    drawRim('rgba(0,255,255,.16)');
 
     // hold the outcome for a while, then fight it again — only if asked to
     if(repeat){ if(!reduceMotion&&units.length&&t>tEnd+HOLD){t0=now;rewind();} }
@@ -4097,6 +7378,31 @@ const engine=(function(){
     else if(live){ /* held open for the next trade */ }
     else if(!reduceMotion&&units.length&&now-t0>=tEnd&&!victory
             &&!(scene&&scene.held==='blue'))halt=true;
+  }
+
+  /* The case the block sits in, and the joints where the block before and the
+     block after bolt on. Five of these in a row is the whole picture: the field
+     is not a window onto a battle, it is one link of a chain. */
+  function drawRim(inner){
+    g.strokeStyle='#2e2e38';g.lineWidth=9;
+    blockPath(g,4);g.stroke();
+    g.strokeStyle=inner;g.lineWidth=2;
+    blockPath(g,-6);g.stroke();
+    if(typeof THEATRES==='undefined'||!scene)return;
+    const here=THEATRES.indexOf(scene);
+    [-1,1].forEach(d=>{
+      const x=C+d*(R+4), on=here>=0&&!!THEATRES[here+d];
+      /* a lug on the side, and the pin through it */
+      g.save();
+      g.fillStyle=on?'#2e2e38':'#1b1b22';
+      rr(g,x-9,C-26,18,52,5);g.fill();
+      g.strokeStyle=on?'rgba(0,255,255,.30)':'rgba(120,124,140,.16)';
+      g.lineWidth=1.4;
+      rr(g,x-9,C-26,18,52,5);g.stroke();
+      g.fillStyle=on?'rgba(0,255,255,.42)':'rgba(120,124,140,.20)';
+      g.beginPath();g.arc(x,C,3.6,0,7);g.fill();
+      g.restore();
+    });
   }
 
   /* The strip either side of this cell: the ground next door, seen edge-on.
@@ -4126,8 +7432,9 @@ const engine=(function(){
         const bs=0.52;
         if(th.shop&&typeof drawNoodleShop3D==='function'){
           drawNoodleShop3D(g,mid,C+R*0.06,bs*1.15,WARM,(now/2600)%1);
-        }else if(th.held){
-          drawKeep3D(g,mid,C+R*0.06,bs,PAL[th.held==='blue'?'blue':'red'],(now/2600)%1);
+        }else{
+          drawLandmark(g,th.id,mid,C+R*0.06,bs,
+                       PAL[th.held==='blue'?'blue':'red'],(now/2600)%1);
         }
         /* and a picket of theirs, so the strip is held rather than empty */
         if(th.held){
@@ -4157,7 +7464,7 @@ const engine=(function(){
       g.restore();
       /* the seam. One front, cut into cells — the line says where the cut is. */
       g.save();
-      g.beginPath();g.arc(C,C,R,0,7);g.clip();
+      blockPath(g,0);g.clip();
       g.strokeStyle='rgba(120,124,140,.45)';g.lineWidth=1.4;
       g.beginPath();g.moveTo(xa,C-R);g.lineTo(xa,C+R);g.stroke();
       g.strokeStyle='rgba(120,124,140,.16)';g.lineWidth=5;
@@ -4816,6 +8123,22 @@ const engine=(function(){
         dx=-(1-q)*40;shk=(1-q)*2.6*Math.sin(age/38);
         if(age<BOOM)bm=age/BOOM;
       }
+      /* And one the line has actually run over falls back behind it, and comes
+         forward again when the ground is retaken. The latest crossing wins. */
+      if(p.x0!=null){
+        let at=-1,on=false;
+        for(let k2=0;k2<fx.length;k2++){
+          const m=fx[k2];
+          if(m.kind==='siege'&&m.pi===p.idx&&m.t<=t){at=m.t;on=m.on;}
+        }
+        let back=0;
+        if(at>=0){
+          const k=clamp((t-at)/1400,0,1),e=k*k*(3-2*k);
+          back=on?-SIEGE*e:-SIEGE*(1-e);
+          if(on&&t-at<BOOM)bm=(t-at)/BOOM;
+        }
+        p.x=p.x0+back;                    // pos() reads this, so the men follow
+      }
       const px=p.x+dx,py=p.y+shk;
       /* A barracks under construction comes up out of the ground rather than
          appearing, so the eye reads it as being built. */
@@ -4900,10 +8223,10 @@ const engine=(function(){
       const lat=-R*0.66+(2*R*0.66)*(i/N);
       const p=frontPoint(lat);
       const x=p.x+face*(pull*(1+Math.abs(lat)/R)+ahead);
-      /* Pushed up against the rim the ends of this line fall outside the bowl.
+      /* Pushed up against the edge the ends of this line fall outside the block.
          Trim them rather than let the clip path eat them: a line that stops
          where the ground stops reads right, one that stops mid-air does not. */
-      if(Math.hypot(x-C,p.y-C)>R*0.94)continue;
+      if(Math.abs(x-C)>R*0.96||Math.abs(p.y-C)>R*0.96)continue;
       pts.push({x,y:p.y});
     }
     return pts;
@@ -5040,10 +8363,13 @@ const engine=(function(){
     wash.addColorStop(0,'rgba(255,77,77,.05)');
     wash.addColorStop(1,'rgba(255,77,77,.16)');
     g.fillStyle=wash;
-    g.beginPath();g.arc(C,C,R,0,7);g.fill();
+    blockPath(g,0);g.fill();
     g.restore();
 
     if(th.shop){
+      /* London gets both: the tower it is known by, and the shop the whole page
+         is walking towards. The tower stands behind and above the shop. */
+      drawLandmark(g,th.id,RED.x-R*0.30,RED.y-R*0.20,1.15,PAL.red,ph);
       const sx=RED.x-R*0.04, sy=RED.y+R*0.13, ss=1.9;
       drawNoodleShop3D(g,sx,sy,ss,WARM,ph);
       /* the blank board on the front is 34 x 11 local units at (-32,-58) */
@@ -5056,7 +8382,7 @@ const engine=(function(){
         label(C,C+R*0.62,ui.shopGoal(fmtUsd(perBowl)),'#fcd14f',14,700);
       }
     }else{
-      drawKeep3D(g,RED.x,RED.y+R*0.10,1.5,pal,ph);
+      drawLandmark(g,th.id,RED.x,RED.y+R*0.10,1.5,pal,ph);
     }
 
     const s0=(loaded&&loaded.sellers)||[];
@@ -5236,6 +8562,7 @@ const engine=(function(){
       halt=false;
       if(th.held==='red'){
         front=0;                          // nothing is pushing here
+        timeline=[];buildHolds();         // and everything on it is theirs
         if(!raf&&!reduceMotion&&!document.hidden)start(); else frame(performance.now());
         return;
       }
@@ -5269,6 +8596,7 @@ function applyLang(){
     if(typeof v==='string')el.textContent=v;
   });
   $('#langBtn').textContent=lang==='zh'?'EN':'中文';
+  paintJoin();
   if(S)paintHud();
 }
 $('#langBtn').addEventListener('click',()=>{
@@ -5479,6 +8807,32 @@ async function loadLaunch(){
   if(S)paintHud();
 }
 
+/* The chain is built once and repainted with the language, because the names on
+   it are the theatre names and those are translated. */
+function paintChain(){
+  const box=$('#chain');if(!box)return;
+  const ui=I18N[lang];
+  if(box.children.length!==THEATRES.length*2-1){
+    box.innerHTML='';
+    THEATRES.forEach((th,i)=>{
+      if(i)box.insertAdjacentHTML('beforeend','<i class="lnk"></i>');
+      const b=document.createElement('button');
+      b.type='button';b.className='blk';b.dataset.t=String(i);
+      b.setAttribute('role','tab');
+      box.appendChild(b);
+    });
+  }
+  THEATRES.forEach((th,i)=>{
+    const b=box.querySelector('.blk[data-t="'+i+'"]');
+    if(!b)return;
+    b.textContent='#'+(i+1);
+    b.title=(ui.thNames||{})[th.id]||'';
+    b.setAttribute('aria-label',b.title);
+    b.setAttribute('aria-selected',i===theatre?'true':'false');
+    b.className='blk'+(th.held?' held-'+th.held:' live')+(i===theatre?' on':'');
+  });
+}
+
 /* The label above the disc is the only place the numbers live now. */
 function paintTheatre(){
   const ui=I18N[lang],th=THEATRES[theatre];
@@ -5490,6 +8844,7 @@ function paintTheatre(){
     :th.held==='blue'?ui.thTaken
     :th.shop?ui.thShop
     :th.held==='red'?ui.thHeld:ui.thLive;
+  paintChain();
   const ws=$('#wsel');
   if(ws){
     ws.hidden=th.id!=='live';
@@ -5537,6 +8892,10 @@ $('#wsel').addEventListener('click',e=>{
   showWindow(b.dataset.w);
 });
 engine.onWalk(d=>goTheatre(theatre+d));
+$('#chain').addEventListener('click',e=>{
+  const b=e.target&&e.target.closest?e.target.closest('.blk[data-t]'):null;
+  if(b)goTheatre(Number(b.dataset.t));
+});
 $('#tPrev').addEventListener('click',()=>goTheatre(theatre-1));
 $('#tNext').addEventListener('click',()=>goTheatre(theatre+1));
 /* Arrow keys walk between theatres, but only while the field is actually being
@@ -5553,6 +8912,94 @@ addEventListener('keydown',e=>{
   e.preventDefault();
   goTheatre(theatre+(e.key==='ArrowLeft'?-1:1));
 });
+
+/* ================= joining ================= */
+/* The map is the same five theatres, seen from above the whole road instead of
+   from inside one block of it. Everything it says comes from the same THEATRES
+   table the battlefield reads, so the two can never disagree about who holds
+   what. */
+const jSide={launch:'blue',live:'live',t50:'red',t500:'red',t5000:'red'};
+function paintJoin(){
+  const ui=I18N[lang];
+  if(!ui.joinCity)return;
+  document.querySelectorAll('#joinSvg .jc').forEach(g=>{
+    const id=g.dataset.c;
+    const t=g.querySelector('.jlab');
+    if(t)t.textContent=ui.joinCity[id]||id;
+    g.setAttribute('aria-label',(ui.joinCity[id]||id)+'：'+(ui.joinState[id]||''));
+  });
+  /* Every city is also a row, because a hover panel is not information anybody
+     on a phone or a keyboard can reach. */
+  const list=$('#joinList');
+  if(list){
+    list.innerHTML=THEATRES.map(th=>{
+      const id=th.id,side=jSide[id]||'red';
+      return '<li class="'+side+'"><b>'+esc(ui.joinCity[id]||id)+'</b><span>'+
+             esc(ui.joinState[id]||'')+' — '+esc(ui.joinAct[id]||'')+'</span></li>';
+    }).join('');
+  }
+  jTip(null);
+}
+function jTip(id){
+  const box=$('#joinTip'),ui=I18N[lang];
+  if(!box||!ui.joinCity)return;
+  if(!id){
+    box.className='jointip';
+    box.textContent=ui.joinLead;
+    return;
+  }
+  box.className='jointip '+(jSide[id]||'red');
+  box.innerHTML='<b>'+esc(ui.joinCity[id])+'</b>'+esc(ui.joinState[id])+' — '+esc(ui.joinAct[id]);
+}
+let jLast=null;
+function openJoin(){
+  const w=$('#joinWrap');if(!w)return;
+  jLast=document.activeElement;
+  w.hidden=false;
+  paintJoin();
+  $('#joinSoon').hidden=true;
+  const x=$('#joinX');if(x)x.focus();
+  document.body.style.overflow='hidden';
+}
+function closeJoin(){
+  const w=$('#joinWrap');if(!w||w.hidden)return;
+  w.hidden=true;
+  document.body.style.overflow='';
+  if(location.hash==='#join')history.replaceState(null,'',location.pathname+location.search);
+  if(jLast&&jLast.focus)jLast.focus();
+}
+$('#navJoin').addEventListener('click',e=>{e.preventDefault();openJoin();});
+$('#joinWrap').addEventListener('click',e=>{
+  if(e.target&&e.target.hasAttribute&&e.target.hasAttribute('data-jclose'))closeJoin();
+});
+addEventListener('keydown',e=>{
+  const w=$('#joinWrap');
+  if(!w||w.hidden)return;
+  if(e.key==='Escape'){e.preventDefault();closeJoin();return;}
+  if(e.key!=='Tab')return;
+  /* the dialog keeps the focus while it is open */
+  const f=[...w.querySelectorAll('button,[tabindex="0"]')].filter(el=>el.offsetParent!==null||el.ownerSVGElement);
+  if(!f.length)return;
+  const first=f[0],last=f[f.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
+document.querySelectorAll('#joinSvg .jc').forEach(g=>{
+  const id=g.dataset.c;
+  g.addEventListener('mouseenter',()=>jTip(id));
+  g.addEventListener('mouseleave',()=>jTip(null));
+  g.addEventListener('focus',()=>jTip(id));
+  g.addEventListener('blur',()=>jTip(null));
+  g.addEventListener('click',()=>jTip(id));
+  g.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();jTip(id);}
+  });
+});
+$('#joinWallet').addEventListener('click',()=>{
+  const n=$('#joinSoon');
+  if(n)n.hidden=false;
+});
+addEventListener('hashchange',()=>{if(location.hash==='#join')openJoin();});
 
 /* ================= playback ================= */
 let looping=false;
@@ -5628,6 +9075,7 @@ $('#btnFresh').addEventListener('click',async()=>{
 
 async function boot(){
   applyLang();
+  if(location.hash==='#join')openJoin();
   engine.init(paintFeed);
   try{ await load(); }
   catch(e){
