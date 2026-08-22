@@ -117,7 +117,19 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 20p
 .tlabel.held-blue b{color:var(--blue)}
 .tlabel.held-red b{color:var(--red)}
 .tlabel.live b{color:#fcd14f}
-.treplay{display:flex;justify-content:center;margin:0 auto 8px}
+.treplay{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:0 auto 8px}
+/* how much of the campaign is on the field */
+.wsel{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.wsel[hidden]{display:none}
+.wsel button{
+  border:0;background:transparent;color:var(--dim);cursor:pointer;
+  font:600 12px/1 "Work Sans",sans-serif;padding:8px 11px;
+  font-variant-numeric:tabular-nums;
+}
+.wsel button+button{border-left:1px solid var(--line)}
+.wsel button:hover:not(:disabled){color:var(--text)}
+.wsel button.on{background:rgba(0,255,255,.10);color:var(--text)}
+.wsel button:disabled{opacity:.45;cursor:default}
 .field.solo{grid-template-columns:minmax(0,1fr)}
 .field.solo .feed{display:none}
 .treplay button[hidden]{display:none}
@@ -310,7 +322,14 @@ footer a:hover{color:var(--cyan)}
         </div>
         <button class="tnav" id="tNext" type="button" aria-label="next">&rsaquo;</button>
       </div>
-      <div class="treplay"><button class="fbtn" id="tReplay" type="button" hidden></button></div>
+      <div class="treplay">
+        <div class="wsel" id="wsel" hidden>
+          <button type="button" data-w="6h"></button>
+          <button type="button" data-w="24h"></button>
+          <button type="button" data-w="all"></button>
+        </div>
+        <button class="fbtn" id="tReplay" type="button" hidden></button>
+      </div>
       <div class="stage"><canvas id="field" role="img" aria-describedby="alt"></canvas></div>
       <p class="sr-only" id="alt"></p>
       <p class="stage-note" data-i="stageNote"></p>
@@ -408,7 +427,9 @@ zh:{
   thNames:{launch:'兰州启航',live:'长安战役',t50:'撒马尔罕战役',
            t500:'君士坦丁堡战役',t5000:'伦敦战役'},
   thStop:(i,n)=>'丝路第 '+i+' 站 / 共 '+n+' 站',
+  win6:'最近 6 小时',win24:'最近 24 小时',winAll:'全部战况',winLoading:'调取战史…',
   worksZ:'前线工事 · 挖战壕、架铁丝网',
+  odinPool:'odin.fun 自带池子',
   fresh:'有新交易 · 刷新战场',freshing:'刷新中…',
   objBlue:'上一轮已达成 · 联合曲线毕业',
   objRed:p=>'本阶段目标市值 · 已完成 '+p+'%',
@@ -458,7 +479,9 @@ en:{
            t50:'Battle of Samarkand',t500:'Battle of Constantinople',
            t5000:'Battle of London'},
   thStop:(i,n)=>'Silk Road, stop '+i+' of '+n,
+  win6:'Last 6h',win24:'Last 24h',winAll:'The whole campaign',winLoading:'reading…',
   worksZ:'works detail · digging in and wiring the line',
+  odinPool:'the odin.fun bonding pool',
   fresh:'New trades · refresh the battlefield',freshing:'Refreshing…',
   objBlue:'already taken · graduated the bonding curve',
   objRed:p=>'stage target market cap · '+p+'% of the way',
@@ -697,7 +720,19 @@ async function load(){
     days:heldSince[o.user]?(Date.now()-heldSince[o.user])/864e5:null
   }));
 
-  S={stamp:Date.now(),btcUsd,price,supply,mcBtc,poolBtc,chg,since,fighters,chefs,sellers,
+  /* Liquidity in and out, on the clock. The tenure pass above already walked
+     this stream; keeping the events themselves costs nothing and is what puts a
+     works party on the ground at the moment somebody funded or pulled a pool. */
+  const lp=lpActs.filter(a=>a.action==='ADD_LIQUIDITY'||a.action==='REMOVE_LIQUIDITY')
+    .map(a=>({t:Date.parse(a.time),add:a.action==='ADD_LIQUIDITY'}))
+    .filter(a=>isFinite(a.t)).sort((a,b)=>a.t-b.t);
+
+  /* A day of trades, oldest first, so a window can be cut out of it without
+     going back to the network. */
+  const dayAgo=Date.now()-DAY;
+  const recent=trades.filter(t=>Date.parse(t.time)>=dayAgo).slice().reverse().map(toUnit);
+
+  S={stamp:Date.now(),btcUsd,price,supply,mcBtc,poolBtc,chg,since,fighters,chefs,sellers,lp,recent,
      seen:new Set(trades.map(t=>t.id)),        // every trade already accounted for
 
      lastTrade:trades.length?Date.parse(trades[0].time):null,
@@ -706,9 +741,9 @@ async function load(){
      redN:units.filter(u=>u.side==='red').length};
 
   paintHud();
-  engine.load(S);
-  engine.follow(true);            // once the replay reaches the newest trade, stay there
-  looping=false;paintPlay();paintTheatre();
+  /* What goes on the field is a window of the campaign, not whatever the last
+     lull happened to leave behind, and which window is the reader's to pick. */
+  await showWindow(winMode);
 }
 
 /* ================= HUD ================= */
@@ -767,7 +802,7 @@ function paintHud(){
   paintPlay();
   paintTheatre();
   const note=document.querySelector('[data-i="stageNote"]');
-  if(note)note.textContent=s.since?ui.window(s.units.length,ago(s.since)):ui.stageNote;
+  if(note)note.textContent=b.since?ui.window(b.units.length,ago(b.since)):ui.stageNote;
 }
 function card(k,v,sub,cls){
   return '<div class="fl '+cls+'"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div>'
@@ -852,6 +887,108 @@ const PAL={
 /* Noodle colours. The shop at the end of the road is the only warm thing on any
    of these fields, and it is deliberately not either team's colour. */
 const WARM={base:'#f0b64a',light:'#ffd98a',dark:'#7a4a12',edge:'#241606',accent:'#fff0c4'};
+
+/* ---- the ground each theatre stands on ------------------------------------
+   Fractions of R from C, so the layer survives any change to the field's size.
+   Array order IS paint order — the composer never sorts, so anything that
+   overlaps is authored back to front. Five features each; the road is not one of
+   them. Every theatre gets the same silk road, from its own `road` or from
+   ROAD_DEF, drawn last so it can never be buried — and in London it stops at the
+   shop, which is the premise of the whole page for the price of a hairline. */
+const ROAD_DEF=[-1.02,.68, -.45,.74, .05,.70, .55,.75, 1.02,.70];
+const TERRAIN={
+
+/* 兰州 — a dry loess corridor with the Yellow River through it. The road starts
+   here, and so do the noodles. */
+launch:{
+  names:[{u:-.66,v:-.42,zh:'黄河',en:'Yellow River',w:1},
+         {u: .30,v:-.80,zh:'皋兰山',en:'Gaolan Shan'}],
+  f:[
+    {k:'ground',kind:'terrace',seed:1101,blob:[0,.80,.86,.20,11,.16]},
+    {k:'run',kind:'river',seed:1102,w:[.030,.038],
+     pts:[-1.02,-.46, -.55,-.48, -.10,-.43, .35,-.45, .75,-.50, 1.02,-.52]},
+    {k:'ground',kind:'poplar',seed:1103,blob:[-.45,-.40,.36,.045,9,.12]},
+    {k:'ridge',kind:'loess',h:.055,seed:1104,
+     crest:[-.86,-.70, -.40,-.76, .05,-.72, .50,-.77, .86,-.71],
+     mark:{u:.30,kind:'pagoda',h:.060}},
+    {k:'arch',seed:1105,x:-.42,y:-.46,w:.20,h:.032,n:5}
+  ]},
+
+/* 长安 — the Wei to the north, the Qinling to the south, plain in between.
+   Deliberately the emptiest of the five: this is the only contested field. */
+live:{
+  road:[-1.02,.58, -.50,.62, .00,.58, .50,.62, 1.02,.56],
+  names:[{u:-.56,v:.80,zh:'昆明池',en:'Kunming Lake',w:1},
+         {u: .16,v:.98,zh:'秦岭',en:'Qinling'},
+         {u: .54,v:-.19,zh:'长安',en:"Chang'an"}],
+  f:[
+    {k:'run',kind:'river',seed:2101,w:[.028,.034],
+     pts:[-.90,-.76, -.40,-.80, .05,-.82, .50,-.79, .90,-.75]},
+    {k:'water',seed:2102,blob:[-.56,.71,.17,.075,16,.14]},
+    {k:'ridge',kind:'rock',h:.075,seed:2103,
+     crest:[-.28,.90, .08,.86, .46,.90, .80,.92],
+     mark:{u:.30,kind:'snow',h:.026}},
+    {k:'town',style:'grid',seed:2104,blob:[.54,-.35,.11,.10,10,.10]},
+    {k:'wall',h:.028,seed:2105,lines:1,towers:3,gate:.62,
+     pts:[.42,-.46, .66,-.46, .66,-.24, .42,-.24, .42,-.46]}
+  ]},
+
+/* 撒马尔罕 — one thread of river and orchard on a dead ochre plain. The desert
+   is this map's floor: without it the garrison is standing on nothing. */
+t50:{
+  names:[{u:.46,v:-.44,zh:'泽拉夫尚河',en:'Zarafshan',w:1},
+         {u:-.55,v:.34,zh:'克孜勒库姆',en:'Kyzylkum'}],
+  f:[
+    {k:'ground',kind:'sand',seed:3101,blob:[-.30,.10,.68,.85,13,.18]},
+    {k:'run',kind:'river',seed:3102,w:[.014,.004],
+     pts:[.90,-.48, .40,-.42, .05,-.40, -.20,-.42]},
+    {k:'ground',kind:'orchard',seed:3103,blob:[-.02,-.34,.16,.09,10,.14]},
+    {k:'ridge',kind:'rock',h:.080,seed:3104,
+     crest:[-.30,-.68, .10,-.71, .50,-.68, .86,-.66],
+     mark:{u:.86,kind:'snow',h:.026}},
+    {k:'town',style:'dome',seed:3105,blob:[.32,-.42,.20,.07,11,.16]}
+  ]},
+
+/* 君士坦丁堡 — not a plain, a peninsula. Sea top and bottom, one wall across the
+   neck, and the road goes through the gate. */
+t500:{
+  road:[-1.02,.66, -.40,.60, -.06,.52, .10,.30, .40,.12, .75,-.04, 1.02,-.12],
+  names:[{u:.05,v:-.74,zh:'金角湾',en:'Golden Horn',w:1},
+         {u:.05,v: .92,zh:'马尔马拉海',en:'Marmara',w:1}],
+  f:[
+    {k:'water',seed:4101,
+     pts:[-.50,-1.10, -.46,-.78, -.10,-.67, .20,-.60, .50,-.52,
+           .95,-.40, 1.10,-1.10]},
+    {k:'water',seed:4102,
+     pts:[-1.10,1.10, -.55,.88, -.10,.86, .40,.68, .80,.50,
+          1.05,.38, 1.10,1.10]},
+    {k:'ridge',kind:'rock',h:.045,seed:4103,
+     crest:[-.34,-.86, .00,-.88, .40,-.83],
+     mark:{u:.75,kind:'tower',h:.055}},
+    {k:'town',style:'dome',seed:4104,blob:[.26,-.40,.42,.09,13,.14]},
+    {k:'wall',h:.045,seed:4105,lines:2,towers:2,gate:.21,
+     pts:[-.06,.84, -.05,.30, -.05,-.10, -.16,-.40, -.16,-.66]}
+  ]},
+
+/* 伦敦 — flat clay, a tidal river, one wooded ridge north, and the road ends at
+   the shop. No mountains: London has none, and inventing them is the move that
+   makes a map generic. */
+t5000:{
+  road:[-1.02,.62, -.40,.58, .02,.46, .30,.34, .55,.22, .70,.14],
+  names:[{u:-.55,v:.44,zh:'泰晤士河',en:'Thames',w:1},
+         {u:-.20,v:-.86,zh:'北部高地',en:'Northern Heights'}],
+  f:[
+    {k:'run',kind:'river',seed:5101,w:[.030,.045],
+     pts:[-.86,.46, -.30,.36, .02,.27, .28,.34, .42,.50, .60,.54,
+           .74,.44, .86,.30, 1.02,.24]},
+    {k:'ridge',kind:'rock',h:.055,seed:5102,
+     crest:[-.80,-.56, -.20,-.78, .30,-.74, .80,-.56],
+     mark:{u:.34,kind:'wood',h:.030}},
+    {k:'ground',kind:'wood',seed:5103,blob:[-.20,-.34,.22,.09,11,.18]},
+    {k:'town',style:'terrace',seed:5104,blob:[.24,.06,.40,.20,13,.12]},
+    {k:'arch',seed:5105,x:.26,y:.30,w:.14,h:.038,n:3,towers:1,bascule:1}
+  ]}
+};
 function rr(g,x,y,w,h,r){
   g.beginPath();
   g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);
@@ -2929,6 +3066,305 @@ function drawNoodleShop3D(g, x, y, s, warm, glow){
   g.restore();
 }
 
+/* The three things a field needs once it stops being a battle: something to
+   blow up, what is left of it afterwards, and the men who carry that away.
+
+   Same rules as every other solid here — the point handed in is the ground, the
+   lamp is up and to the left, figures face by being mirrored rather than turned,
+   and nothing rolls its own dice: every phase comes in as an argument so a
+   replay runs the same way twice. */
+
+/* An explosion, ph running 0 -> 1 across its whole life. The core goes first and
+   fast, the ring outruns it, the debris arcs and lands, and the smoke is still
+   there when everything else has gone — which is the order these things
+   actually happen in, and the reason a single eased flash never reads right. */
+function drawBoom(g, x, y, s, ph){
+  const TAU = Math.PI * 2;
+  const f = (typeof ph === 'number' && isFinite(ph)) ? (ph < 0 ? 0 : (ph > 1 ? 1 : ph)) : 0;
+  if(f >= 1) return;
+  g.save();
+  g.translate(x, y);
+  g.scale(s, s);
+  g.lineJoin = 'round';
+  g.lineCap = 'round';
+
+  /* scorched ground, the one part that does not fade */
+  const scorch = Math.min(1, f / 0.12);
+  g.save();
+  g.scale(1, 0.34);
+  const sg = g.createRadialGradient(0, 0, 0, 0, 0, 34 * scorch);
+  sg.addColorStop(0, 'rgba(24,14,8,.62)');
+  sg.addColorStop(0.7, 'rgba(24,14,8,.30)');
+  sg.addColorStop(1, 'rgba(24,14,8,0)');
+  g.fillStyle = sg;
+  g.beginPath(); g.arc(0, 0, 34 * scorch, 0, TAU); g.fill();
+  g.restore();
+
+  /* the shockwave, a flat ring running out along the ground */
+  if(f < 0.55){
+    const k = f / 0.55;
+    const rr2 = 8 + k * 62;
+    g.save();
+    g.scale(1, 0.32);
+    g.strokeStyle = 'rgba(255,226,170,' + (0.55 * (1 - k)) + ')';
+    g.lineWidth = 4.5 * (1 - k) + 0.8;
+    g.beginPath(); g.arc(0, 0, rr2, 0, TAU); g.stroke();
+    g.restore();
+  }
+
+  /* the fireball: white at the heart, orange at the skin, gone by a third */
+  if(f < 0.34){
+    const k = f / 0.34;
+    const r = 6 + k * 30;
+    const cy = -16 - k * 12;
+    const fg = g.createRadialGradient(0, cy, 0, 0, cy, r);
+    fg.addColorStop(0, 'rgba(255,255,244,' + (0.95 * (1 - k * 0.7)) + ')');
+    fg.addColorStop(0.35, 'rgba(255,206,92,' + (0.85 * (1 - k)) + ')');
+    fg.addColorStop(0.72, 'rgba(238,120,38,' + (0.62 * (1 - k)) + ')');
+    fg.addColorStop(1, 'rgba(160,44,12,0)');
+    g.fillStyle = fg;
+    g.beginPath(); g.arc(0, cy, r, 0, TAU); g.fill();
+    /* four blades of flame, so the ball is not a disc */
+    g.fillStyle = 'rgba(255,180,64,' + (0.5 * (1 - k)) + ')';
+    for(var b = 0; b < 4; b++){
+      var a = b * 1.57 + 0.4;
+      g.beginPath();
+      g.ellipse(Math.cos(a) * r * 0.72, cy + Math.sin(a) * r * 0.5,
+                r * 0.42, r * 0.20, a, 0, TAU);
+      g.fill();
+    }
+  }
+
+  /* debris: sixteen chunks on fixed ballistic arcs, so it is the same every run */
+  if(f > 0.02 && f < 0.86){
+    const k = (f - 0.02) / 0.84;
+    for(var i = 0; i < 16; i++){
+      var ang = -0.30 - (i * 0.3927) % 2.6;           /* fanned upward */
+      var sp = 34 + ((i * 37) % 41);
+      var side = (i % 2) ? 1 : -1;
+      var px = side * Math.cos(ang) * sp * k * 1.15;
+      var py = -18 - Math.sin(-ang) * sp * k + 128 * k * k;
+      if(py > 2) continue;                             /* landed */
+      var sz = 1.4 + (i % 4) * 0.75;
+      g.fillStyle = (i % 3) ? 'rgba(74,60,50,.92)' : 'rgba(148,120,92,.92)';
+      g.save();
+      g.translate(px, py);
+      g.beginPath();
+      g.moveTo(-sz, -sz * 0.7); g.lineTo(sz * 0.8, -sz);
+      g.lineTo(sz, sz * 0.6); g.lineTo(-sz * 0.7, sz);
+      g.closePath(); g.fill();
+      g.restore();
+    }
+  }
+
+  /* smoke, rising and thinning, the last thing left */
+  if(f > 0.06){
+    const k = (f - 0.06) / 0.94;
+    for(var j = 0; j < 6; j++){
+      var kk = k - j * 0.055;
+      if(kk <= 0) continue;
+      var a2 = 0.34 * (1 - kk) * (1 - j * 0.11);
+      if(a2 <= 0) continue;
+      g.fillStyle = 'rgba(58,52,50,' + a2 + ')';
+      g.beginPath();
+      g.ellipse((j % 2 ? 5 : -4) * kk * 1.7, -22 - kk * 74 - j * 9,
+                9 + kk * 15 + j * 1.6, 7 + kk * 12 + j * 1.3, 0, 0, TAU);
+      g.fill();
+    }
+  }
+  g.restore();
+}
+
+/* What is left standing. Two wall stubs, a fallen beam and a lot of rubble, with
+   a thread of smoke still coming off it — a ruin with no smoke reads as a
+   building that was always this shape. */
+function drawRuins3D(g, x, y, s, pal, ph){
+  const TAU = Math.PI * 2;
+  const f = (typeof ph === 'number' && isFinite(ph)) ? ph - Math.floor(ph) : 0;
+  g.save();
+  g.translate(x, y);
+  g.scale(s, s);
+  g.lineJoin = 'round';
+
+  const ST = '#4a444e', SM = '#635c69', SL = '#7d7684', SD = '#2e2a33';
+
+  /* the footprint it used to have */
+  g.save();
+  g.scale(1, 0.32);
+  const sh = g.createRadialGradient(0, 0, 0, 0, 0, 46);
+  sh.addColorStop(0, 'rgba(0,0,0,.42)');
+  sh.addColorStop(0.62, 'rgba(0,0,0,.22)');
+  sh.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = sh;
+  g.beginPath(); g.arc(0, 0, 46, 0, TAU); g.fill();
+  g.restore();
+
+  function block(bx, by, bw, bh, bd){
+    g.fillStyle = SM;                                   /* front */
+    g.fillRect(bx, by - bh, bw, bh);
+    g.fillStyle = SL;                                   /* top, into the light */
+    g.beginPath();
+    g.moveTo(bx, by - bh); g.lineTo(bx + bd, by - bh - bd * 0.55);
+    g.lineTo(bx + bw + bd, by - bh - bd * 0.55); g.lineTo(bx + bw, by - bh);
+    g.closePath(); g.fill();
+    g.fillStyle = SD;                                   /* right cheek */
+    g.beginPath();
+    g.moveTo(bx + bw, by - bh); g.lineTo(bx + bw + bd, by - bh - bd * 0.55);
+    g.lineTo(bx + bw + bd, by - bd * 0.55); g.lineTo(bx + bw, by);
+    g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 0.7;
+    g.strokeRect(bx, by - bh, bw, bh);
+  }
+
+  /* rubble skirt first, so the stubs sit in it */
+  g.fillStyle = ST;
+  g.beginPath();
+  g.moveTo(-44, 0); g.lineTo(-33, -9); g.lineTo(-19, -4); g.lineTo(-6, -12);
+  g.lineTo(9, -5); g.lineTo(24, -11); g.lineTo(38, -3); g.lineTo(45, 0);
+  g.closePath(); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.28)';
+  g.beginPath();
+  g.moveTo(-44, 0); g.lineTo(45, 0); g.lineTo(45, 3); g.lineTo(-44, 3);
+  g.closePath(); g.fill();
+
+  /* two stubs of wall, one taller than the other, broken along the top */
+  block(-34, -4, 20, 30, 7);
+  g.fillStyle = '#0e0c11';                              /* the break, jagged */
+  g.beginPath();
+  g.moveTo(-34, -34); g.lineTo(-29, -39); g.lineTo(-24, -33);
+  g.lineTo(-19, -38); g.lineTo(-14, -32); g.lineTo(-14, -34);
+  g.lineTo(-34, -34);
+  g.closePath(); g.fill();
+  block(14, -6, 15, 17, 6);
+
+  /* a beam down across the pile */
+  g.save();
+  g.translate(-4, -12);
+  g.rotate(-0.42);
+  g.fillStyle = '#5a4632';
+  g.fillRect(-20, -3, 40, 5);
+  g.fillStyle = '#785c40';
+  g.fillRect(-20, -3, 40, 1.6);
+  g.restore();
+
+  /* loose blocks, fixed positions */
+  const LOOSE = [[-40, -2, 4], [-12, -3, 3.2], [6, -2, 4.6], [30, -3, 3.4], [40, -1, 2.6]];
+  LOOSE.forEach(function(b, i){
+    g.fillStyle = (i % 2) ? SM : ST;
+    g.beginPath();
+    g.moveTo(b[0] - b[2], b[1]); g.lineTo(b[0] - b[2] * 0.5, b[1] - b[2]);
+    g.lineTo(b[0] + b[2], b[1] - b[2] * 0.6); g.lineTo(b[0] + b[2] * 0.7, b[1]);
+    g.closePath(); g.fill();
+  });
+
+  /* still smouldering */
+  for(var i2 = 0; i2 < 3; i2++){
+    var k = (f + i2 * 0.33) % 1;
+    g.fillStyle = 'rgba(64,58,56,' + (0.20 * (1 - k)) + ')';
+    g.beginPath();
+    g.ellipse(-24 + i2 * 22 + Math.sin(k * 3.1 + i2) * 5, -34 - k * 42,
+              5 + k * 9, 4 + k * 7, 0, 0, TAU);
+    g.fill();
+  }
+  g.restore();
+}
+
+/* A man carrying salvage back. The load rides high on one shoulder, which is
+   what makes him read as a carrier rather than a rifleman at a distance, and it
+   tips him off the vertical so he walks like he is under weight. */
+function drawCarrier3D(g, x, y, s, dir, pal, ph){
+  const TAU = Math.PI * 2;
+  const d = dir < 0 ? -1 : 1;
+  const f = (typeof ph === 'number' && isFinite(ph)) ? ph - Math.floor(ph) : 0;
+  const step = Math.sin(f * TAU);
+  const bob = Math.abs(Math.cos(f * TAU)) * 0.9;
+
+  const base = pal.base, lit = pal.light, drk = pal.dark, edge = pal.edge, acc = pal.accent;
+  const KD = '#202028', KM = '#33333d', KL = '#4a4a58';
+
+  g.save();
+  g.translate(x, y);
+  g.scale(d * s, s);
+  g.lineJoin = 'round';
+  g.lineCap = 'round';
+  g.lineWidth = Math.max(0.5, Math.min(1.3, 1 / (s || 1)));
+
+  function rf(bx, by, bw, bh, br){ g.beginPath(); rr(g, bx, by, bw, bh, br); g.fill(); }
+  function poly(p){
+    g.beginPath();
+    g.moveTo(p[0], p[1]);
+    for(var i = 2; i < p.length; i += 2) g.lineTo(p[i], p[i + 1]);
+    g.closePath();
+  }
+
+  g.save();
+  g.translate(0.6, -0.8);
+  g.scale(1, 0.32);
+  const sh = g.createRadialGradient(0, 0, 0, 0, 0, 8.2);
+  sh.addColorStop(0, 'rgba(0,0,0,.34)');
+  sh.addColorStop(0.55, 'rgba(0,0,0,.20)');
+  sh.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = sh;
+  g.beginPath(); g.arc(0, 0, 8.2, 0, TAU); g.fill();
+  g.restore();
+
+  g.translate(0, -bob);
+
+  /* rear leg swings back, front leg forward */
+  g.fillStyle = drk;
+  poly([-2.4, -11.4, -0.2, -11.4, -1.4 - step * 3.4, -2.4, -3.6 - step * 3.4, -2.4]);
+  g.fill();
+  g.fillStyle = KD; rf(-4.6 - step * 3.4, -2.4, 4.0, 2.4, 0.8);
+  g.fillStyle = base;
+  poly([0.2, -11.4, 2.6, -11.4, 3.6 + step * 3.4, -2.4, 1.2 + step * 3.4, -2.4]);
+  g.fill();
+  g.fillStyle = KM; rf(0.7 + step * 3.4, -2.4, 4.4, 2.4, 0.8);
+  g.fillStyle = KL; rf(0.7 + step * 3.4, -2.4, 4.4, 0.9, 0.45);
+
+  /* hips, then a torso leaning back a touch under the load */
+  g.fillStyle = base; rf(-3.4, -13.4, 7.0, 3.0, 1.1);
+  g.fillStyle = KD;   rf(-3.4, -13.4, 7.0, 0.9, 0.4);
+
+  g.save();
+  g.translate(-0.3, -13.0);
+  g.rotate(-0.10);
+  const tg = g.createLinearGradient(-3.2, -8, 3.9, 0);
+  tg.addColorStop(0, lit); tg.addColorStop(0.55, base); tg.addColorStop(1, drk);
+  g.fillStyle = tg;
+  rf(-3.4, -8.8, 7.4, 9.0, 2.0);
+  g.fillStyle = KD; rf(-3.4, -4.8, 7.4, 1.1, 0.5);
+
+  /* head and helmet */
+  g.fillStyle = '#5a5364'; rf(-1.4, -12.0, 3.4, 3.4, 1.4);
+  g.fillStyle = drk;
+  g.beginPath(); g.ellipse(0.3, -12.2, 3.4, 2.4, 0, Math.PI, TAU); g.fill();
+  g.fillStyle = base;
+  g.beginPath(); g.ellipse(0.3, -12.4, 3.2, 2.2, 0, Math.PI, TAU); g.fill();
+  g.fillStyle = acc;
+  g.beginPath(); g.ellipse(-0.6, -13.0, 1.6, 0.85, 0, Math.PI, TAU); g.fill();
+  g.fillStyle = edge; rf(-2.9, -10.4, 6.4, 0.9, 0.4);
+
+  /* the salvage: a baulk of masonry and timber across the shoulder */
+  g.save();
+  g.translate(0.4, -10.6);
+  g.rotate(0.16 + step * 0.03);
+  g.fillStyle = '#4a444e'; g.fillRect(-9.5, -4.6, 19, 4.4);
+  g.fillStyle = '#6f6876'; g.fillRect(-9.5, -4.6, 19, 1.5);
+  g.fillStyle = 'rgba(0,0,0,.34)'; g.fillRect(-9.5, -1.0, 19, 0.9);
+  g.fillStyle = '#5a4632'; g.fillRect(-6.5, -6.4, 12, 1.9);
+  g.fillStyle = '#7a5c40'; g.fillRect(-6.5, -6.4, 12, 0.7);
+  g.restore();
+
+  /* the arm up holding it */
+  g.strokeStyle = base; g.lineWidth = 2.0;
+  g.beginPath(); g.moveTo(1.0, -6.4); g.lineTo(2.4, -10.0); g.stroke();
+  g.fillStyle = KL;
+  g.beginPath(); g.arc(2.4, -10.2, 1.0, 0, TAU); g.fill();
+
+  g.restore();
+  g.restore();
+}
+
 function drawShell(g,x,y,side,rot,ph){
   const col=side==='blue'?'#c8ffe4':'#ffd7d7';
   const hot=side==='blue'?'#22d18c':'#ff4d4d';
@@ -2984,12 +3420,26 @@ const engine=(function(){
   const DEATH=820;                                   // how long a man takes to fall
   const FIGHT=1900;                                  // how long a rank trades fire before it breaks
   const HOLD=5200;                                   // how long the outcome is held
+  const RAZE=420;                                    // the beat between the last shot and the keep going up
+  const BOOM=1500;                                   // how long a blast lives
+  const HAUL=2600;                                   // how long a man takes to carry rubble back
+  const BUILD=1400;                                  // and how far apart the barracks go up
+  const WORKS=6400;                                  // how long a works party stays on the ground
+  const ROUT=3600;                                   // how long a shelled barracks stays knocked back
   const LMAX=R*0.90;                                   // half-width of the front
   const BOW=R*0.11;                                    // how deep the line bends
+  /* A big order does not shove the whole front; it opens a hole where it landed.
+     These live up here with the geometry because frontOffset() is what reads
+     them, and scratchpad/test-geom.js lifts that function with this block. */
+  const SAL=11000;                                     // how long a breakthrough stays open
+  let salients=[],salAll=[],salCur=0,salT=0;
   let cv,g,dpr=1,box=0,units=[],t0=0,raf=0,front=0,loaded=null,stars=[];
   let timeline=[],p0=0,tEnd=0,tFirst=0,curPrice=0,shown=-1,onFeed=null;
   let repeat=false,halt=false,tHide=0;               // one pass by default, then hold
   let pools=[],victory=false,tCease=0;               // the barracks, and how it ended
+  let built=[];                                      // barracks still to be raised out of the rubble
+  let marks=[],mcur=0,fx=[],refK=0,smK=2;            // the second timeline, and what it has let onto the field
+  let odinFill=0;                                    // how far through the launch odin.fun's own pool is
   let standing={blue:[],red:[]};                     // who is holding the line, per side
   let cursor=0;                                      // the next man due to arrive
   let pending={blue:0,red:0};                        // launched, still marching
@@ -3023,22 +3473,30 @@ const engine=(function(){
       const px=fs(l.px);
       g.font=l.w+' '+px+'px "Work Sans","PingFang SC",sans-serif';
       const w=g.measureText(l.text).width+8, h=px+5;
+      /* The field is drawn squeezed into its cell; type is not, or it would come
+         out stretched, so the queue does the mapping instead. */
+      const lx=sqx(l.x);
       let y=null;
       for(let k=0;k<7&&y===null;k++){
         const dy=Math.ceil(k/2)*(h+1)*(k%2?1:-1);
-        if(clear(l.x,l.y+dy,w,h))y=l.y+dy;
+        if(clear(lx,l.y+dy,w,h))y=l.y+dy;
       }
       if(y===null)return;                       // no room: say nothing
-      placed.push({x:l.x,y,w,h});
+      placed.push({x:lx,y,w,h});
       g.lineWidth=3.2;g.strokeStyle='rgba(8,8,14,.92)';
-      g.strokeText(l.text,l.x,y);
+      g.strokeText(l.text,lx,y);
       g.fillStyle=l.col;
-      g.fillText(l.text,l.x,y);
+      g.fillText(l.text,lx,y);
     });
     g.restore();
     labels=[];
   }
   const EPS=1e-12;
+  /* How much of the bowl this theatre gets. The rest is the ground either side
+     of it, which is the whole point: these are cells of one front. */
+  const SQ=0.86;
+  function sqx(x){return C+(x-C)*SQ;}
+  let walkCb=null;
 
   /* Depth: the ground recedes upward, so anything low on screen is nearer the
      camera and is drawn larger and later. */
@@ -3064,7 +3522,7 @@ const engine=(function(){
   }
   function layoutPools(chefs){
     const list=(chefs||[]).slice(0,12);
-    if(!list.length)return [{name:'',share:1,band:'camp',x:BLUE.x,y:BLUE.y,s:1.5}];
+    if(!list.length)return [{idx:0,name:'',share:1,band:'camp',x:BLUE.x,y:BLUE.y,s:1.5}];
     const out=[];
     RINGS.forEach(ring=>{
       const men=list.filter(c=>ringOf(c.days)===ring);
@@ -3075,6 +3533,7 @@ const engine=(function(){
       men.forEach((c,i)=>{
         const off=(i-(n-1)/2)*step;
         out.push({
+          idx:out.length,
           name:c.name,share:c.share,days:c.days,band:ring.band,
           /* the ring bows toward the field, deepest in the middle */
           x:BLUE.x+R*ring.dx-Math.abs(off)*0.10+(i%2?16:-8),
@@ -3097,7 +3556,19 @@ const engine=(function(){
     const k=1-u*u;                                     // deepest in the middle
     const dir=front<0?-1:1;                            // bulges into whoever is losing
     const push=Math.min(1,Math.abs(front)/(R*0.28));
-    return front*(1-0.35*u*u)+dir*BOW*(0.45+0.55*push)*k;
+    let d=front*(1-0.35*u*u)+dir*BOW*(0.45+0.55*push)*k;
+    /* plus whatever breakthroughs are still open. A breach goes in fast and is
+       filled in slowly, which is the shape of ground changing hands. */
+    for(let i=0;i<salients.length;i++){
+      const sa=salients[i],age=salT-sa.t;
+      if(age<0||age>SAL)continue;
+      const q=age<1000?age/1000:1-(age-1000)/(SAL-1000);
+      const e=q*q*(3-2*q);
+      const z=(lat-sa.lat)/sa.w;
+      if(z>3.2||z<-3.2)continue;                       // outside the bell, nothing to add
+      d+=sa.amp*e*Math.exp(-z*z);
+    }
+    return d;
   }
   function frontPoint(lat){
     const d=frontOffset(lat);
@@ -3164,6 +3635,8 @@ const engine=(function(){
   /* Back to the first frame: every man alive again, nobody resolved. */
   function rewind(){
     standing={blue:[],red:[]};cursor=0;lastDeathAt=0;pending={blue:0,red:0};
+    mcur=0;fx=[];                       // and nothing has happened off the line either
+    salCur=0;salients=[];               // and no ground has been broken yet
     units.forEach(u=>{u.remain=u.btc;u.deathAt=null;u.stack=0;pending[u.side]++;});
     shown=-1;
   }
@@ -3195,6 +3668,14 @@ const engine=(function(){
     }
   }
 
+  /* Everything that happened at a time but is not a man: liquidity in, liquidity
+     out, a rout. Same shape as the sorties — sorted, walked by a cursor, in
+     order — so it rewinds and it replays. Marks are pure decoration by
+     construction: nothing below this line reads them except the drawing code. */
+  function resolveMarks(t){
+    while(mcur<marks.length&&marks[mcur].t<=t)fx.push(marks[mcur++]);
+  }
+
   /* A trade that has just happened, joining the battle already in progress. It
      musters at the current playback moment and is filed into the queue in
      arrival order — a fast aircraft launched now can genuinely overtake a tank
@@ -3210,28 +3691,130 @@ const engine=(function(){
       const e=u.arrive+FIGHT+DEATH+400;
       if(e>tEnd)tEnd=e;
     });
-    list.forEach(u=>timeline.push({t:atT+200,price:u.price}));
+    /* A trade that lands now leans the line by the same measure the recorded
+       ones did, or the line would jump the moment the replay caught up. */
+    list.forEach((u,n)=>{
+      const i=timeline.length;
+      const rf=refK?((timeline[Math.max(0,i-refK)]||{}).price||p0):p0;
+      const r=rf&&u.price?clamp((u.price/rf-1)/0.05,-1,1):0;
+      let a=r,c=1;
+      for(let k=1;k<=smK;k++){const e=timeline[i-k];if(!e)break;a+=(e.r!=null?e.r:0);c++;}
+      timeline.push({t:atT+200,price:u.price,ref:rf,r,f:a/c});
+      /* and a big one that has just landed breaks through like any other */
+      if(u.btc&&loaded&&loaded.units&&loaded.units.length){
+        const med=medianBtc(loaded.units);
+        const k2=med?u.btc/med:0;
+        if(k2>=3.2){
+          const speed=u.kind==='plane'?1.55:u.kind==='tank'?0.95:1.15;
+          salAll.push({
+            t:atT+200+3400/speed,
+            lat:R*0.62*clamp((((orderNo+n)*0.618)%1-0.5)*1.7,-1,1),
+            w:R*(0.15+Math.min(0.13,k2*0.005)),
+            amp:(u.side==='blue'?1:-1)*Math.min(R*0.21,R*0.05*Math.log(1+k2))
+          });
+          salAll.sort((a2,b2)=>a2.t-b2.t);
+          salCur=0;salients=[];          // the queue moved under us; walk it again
+        }
+      }
+    });
+  }
+
+  /* The middle order by size, which is what "a big one" is measured against. */
+  function medianBtc(list){
+    const v=[];
+    for(let i=0;i<list.length;i++)if(list[i].btc>0)v.push(list[i].btc);
+    if(!v.length)return 0;
+    v.sort((a,b)=>a-b);
+    return v[Math.floor(v.length/2)];
+  }
+
+  /* What a price is measured against. Over one engagement it is the price that
+     engagement opened at; over a window long enough to need compressing it is a
+     trailing price, so a pullback actually pulls the line back. Carried on the
+     timeline rather than worked out at draw time, because the recorded trades
+     and the ones that land live have to agree and they were computed apart
+     once already. */
+  function refFor(prices,i,open){
+    return refK?(prices[Math.max(0,i-refK)]||open):open;
   }
 
   function load(s){
     loaded=s;
     if(s.launch)launchSet=s; else liveSet=s;
     if(!scene)scene=THEATRES[1];
-    pools=layoutPools(s.chefs);
+    /* The launch musters out of odin.fun's own pool and nothing else: on the
+       day this token opened there were no Chefs yet. Their barracks are what
+       gets built at the end of it, out of what is left of the enemy keep. */
+    pools=s.odin
+      ?[{idx:0,name:'',odin:true,share:1,band:'camp',x:BLUE.x,y:BLUE.y,s:1.1}]
+      :layoutPools(s.chefs);
+    built=s.odin?layoutPools(s.chefs):[];
     units=[];orderNo=0;
-    /* A month of launch compressed into a minute; the live window keeps its
-       own unhurried pace. */
-    SPACING=s.launch?Math.max(60,Math.min(300,52000/Math.max(1,s.units.length))):300;
+    /* Whoever cut this window decided how fast it should run. */
+    SPACING=s.spacing||300;
     s.units.forEach((u,i)=>{units=units.concat(muster(u,orderNo++,i*SPACING));});
     units.sort((a,b)=>a.arrive-b.arrive);     // the queue the scheduler walks
 
     /* Where the line sits, and what it says, both come from the trade prices:
        the label is the price of the last order to have launched, and the line
-       leans by how far that has moved from where the engagement started. */
-    timeline=s.units.map((u,i)=>({t:i*SPACING,price:u.price}));
-    p0=timeline.length&&timeline[0].price?timeline[0].price:s.price;
+       leans by how far that has moved.
+
+       What it moved FROM is the part that matters. Over one engagement that is
+       simply the price it opened at. Over a window long enough to need
+       compressing — a day, or the whole campaign — a fixed opening price is
+       useless: by the tenth trade the ratio is off the end of the scale and the
+       line sits pinned against the rim for the rest of the replay. A long
+       window measures against a trailing reference instead, so a pullback
+       actually pulls the line back, which is the tug of war. */
+    const prices=s.units.map(u=>u.price||0);
+    p0=prices.length&&prices[0]?prices[0]:s.price;
+    refK=prices.length>=120?Math.max(8,Math.round(prices.length*0.06)):0;
+    /* The book flickers — a buy, a sell, a buy — and a line that answers every
+       tick of it reads as noise rather than as a front. A trailing mean keeps
+       the shape of a move and drops the chatter; trailing rather than centred so
+       a trade that lands live is smoothed exactly like a recorded one. */
+    const raw=prices.map((p,i)=>{
+      const rf=refFor(prices,i,p0);
+      return rf&&p?clamp((p/rf-1)/0.05,-1,1):0;
+    });
+    smK=Math.max(2,Math.min(9,Math.round(prices.length*0.05)));
+    const smooth=i=>{
+      let a=0,n=0;
+      for(let k=0;k<=smK;k++){const j=i-k;if(j<0)break;a+=raw[j];n++;}
+      return n?a/n:0;
+    };
+    timeline=prices.map((p,i)=>({t:i*SPACING,price:p,ref:refFor(prices,i,p0),
+                                 r:raw[i],f:smooth(i)}));
+
+    /* Salients. Anything several times the median order opens one, centred on
+       the lane its men take and timed to the moment they get there, so the
+       bulge appears exactly where and when the punch lands. */
+    salAll=[];salCur=0;salients=[];
+    const sizes=s.units.map(u=>u.btc).filter(v=>v>0).sort((a,b)=>a-b);
+    const med=sizes.length?sizes[Math.floor(sizes.length/2)]:0;
+    if(med>0){
+      s.units.forEach((u,i)=>{
+        const k=u.btc/med;
+        if(k<3.2)return;
+        const speed=u.kind==='plane'?1.55:u.kind==='tank'?0.95:1.15;
+        salAll.push({
+          t:i*SPACING+3400/speed,
+          lat:R*0.62*clamp(((i*0.618)%1-0.5)*1.7,-1,1),
+          w:R*(0.15+Math.min(0.13,k*0.005)),
+          amp:(u.side==='blue'?1:-1)*Math.min(R*0.21,R*0.05*Math.log(1+k))
+        });
+      });
+      salAll.sort((a,b)=>a.t-b.t);
+    }
+    marks=(s.marks||[]).slice().sort((a,b)=>a.t-b.t);
     tFirst=units.length?units[0].arrive:0;
     tEnd=units.reduce((m,u)=>Math.max(m,u.arrive),0)+FIGHT+DEATH+400;
+    /* A battle that ends by taking the ground has an aftermath to play — the
+       keep down, the rubble carried back, the barracks up — and the clock stops
+       at tEnd unless we are following the market. Without this the whole
+       sequence gets whatever is left between tCease and tEnd, which is about a
+       tenth of a second. */
+    if(s.odin)tEnd+=RAZE+HAUL+BUILD*Math.max(1,built.length)+3200;
 
     rewind();
     repeat=false;halt=false;live=false;              // a new battle plays once
@@ -3314,8 +3897,15 @@ const engine=(function(){
         g.beginPath();g.arc(st.x,st.y,st.r,0,7);g.fill();
       });
       g.globalAlpha=1;
+      drawNeighbours(now);
+      g.save();
+      g.beginPath();g.rect(C-R*SQ,C-R,2*R*SQ,2*R);g.clip();
+      g.translate(C,0);g.scale(SQ,1);g.translate(-C,0);
+      drawTerrain(scene);
+      drawTerrainNames(scene);
       drawHeld(now,scene);
-      flushLabels();
+      g.restore();
+      flushLabels();                    // type is drawn straight, outside the cell
       g.restore();
       g.strokeStyle='#2e2e38';g.lineWidth=9;
       g.beginPath();g.arc(C,C,R+4,0,7);g.stroke();
@@ -3335,6 +3925,14 @@ const engine=(function(){
     tNow=t;
 
     resolveUpTo(t);
+    resolveMarks(t);
+    /* Open whatever breakthroughs are due, and close the ones that have been
+       filled in. Kept as a short live list so frontOffset — which runs for every
+       man on the field, every frame — walks two or three entries, not a
+       thousand. */
+    salT=t;
+    while(salCur<salAll.length&&salAll[salCur].t<=t)salients.push(salAll[salCur++]);
+    for(let i=salients.length-1;i>=0;i--)if(t-salients[i].t>SAL)salients.splice(i,1);
     /* Nobody is left to shoot at only when the other side has neither a man on
        the line nor a man still walking towards it. */
     victory=standing.blue.length>0&&standing.red.length===0&&pending.red===0;
@@ -3342,15 +3940,38 @@ const engine=(function(){
 
     curPrice=p0;
     let launched=0;
+    let pref=p0;
     for(let i=0;i<timeline.length;i++){
-      if(timeline[i].t<=t){curPrice=timeline[i].price;launched=i+1;}else break;
+      if(timeline[i].t<=t){curPrice=timeline[i].price;pref=timeline[i].ref||p0;launched=i+1;}else break;
+    }
+    /* The line is not a staircase. Between one order and the next it eases from
+       where the book had it to where the book has put it, so the front glides
+       instead of flicking from position to position. */
+    const lf=e=>e&&e.f!=null?e.f
+      :(e&&e.price&&(e.ref||p0)?clamp((e.price/(e.ref||p0)-1)/0.05,-1,1):0);
+    let sway=launched?lf(timeline[launched-1]):(pref?clamp((curPrice/pref-1)/0.05,-1,1):0);
+    if(launched>0&&launched<timeline.length){
+      const a=timeline[launched-1],b=timeline[launched];
+      const w=clamp((t-a.t)/Math.max(1,b.t-a.t),0,1);
+      sway+=(lf(b)-sway)*(w*w*(3-2*w));
     }
     /* The line holds where it started until the first wave actually arrives, then
        eases into tracking the price. Before contact nobody is pushing anybody. */
     const engaged=clamp((t-tFirst)/1600,0,1);
-    front=p0?clamp((curPrice/p0-1)/0.05,-1,1)*R*0.28*engaged:0;
+    front=sway*R*0.28*engaged;
 
     if(launched!==shown){shown=launched;if(onFeed)onFeed(launched,loaded);}
+    odinFill=timeline.length?launched/timeline.length:0;
+    /* Ground taken outright is not held on the line it was won on: the Alliance
+       walks it up to the rim once the enemy keep is down. The troops, the
+       parapet and the wire all read frontPoint, so moving this one number moves
+       every one of them together. Kept below the block above, which is lifted
+       whole by scratchpad/test-hold.js into a scope that has never heard of
+       scene or tCease. */
+    if(scene&&scene.held==='blue'&&t>=tCease+RAZE){
+      const kk=clamp((t-(tCease+RAZE))/2600,0,1);
+      front+=(R*0.42-front)*(kk*kk*(3-2*kk));
+    }
     g.setTransform(dpr*box/W,0,0,dpr*box/W,0,0);
     g.clearRect(0,0,W,W);
 
@@ -3366,6 +3987,14 @@ const engine=(function(){
       g.beginPath();g.arc(s.x,s.y,s.r,0,7);g.fill();
     });
     g.globalAlpha=1;
+    drawNeighbours(now);
+    /* The territory wash runs two radii past the line, so the cell has to be
+       cut or this theatre paints straight over the one next door. */
+    g.save();
+    g.beginPath();g.rect(C-R*SQ,C-R,2*R*SQ,2*R);g.clip();
+    g.translate(C,0);g.scale(SQ,1);g.translate(-C,0);
+    drawTerrain(scene);
+    drawTerrainNames(scene);
 
     /* A field taken outright is not shaded half and half — but only once the
        last man is down, so the replay still shows the ground changing hands. */
@@ -3382,10 +4011,21 @@ const engine=(function(){
     }
     drawBaseGlow(BLUE,'blue');
     drawBaseGlow(RED,'red');
-    /* and the keep at the far end is theirs now, garrison and all */
-    drawKeep3D(g,RED.x,RED.y+R*0.10,1.5,took?PAL.blue:PAL.red,(t/2600)%1);
-    if(loaded&&!took)drawGarrison(RED,loaded.red.map(o=>o.name),'red');
-    drawPools(t);
+    /* The last act of a field won outright: the keep comes down. Every beat is
+       measured off tCease, which is settled the moment the last man falls, so
+       the sequence plays the same whether the clock walked here or jumped. */
+    const razed=took?t-(tCease+RAZE):-1;
+    /* Once the line has gone past it, the wreck is behind the works rather than
+       in among them — four things were stacked on the same strip of ground. */
+    const kx=RED.x-(razed>=0?R*0.10:0), ky=RED.y+R*0.10;
+    if(razed<0){
+      drawKeep3D(g,kx,ky,1.5,PAL.red,(t/2600)%1);
+      if(loaded)drawGarrison(RED,loaded.red.map(o=>o.name),'red');
+    }else{
+      drawRuins3D(g,kx,ky,1.5,PAL.red,(now/3400)%1);
+      if(razed<BOOM)drawBoom(g,kx,ky+4,3.0,razed/BOOM);
+    }
+    drawPools(t,razed);
     drawFront(t);
 
     /* Everything on the ground is painted back to front, so a man standing
@@ -3436,6 +4076,9 @@ const engine=(function(){
     /* A won field does not stay a battle. Once the last man is down the
        Alliance is a works detail: wire, a parapet, and shovels. */
     if(scene&&scene.held==='blue'&&t>=tCease)drawWorks(now,'blue');
+    drawWorksFx(now,t);
+    drawCarriers(t,razed);
+    g.restore();                          // out of the cell: type is never squeezed
     drawPriceChip();
     flushLabels();                        // names last, so nothing can cover them
     g.restore();
@@ -3454,6 +4097,677 @@ const engine=(function(){
     else if(live){ /* held open for the next trade */ }
     else if(!reduceMotion&&units.length&&now-t0>=tEnd&&!victory
             &&!(scene&&scene.held==='blue'))halt=true;
+  }
+
+  /* The strip either side of this cell: the ground next door, seen edge-on.
+     Enough of it to tell who holds it and what stands on it, and no more —
+     it is a glimpse down the road, not a second battlefield. */
+  function drawNeighbours(now){
+    if(typeof THEATRES==='undefined'||!scene)return;
+    const here=THEATRES.indexOf(scene);
+    if(here<0)return;
+    [-1,1].forEach(d=>{
+      const th=THEATRES[here+d];
+      const xa=C+d*R*SQ, xb=C+d*R;
+      const lo=Math.min(xa,xb), wd=Math.abs(xb-xa), mid=(xa+xb)/2;
+      g.save();
+      g.beginPath();g.rect(lo,C-R,wd,R*2);g.clip();
+      if(!th){
+        /* the end of the road in that direction */
+        g.fillStyle='rgba(6,6,10,.55)';
+        g.fillRect(lo,C-R,wd,R*2);
+      }else{
+        const rgb=th.held==='blue'?'34,209,140':th.held==='red'?'255,77,77':'252,209,79';
+        const gr=g.createLinearGradient(xa,C,xb,C);
+        gr.addColorStop(0,'rgba('+rgb+',.06)');
+        gr.addColorStop(1,'rgba('+rgb+',.22)');
+        g.fillStyle=gr;g.fillRect(lo,C-R,wd,R*2);
+        /* what stands on it: their base, small, near the middle of the strip */
+        const bs=0.52;
+        if(th.shop&&typeof drawNoodleShop3D==='function'){
+          drawNoodleShop3D(g,mid,C+R*0.06,bs*1.15,WARM,(now/2600)%1);
+        }else if(th.held){
+          drawKeep3D(g,mid,C+R*0.06,bs,PAL[th.held==='blue'?'blue':'red'],(now/2600)%1);
+        }
+        /* and a picket of theirs, so the strip is held rather than empty */
+        if(th.held){
+          const pal=PAL[th.held==='blue'?'blue':'red'];
+          [-0.46,-0.16,0.30,0.58].forEach((f,i)=>{
+            const y=C+R*f;
+            drawSoldier3D(g,mid+(i%2?7:-7),y,0.95*depth(y),th.held==='blue'?1:-1,pal,
+                          reduceMotion?0.5:((now/300)+i*0.37)%1);
+          });
+        }
+        /* its name, read down the edge */
+        const nm=(I18N[lang].thNames||{})[th.id]||'';
+        if(nm){
+          g.save();
+          g.translate(d<0?lo+wd*0.34:lo+wd*0.66,C);
+          g.rotate(d<0?-Math.PI/2:Math.PI/2);
+          g.textAlign='center';
+          g.font='600 '+fs(12)+'px "Work Sans","PingFang SC",sans-serif';
+          g.lineWidth=3;g.strokeStyle='rgba(8,8,14,.9)';
+          g.strokeText(nm,0,0);
+          g.fillStyle=th.held==='blue'?'rgba(143,233,194,.92)'
+                     :th.held==='red'?'rgba(255,176,176,.92)':'rgba(252,209,79,.92)';
+          g.fillText(nm,0,0);
+          g.restore();
+        }
+      }
+      g.restore();
+      /* the seam. One front, cut into cells — the line says where the cut is. */
+      g.save();
+      g.beginPath();g.arc(C,C,R,0,7);g.clip();
+      g.strokeStyle='rgba(120,124,140,.45)';g.lineWidth=1.4;
+      g.beginPath();g.moveTo(xa,C-R);g.lineTo(xa,C+R);g.stroke();
+      g.strokeStyle='rgba(120,124,140,.16)';g.lineWidth=5;
+      g.beginPath();g.moveTo(xa,C-R);g.lineTo(xa,C+R);g.stroke();
+      g.restore();
+    });
+  }
+
+  /* ================= the ground itself =================
+     Five stretches of the silk road, and until now all five were the same empty
+     disc with different colours washed over them. Terrain is what makes a map a
+     place: the Yellow River at Lanzhou, the Qinling behind Chang'an, one thread
+     of green in the Kyzylkum at Samarkand, the sea either side of the
+     Theodosian wall, the Thames through London.
+
+     Everything down here obeys the same rules as the soldiers — one lamp up and
+     to the left, nothing rotates, no dice rolled inside a draw call — and one
+     more of its own: it must never compete with the battle. Concrete numbers
+     for that are in the restraint block below. Nothing here reads the clock, so
+     the whole layer is baked once per theatre and blitted as a single image. */
+
+  /* Terrain colours. Everything is darker than the earthworks: the parapet's lit
+     lip (#8a7856) and its sandbag tops (#a08d68) have to stay the brightest
+     earth on the field, or the trench dissolves into the ground it is dug in.
+     Nothing here is warm — #fcd14f and #ef9530 belong to the front line, the
+     price chip and the noodle shop. */
+  const TER={
+    ground:'#14161d', groundHi:'#262a33', groundLo:'#0e1014',
+    rock:'#1f222c',   rockLo:'#101219',   snow:'#565d6c',
+    lip:'rgba(150,156,178,.22)', seam:'rgba(0,0,0,.38)',
+    water:'#0c1620',  waterHi:'#16303c',
+    bank:'rgba(122,166,184,.22)', wave:'rgba(150,196,214,.10)',
+    sand:'#1d1a15',   dune:'rgba(154,140,110,.16)',
+    wood:'#101a15',   crown:'#1b2c22',    crownHi:'#26402f',
+    marsh:'#101a1b',  reed:'rgba(122,150,150,.14)',
+    built:'#1e212a',  roof:'#2d313b',     builtLo:'#0d0e13',
+    wall:'#191c23',   wallTop:'#262a33',
+    road:'rgba(44,46,54,.55)', kerb:'rgba(150,154,170,.14)',
+    name:'rgba(107,109,124,.55)', nameWater:'rgba(118,150,164,.5)'
+  };
+
+  /* An integer generator, not a Math.sin hash: sin is not bit-identical across
+     engines and this page ships to WebKit and Chromium both. It is the only
+     source of variation down here — Math.random appears nowhere. */
+  function trnd(seed){
+    let s=(seed>>>0)||1;
+    return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296;};
+  }
+  /* A closed irregular ellipse: the shape of almost everything that is ground. */
+  function tblob(cx,cy,rx,ry,n,wob,rnd){
+    const out=[];
+    for(let i=0;i<n;i++){
+      const a=i/n*Math.PI*2, k=1+(rnd()*2-1)*wob;
+      out.push({x:cx+Math.cos(a)*rx*k, y:cy+Math.sin(a)*ry*k});
+    }
+    return out;
+  }
+  /* Trace through the midpoints, so a coarse polygon comes out as a coastline
+     rather than as a polygon. No Path2D — Safari. */
+  function tpath(gg,pts,closed,sharp){
+    if(!pts||pts.length<2)return;
+    gg.beginPath();
+    if(sharp){
+      gg.moveTo(pts[0].x,pts[0].y);
+      for(let i=1;i<pts.length;i++)gg.lineTo(pts[i].x,pts[i].y);
+      if(closed)gg.closePath();
+      return;
+    }
+    if(pts.length<3){gg.moveTo(pts[0].x,pts[0].y);gg.lineTo(pts[1].x,pts[1].y);return;}
+    const n=pts.length;
+    if(closed){
+      let m={x:(pts[n-1].x+pts[0].x)/2,y:(pts[n-1].y+pts[0].y)/2};
+      gg.moveTo(m.x,m.y);
+      for(let i=0;i<n;i++){
+        const a=pts[i],b=pts[(i+1)%n];
+        gg.quadraticCurveTo(a.x,a.y,(a.x+b.x)/2,(a.y+b.y)/2);
+      }
+      gg.closePath();
+    }else{
+      gg.moveTo(pts[0].x,pts[0].y);
+      for(let i=1;i<n-1;i++){
+        const a=pts[i],b=pts[i+1];
+        gg.quadraticCurveTo(a.x,a.y,(a.x+b.x)/2,(a.y+b.y)/2);
+      }
+      gg.lineTo(pts[n-1].x,pts[n-1].y);
+    }
+  }
+  /* The same sign convention the engine's normals() keeps: +k is the lamp side. */
+  function tnrm(pts){
+    return pts.map((p,i)=>{
+      const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];
+      const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;
+      return {x:-dy/L,y:dx/L};
+    });
+  }
+  function toff(pts,nrm,k){
+    return pts.map((p,i)=>({x:p.x+nrm[i].x*k,y:p.y+nrm[i].y*k}));
+  }
+  /* A closed ribbon round a centreline, tapering from w0 to w1. Rivers, roads. */
+  function tband(gg,pts,w0,w1){
+    const nrm=tnrm(pts),n=pts.length;
+    const a=[],b=[];
+    for(let i=0;i<n;i++){
+      const w=(w0+(w1-w0)*(i/(n-1||1)))/2;
+      a.push({x:pts[i].x+nrm[i].x*w,y:pts[i].y+nrm[i].y*w});
+      b.push({x:pts[i].x-nrm[i].x*w,y:pts[i].y-nrm[i].y*w});
+    }
+    b.reverse();
+    tpath(gg,a.concat(b),true);
+  }
+  function tdep(y){return 1+((y-C)/R)*0.20;}
+  function tbox(gg,x,y,w,h,d,f,top,side){
+    gg.fillStyle=f;gg.fillRect(x,y-h,w,h);
+    gg.fillStyle=top;
+    gg.beginPath();
+    gg.moveTo(x,y-h);gg.lineTo(x+d,y-h-d*0.55);
+    gg.lineTo(x+w+d,y-h-d*0.55);gg.lineTo(x+w,y-h);
+    gg.closePath();gg.fill();
+    gg.fillStyle=side;
+    gg.beginPath();
+    gg.moveTo(x+w,y-h);gg.lineTo(x+w+d,y-h-d*0.55);
+    gg.lineTo(x+w+d,y-d*0.55);gg.lineTo(x+w,y);
+    gg.closePath();gg.fill();
+    gg.strokeStyle='rgba(0,0,0,.40)';gg.lineWidth=0.6;
+    gg.strokeRect(x,y-h,w,h);
+  }
+
+  /* ---- water. Flat: it is ground, it has no height and casts no shadow. ---- */
+  function terWater(gg,pts,seed){
+    const rnd=trnd(seed);
+    let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+    pts.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);});
+    tpath(gg,pts,true);gg.fillStyle=TER.water;gg.fill();
+    const gr=gg.createLinearGradient(x0,y0,x1,y1);
+    gr.addColorStop(0,'rgba(20,42,54,.55)');
+    gr.addColorStop(1,'rgba(12,22,32,0)');
+    tpath(gg,pts,true);gg.fillStyle=gr;gg.fill();
+    /* the lip pair — what makes it a hole in the ground rather than a stain.
+       Round a bay the lit shore correctly swaps sides. */
+    const nrm=tnrm(pts);
+    for(let i=0;i<pts.length;i++){
+      const a=pts[i],b=pts[(i+1)%pts.length],n=nrm[i];
+      gg.beginPath();gg.moveTo(a.x,a.y);gg.lineTo(b.x,b.y);
+      if(n.x*-0.72+n.y*-0.69>0){gg.strokeStyle=TER.bank;gg.lineWidth=1.4;}
+      else{gg.strokeStyle='rgba(0,0,0,.45)';gg.lineWidth=1.8;}
+      gg.stroke();
+    }
+    /* the surface is seen at a shallow angle, so its highlights lie flat */
+    const rx=(x1-x0)/2;
+    gg.strokeStyle=TER.wave;gg.lineWidth=1;
+    for(let i=0;i<3;i++){
+      const cx=x0+rx*(0.5+rnd()*0.9), cy=y0+(y1-y0)*(0.25+rnd()*0.5), L=rx*0.35;
+      gg.beginPath();gg.moveTo(cx-L/2,cy);gg.lineTo(cx+L/2,cy);gg.stroke();
+    }
+  }
+
+  /* ---- rivers and roads are the same object ---- */
+  function terRun(gg,pts,w0,w1,kind){
+    if(kind==='road'){
+      tband(gg,pts,w0,w1);gg.fillStyle=TER.road;gg.fill();
+      gg.setLineDash([9,7]);
+      gg.strokeStyle=TER.kerb;gg.lineWidth=1;
+      tpath(gg,pts,false);gg.stroke();
+      gg.setLineDash([]);                       // always put it back
+      return;
+    }
+    tband(gg,pts,w0+3,w1+3);gg.fillStyle='rgba(0,0,0,.32)';gg.fill();
+    tband(gg,pts,w0,w1);
+    const gr=gg.createLinearGradient(pts[0].x,pts[0].y,pts[pts.length-1].x,pts[pts.length-1].y);
+    gr.addColorStop(0,TER.waterHi);gr.addColorStop(1,TER.water);
+    gg.fillStyle=gr;gg.fill();
+    const nrm=tnrm(pts);
+    tpath(gg,toff(pts,nrm,(w0+w1)/4),false);
+    gg.strokeStyle=TER.bank;gg.lineWidth=1;gg.stroke();   // one bank lit, or it flattens
+  }
+
+  /* ---- relief. Two flat faces and a crest hairline: the seam is the read. ---- */
+  function terRidge(gg,crest,h,seed,opt){
+    const rnd=trnd(seed),o=opt||{};
+    const loess=o.kind==='loess';
+    /* Uneven spacing, uneven height, and a lower back row set up and behind:
+       a range drawn at one pitch and one size is the surest tell that nobody
+       actually drew it. */
+    const sites=[];
+    for(let i=1;i<crest.length;i++){
+      const a=crest[i-1],b=crest[i];
+      const L=Math.hypot(b.x-a.x,b.y-a.y);
+      let d=h*0.3*rnd();
+      while(d<L){
+        const f=d/L;
+        sites.push({x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f,u:(i-1+f)/(crest.length-1),back:0});
+        d+=h*(0.42+0.55*rnd());
+      }
+    }
+    const back=[];
+    for(let i=0;i<sites.length;i+=2){
+      back.push({x:sites[i].x+h*0.45,y:sites[i].y-h*0.34,u:sites[i].u,back:1});
+    }
+    back.concat(sites).sort((a,b)=>a.y-b.y).forEach(st=>{
+      const hh=h*(st.back?0.34+0.22*rnd():0.42+0.62*rnd()), bw=hh*(0.72+0.34*rnd());
+      const ax=st.x+hh*0.10, ay=st.y-hh;        // a constant lean, never a rotation
+      gg.fillStyle='rgba(0,0,0,.26)';
+      gg.beginPath();gg.ellipse(st.x+bw*0.14,st.y-hh*0.04,bw*1.05,hh*0.16,0,0,7);gg.fill();
+      gg.fillStyle=loess?TER.ground:TER.rock;
+      gg.beginPath();gg.moveTo(st.x-bw,st.y);
+      if(loess){gg.lineTo(ax-bw*0.22,ay+hh*0.10);gg.lineTo(ax,ay);}
+      else gg.lineTo(ax,ay);
+      gg.lineTo(ax,st.y);gg.closePath();gg.fill();
+      gg.fillStyle=loess?TER.groundLo:TER.rockLo;
+      gg.beginPath();gg.moveTo(ax,ay);
+      if(loess)gg.lineTo(ax+bw*0.20,ay+hh*0.10);
+      gg.lineTo(st.x+bw,st.y);gg.lineTo(ax,st.y);gg.closePath();gg.fill();
+      gg.strokeStyle=st.back?'rgba(150,156,178,.10)':TER.lip;gg.lineWidth=1;
+      gg.beginPath();gg.moveTo(st.x-bw,st.y);gg.lineTo(ax,ay);gg.stroke();
+      if(loess){
+        gg.strokeStyle='rgba(150,140,110,.09)';gg.lineWidth=1;
+        for(let k=1;k<=3;k++){
+          const yy=st.y-hh*k/4.2, ww=bw*(1-k/5);
+          gg.beginPath();gg.moveTo(st.x-ww,yy);gg.lineTo(ax-ww*0.2,yy);gg.stroke();
+        }
+      }
+    });
+    if(o.mark)terMark(gg,crest,o.mark);
+  }
+  /* one thing standing on a ridge: a snowcap, a pagoda, a tower, a wood */
+  function terMark(gg,crest,m){
+    const n=crest.length-1, f=clamp(m.u,0,1)*n, i=Math.min(n-1,Math.floor(f)), t2=f-i;
+    const a=crest[i],b=crest[i+1];
+    const x=a.x+(b.x-a.x)*t2, y=a.y+(b.y-a.y)*t2;
+    const s2=(m.h||0.04)*R*tdep(y)/R*R;        // in the same units the table uses
+    const h=m.h*R*tdep(y);
+    if(m.kind==='snow'){
+      gg.fillStyle=TER.snow;
+      gg.beginPath();gg.moveTo(x-h*0.55,y-h*0.55);gg.lineTo(x+h*0.10,y-h*1.25);
+      gg.lineTo(x+h*0.62,y-h*0.5);gg.closePath();gg.fill();
+      gg.strokeStyle='rgba(196,204,222,.20)';gg.lineWidth=1;
+      gg.beginPath();gg.moveTo(x-h*0.55,y-h*0.55);gg.lineTo(x+h*0.10,y-h*1.25);gg.stroke();
+    }else if(m.kind==='pagoda'){
+      let w=h*0.72, yy=y;
+      for(let k=0;k<5;k++){
+        gg.fillStyle=TER.built;gg.fillRect(x-w/2,yy-h*0.22,w,h*0.22);
+        gg.fillStyle=TER.roof;
+        gg.beginPath();
+        gg.moveTo(x-w*0.66,yy-h*0.22);gg.lineTo(x+w*0.66,yy-h*0.22);
+        gg.lineTo(x+w*0.5,yy-h*0.30);gg.lineTo(x-w*0.5,yy-h*0.30);
+        gg.closePath();gg.fill();
+        gg.strokeStyle='rgba(0,0,0,.30)';gg.lineWidth=1;   // the eave line is the read
+        gg.beginPath();gg.moveTo(x-w*0.66,yy-h*0.215);gg.lineTo(x+w*0.66,yy-h*0.215);gg.stroke();
+        yy-=h*0.30;w*=0.84;
+      }
+    }else if(m.kind==='tower'){
+      const w=h*0.42;
+      tbox(gg,x-w/2,y,w,h*0.9,2.4,TER.built,TER.roof,TER.builtLo);
+      gg.fillStyle=TER.roof;
+      gg.beginPath();gg.moveTo(x-w*0.7,y-h*0.9);gg.lineTo(x,y-h*1.25);
+      gg.lineTo(x+w*0.7,y-h*0.9);gg.closePath();gg.fill();
+    }else if(m.kind==='wood'){
+      for(let k=0;k<6;k++){
+        const cx=x+(k-2.5)*h*0.42, cy=y-h*0.06+((k%2)?2:-2), r=h*0.30;
+        terCrown(gg,cx,cy,r);
+      }
+    }
+  }
+  function terCrown(gg,x,y,r){
+    gg.fillStyle='rgba(0,0,0,.20)';
+    gg.beginPath();gg.ellipse(x,y,r*1.05,r*0.30,0,0,7);gg.fill();
+    gg.fillStyle=TER.crown;
+    gg.beginPath();gg.arc(x,y-r*0.6,r,0,7);gg.fill();
+    gg.fillStyle=TER.crownHi;                       // the lamp, in one shape
+    gg.beginPath();gg.arc(x-r*0.24,y-r*0.88,r*0.6,0,7);gg.fill();
+  }
+
+  /* ---- everything that is neither water nor built ---- */
+  function terGround(gg,pts,seed,kind){
+    const rnd=trnd(seed);
+    let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,cx=0,cy=0;
+    pts.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);cx+=p.x;cy+=p.y;});
+    cx/=pts.length;cy/=pts.length;
+    tpath(gg,pts,true);
+    gg.fillStyle=kind==='sand'?TER.sand:kind==='marsh'?TER.marsh
+      :(kind==='wood'||kind==='orchard'||kind==='poplar'||kind==='cypress')?TER.wood:TER.ground;
+    gg.fill();
+    if(kind!=='marsh'){                            // marsh has no edge; an edge makes it a lake
+      gg.strokeStyle=TER.seam;gg.lineWidth=1;tpath(gg,pts,true);gg.stroke();
+    }
+    const inside=(x,y)=>{
+      const dx=(x-cx)/Math.max(1,(x1-x0)/2), dy=(y-cy)/Math.max(1,(y1-y0)/2);
+      return dx*dx+dy*dy<=1;
+    };
+    if(kind==='sand'){
+      /* every crescent opens the same way. Wind has one direction; crescents
+         turned at random are the surest tell of a machine drawing a desert. */
+      for(let i=0;i<7;i++){
+        const x=x0+(x1-x0)*rnd(), y=y0+(y1-y0)*rnd();
+        if(!inside(x,y))continue;
+        const rx=(x1-x0)*(0.07+rnd()*0.07), ry=rx*0.34;
+        gg.strokeStyle='rgba(0,0,0,.28)';gg.lineWidth=1.6;
+        gg.beginPath();gg.ellipse(x+2,y+1.4,rx,ry,0,Math.PI*0.15,Math.PI*0.85);gg.stroke();
+        gg.strokeStyle=TER.dune;gg.lineWidth=1.4;
+        gg.beginPath();gg.ellipse(x,y,rx,ry,0,Math.PI*0.15,Math.PI*0.85);gg.stroke();
+      }
+    }else if(kind==='terrace'){
+      gg.strokeStyle='rgba(150,140,110,.10)';gg.lineWidth=1;
+      for(let k=1;k<=6;k++){
+        const shrink=k*6;
+        const ring=pts.map(p=>{
+          const dx=p.x-cx,dy=p.y-cy,L=Math.hypot(dx,dy)||1;
+          const s2=Math.max(0,L-shrink)/L;         // monotone, so rings never cross
+          return {x:cx+dx*s2,y:cy+dy*s2};
+        });
+        tpath(gg,ring,true);gg.stroke();
+      }
+    }else if(kind==='marsh'){
+      gg.strokeStyle=TER.reed;gg.lineWidth=1;
+      for(let i=0;i<12;i++){
+        const x=x0+(x1-x0)*rnd(), y=y0+(y1-y0)*rnd();
+        if(!inside(x,y))continue;
+        [[8,0],[5.5,-2.6],[3,-5.2]].forEach(q=>{
+          gg.beginPath();gg.moveTo(x-q[0]/2,y+q[1]);gg.lineTo(x+q[0]/2,y+q[1]);gg.stroke();
+        });
+      }
+      gg.fillStyle=TER.water;
+      for(let i=0;i<3;i++){
+        const x=x0+(x1-x0)*rnd(), y=y0+(y1-y0)*rnd();
+        if(!inside(x,y))continue;
+        gg.beginPath();gg.ellipse(x,y,10,2.4,0,0,7);gg.fill();
+      }
+    }else if(kind==='clay'){
+      gg.strokeStyle='rgba(140,145,160,.06)';gg.lineWidth=1;
+      for(let i=0;i<14;i++){
+        const x=x0+(x1-x0)*rnd(), y=y0+(y1-y0)*rnd();
+        if(!inside(x,y))continue;
+        gg.beginPath();gg.moveTo(x,y);gg.lineTo(x+2,y);gg.stroke();
+      }
+    }else if(kind==='wood'){
+      /* the interior is never drawn: a forest is recognised by its edge */
+      const rx=(x1-x0)/2, ry=(y1-y0)/2, n=12;
+      const sites=[];
+      for(let i=0;i<n;i++){
+        const a=Math.PI*0.85+(Math.PI*1.05)*(i/(n-1));
+        sites.push({x:cx+Math.cos(a)*rx*0.94,y:cy+Math.sin(a)*ry*0.94,r:6+rnd()*4});
+      }
+      sites.sort((a,b)=>a.y-b.y).forEach(s2=>terCrown(gg,s2.x,s2.y,s2.r*tdep(s2.y)));
+      for(let i=0;i<4;i++){
+        const a=Math.PI*1.0+Math.PI*0.7*(i/3);
+        const x=cx+Math.cos(a)*rx*1.05, y=cy+Math.sin(a)*ry*1.05, h=13;
+        gg.fillStyle=TER.crownHi;
+        gg.beginPath();gg.moveTo(x,y-h);gg.lineTo(x-5,y);gg.lineTo(x,y);gg.closePath();gg.fill();
+        gg.fillStyle=TER.crown;
+        gg.beginPath();gg.moveTo(x,y-h);gg.lineTo(x+5,y);gg.lineTo(x,y);gg.closePath();gg.fill();
+      }
+    }else if(kind==='orchard'){
+      /* straight rows against a wandering river is what says irrigation */
+      const pitch=13;
+      const rows=[];
+      for(let y=y0+pitch*0.5;y<y1;y+=pitch){
+        for(let x=x0+pitch*0.5;x<x1;x+=pitch){
+          const jx=x+(rnd()*2-1)*pitch*0.15;
+          if(inside(jx,y))rows.push({x:jx,y});
+        }
+      }
+      rows.sort((a,b)=>a.y-b.y).forEach(s2=>terCrown(gg,s2.x,s2.y,4.2*tdep(s2.y)));
+    }else if(kind==='poplar'||kind==='cypress'){
+      const w=kind==='cypress'?2.2:3.2, h=15, pitch=11;
+      for(let x=x0;x<x1;x+=pitch){
+        const y=cy+(rnd()*2-1)*Math.max(2,(y1-y0)*0.35);
+        if(!inside(x,y))continue;
+        gg.fillStyle=TER.crown;
+        gg.beginPath();gg.ellipse(x,y-h*0.5,w,h*0.5,0,0,7);gg.fill();
+        gg.fillStyle=TER.crownHi;
+        gg.beginPath();gg.ellipse(x-w*0.35,y-h*0.6,w*0.42,h*0.34,0,0,7);gg.fill();
+      }
+    }
+  }
+
+  /* ---- built-up ground: the 城市风格 half of the brief ---- */
+  function terTown(gg,pts,seed,style){
+    const rnd=trnd(seed);
+    let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+    pts.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);});
+    tpath(gg,pts,true);gg.fillStyle=TER.ground;gg.fill();
+    gg.save();tpath(gg,pts,true);gg.clip();
+    const blocks=[];
+    const N=18+Math.floor(rnd()*8);
+    for(let i=0;i<N;i++){
+      let bx=x0+(x1-x0)*rnd(), by=y0+(y1-y0)*rnd();
+      let bw=6+rnd()*9, bh=5+rnd()*7;
+      if(style==='grid'){bx=Math.round(bx/9)*9;by=Math.round(by/7)*7;bw=7;bh=5.5;}
+      if(style==='terrace'){bw=16+rnd()*14;bh=6;by=Math.round(by/9)*9;}
+      blocks.push({bx,by,bw,bh,i});
+    }
+    blocks.sort((a,b)=>a.by-b.by).forEach(b=>{
+      tbox(gg,b.bx,b.by,b.bw,b.bh,3,TER.built,TER.roof,TER.builtLo);
+      if(style==='dome'&&b.i%3===0){
+        const cx=b.bx+b.bw/2, rw=b.bw*0.52;
+        gg.fillStyle=TER.roof;
+        gg.beginPath();gg.ellipse(cx,b.by-b.bh,rw,rw*0.9,0,Math.PI,Math.PI*2);gg.fill();
+        gg.strokeStyle=TER.lip;gg.lineWidth=1;
+        gg.beginPath();gg.ellipse(cx,b.by-b.bh,rw,rw*0.9,0,Math.PI,Math.PI*1.5);gg.stroke();
+      }
+      if(style==='terrace'){
+        gg.strokeStyle='rgba(0,0,0,.30)';gg.lineWidth=1;
+        for(let k=1;k<4;k++){
+          const x=b.bx+b.bw*k/4;
+          gg.beginPath();gg.moveTo(x,b.by-b.bh);gg.lineTo(x,b.by);gg.stroke();
+        }
+      }
+      if(style==='court'){
+        gg.strokeStyle='rgba(150,156,178,.14)';gg.lineWidth=1;
+        gg.beginPath();
+        gg.moveTo(b.bx,b.by-b.bh);gg.lineTo(b.bx+b.bw/2,b.by-b.bh-3);gg.lineTo(b.bx+b.bw,b.by-b.bh);
+        gg.stroke();
+      }
+    });
+    if(style==='grid'){
+      /* the Tang ward plan is three strokes, and it is a shape no other city has */
+      gg.strokeStyle='rgba(120,124,140,.09)';gg.lineWidth=1;
+      for(let k=1;k<=3;k++){
+        const y=y0+(y1-y0)*k/4;
+        gg.beginPath();gg.moveTo(x0,y);gg.lineTo(x1,y);gg.stroke();
+        const x=x0+(x1-x0)*k/4;
+        gg.beginPath();gg.moveTo(x,y0);gg.lineTo(x,y1);gg.stroke();
+      }
+    }
+    if(style==='dome'){
+      const cx=(x0+x1)/2, cy=(y0+y1)/2+4, rw=11;
+      gg.fillStyle=TER.roof;
+      gg.beginPath();gg.ellipse(cx,cy,rw,rw*0.95,0,Math.PI,Math.PI*2);gg.fill();
+      gg.strokeStyle=TER.lip;gg.lineWidth=1;
+      gg.beginPath();gg.ellipse(cx,cy,rw,rw*0.95,0,Math.PI,Math.PI*1.5);gg.stroke();
+      gg.fillStyle=TER.built;
+      gg.fillRect(cx-rw-5,cy-16,2,16);gg.fillRect(cx+rw+3,cy-16,2,16);
+    }
+    if(style==='terrace'){
+      gg.fillStyle=TER.roof;
+      [[0.34,10],[0.66,13]].forEach(q=>{
+        const x=x0+(x1-x0)*q[0], y=(y0+y1)/2;
+        gg.beginPath();gg.moveTo(x-2.4,y);gg.lineTo(x,y-q[1]);gg.lineTo(x+2.4,y);gg.closePath();gg.fill();
+      });
+    }
+    gg.restore();
+  }
+
+  /* ---- city walls. Footprint along the normal, height along screen -y — the
+     opposite of drawParapet, which is a cross-section lying on the ground. ---- */
+  function terWall(gg,pts,h,seed,opt){
+    const o=opt||{},lines=o.lines||1;
+    /* Resample along the circuit so the towers can space themselves out; the
+       corners are kept, because a wall that has lost its corners has become a
+       lake. */
+    const walk=[];
+    for(let i=0;i<pts.length-1;i++){
+      const a=pts[i],b=pts[i+1];
+      const L=Math.hypot(b.x-a.x,b.y-a.y),n=Math.max(1,Math.round(L/(h*1.9)));
+      for(let k=0;k<n;k++)walk.push({x:a.x+(b.x-a.x)*k/n,y:a.y+(b.y-a.y)*k/n});
+    }
+    walk.push(pts[pts.length-1]);
+    pts=walk;
+    const nrm=tnrm(pts);
+    for(let k=lines-1;k>=0;k--){
+      const run=toff(pts,nrm,-k*9);
+      const sh=run.map(p=>({x:p.x+2.4,y:p.y+1.2}));
+      gg.lineCap='round';gg.lineJoin='round';
+      tpath(gg,sh,false,1);gg.strokeStyle='rgba(0,0,0,.34)';gg.lineWidth=h*0.9;gg.stroke();
+      tpath(gg,run.map(p=>({x:p.x,y:p.y-h*0.35})),false,1);
+      gg.strokeStyle=TER.wall;gg.lineWidth=h;gg.stroke();
+      tpath(gg,run.map(p=>({x:p.x,y:p.y-h*0.72})),false,1);
+      gg.strokeStyle=TER.wallTop;gg.lineWidth=h*0.5;gg.stroke();
+      tpath(gg,run.map(p=>({x:p.x,y:p.y-h*0.92})),false,1);
+      gg.strokeStyle=TER.lip;gg.lineWidth=1;gg.stroke();
+      if(k===0){
+        const every=Math.max(1,o.towers||3);
+        for(let i=0;i<run.length;i+=every){
+          const p=run[i],w=h*0.85,th2=h*1.15;
+          tbox(gg,p.x-w/2,p.y+2,w,th2,2.6,TER.built,TER.wallTop,TER.builtLo);
+          gg.fillStyle=TER.builtLo;
+          for(let m=0;m<3;m++)gg.fillRect(p.x-w/2+m*w/3,p.y+2-th2-2,w/5,2);
+        }
+        if(o.gate!=null){
+          const f=clamp(o.gate,0,1)*(run.length-1);
+          const i=Math.min(run.length-2,Math.floor(f)),t2=f-i;
+          const gx=run[i].x+(run[i+1].x-run[i].x)*t2, gy=run[i].y+(run[i+1].y-run[i].y)*t2;
+          gg.fillStyle=TER.builtLo;
+          gg.fillRect(gx-h*0.7,gy-h*0.92,h*1.4,h*1.0);
+          gg.strokeStyle=TER.lip;gg.lineWidth=1;
+          gg.beginPath();gg.arc(gx,gy-h*0.30,h*0.42,Math.PI,0);gg.stroke();
+        }
+      }
+    }
+  }
+
+  /* ---- bridges. Feet-origin at the deck's west end. ---- */
+  function terArch(gg,x,y,w,h,n,seed,opt){
+    const o=opt||{},pw=Math.max(2,w/(n*4));
+    for(let i=0;i<=n;i++){
+      const px=x+w*i/n-pw/2;
+      gg.fillStyle=TER.builtLo;gg.fillRect(px,y,pw,h*0.5);
+      gg.fillStyle='rgba(0,0,0,.40)';gg.fillRect(px,y+h*0.5,pw,h*0.5);
+    }
+    gg.fillStyle=TER.built;gg.fillRect(x,y-h*0.14,w,h*0.30);
+    gg.fillStyle=TER.wallTop;gg.fillRect(x,y-h*0.14,w,h*0.12);
+    gg.strokeStyle=TER.lip;gg.lineWidth=1;
+    gg.beginPath();gg.moveTo(x,y-h*0.14);gg.lineTo(x+w,y-h*0.14);gg.stroke();
+    for(let i=0;i<n;i++){
+      const a=x+w*i/n, b=x+w*(i+1)/n, cx=(a+b)/2, r=(b-a)/2;
+      gg.strokeStyle='rgba(0,0,0,.32)';gg.lineWidth=1.4;
+      gg.beginPath();gg.arc(cx+1.5,y-h*0.14+1.5,r,Math.PI,0);gg.stroke();
+      gg.strokeStyle=TER.lip;gg.lineWidth=1.4;
+      gg.beginPath();gg.arc(cx,y-h*0.14,r,Math.PI,0);gg.stroke();
+      gg.strokeStyle=TER.built;gg.lineWidth=0.8;
+      for(let k=1;k<=4;k++){
+        const t2=k/5, hx=a+(b-a)*t2;
+        const hy=y-h*0.14-Math.sqrt(Math.max(0,r*r-(hx-cx)*(hx-cx)));
+        gg.beginPath();gg.moveTo(hx,hy);gg.lineTo(hx,y-h*0.14);gg.stroke();
+      }
+    }
+    if(o.towers){
+      [x+w/n/2,x+w-w/n/2].forEach(tx=>{
+        const tw=Math.max(4,w*0.09);
+        tbox(gg,tx-tw/2,y-h*0.14,tw,h*1.8,2.4,TER.built,TER.wallTop,TER.builtLo);
+        gg.fillStyle=TER.roof;
+        gg.beginPath();gg.moveTo(tx-tw*0.7,y-h*0.14-h*1.8);gg.lineTo(tx,y-h*0.14-h*2.15);
+        gg.lineTo(tx+tw*0.7,y-h*0.14-h*1.8);gg.closePath();gg.fill();
+      });
+    }
+    if(o.bascule){
+      /* the two leaves raised — a mirrored pair, never a rotation */
+      const cx=x+w/2, lw=w*0.12;
+      gg.fillStyle=TER.built;
+      gg.beginPath();gg.moveTo(cx-lw,y-h*0.14);gg.lineTo(cx-lw*0.3,y-h*0.14-h*1.1);
+      gg.lineTo(cx-lw*0.05,y-h*0.14-h*1.05);gg.lineTo(cx-lw*0.7,y-h*0.14);gg.closePath();gg.fill();
+      gg.beginPath();gg.moveTo(cx+lw,y-h*0.14);gg.lineTo(cx+lw*0.3,y-h*0.14-h*1.1);
+      gg.lineTo(cx+lw*0.05,y-h*0.14-h*1.05);gg.lineTo(cx+lw*0.7,y-h*0.14);gg.closePath();gg.fill();
+    }
+  }
+
+  /* ---- the composer ----
+     One theatre's features, drawn in the order the table lists them, into an
+     offscreen canvas that is rebuilt only when the theatre or the canvas size
+     changes. Everything else on this field is redrawn sixty times a second;
+     this is the one layer that does not have to be. */
+  function terUV(a){
+    const out=[];
+    for(let i=0;i<a.length;i+=2)out.push({x:C+R*a[i],y:C+R*a[i+1]});
+    return out;
+  }
+  function terShape(f){
+    if(f.pts)return terUV(f.pts);
+    if(f.blob)return tblob(C+R*f.blob[0],C+R*f.blob[1],R*f.blob[2],R*f.blob[3],
+                           f.blob[4],f.blob[5],trnd((f.seed||1)+7));
+    return null;
+  }
+  function paintTerrain(b,th){
+    const T=(typeof TERRAIN!=='undefined')&&TERRAIN[th.id];
+    if(!T)return;
+    (T.f||[]).forEach(f=>{
+      const pts=terShape(f);
+      if(f.k==='water'){ if(pts)terWater(b,pts,f.seed); }
+      else if(f.k==='run'){ if(pts)terRun(b,pts,R*f.w[0],R*f.w[1],f.kind); }
+      else if(f.k==='ground'){ if(pts)terGround(b,pts,f.seed,f.kind); }
+      else if(f.k==='town'){ if(pts)terTown(b,pts,f.seed,f.style); }
+      else if(f.k==='wall'){ if(pts)terWall(b,pts,R*f.h,f.seed,f); }
+      else if(f.k==='ridge')terRidge(b,terUV(f.crest),R*f.h,f.seed,f);
+      else if(f.k==='arch')terArch(b,C+R*f.x,C+R*f.y,R*f.w,R*f.h,f.n,f.seed,f);
+    });
+    /* the road last, so the five cells read as five stretches of one road */
+    terRun(b,terUV(T.road||ROAD_DEF),R*0.012,R*0.012,'road');
+  }
+  let terCv=null,terKey='';
+  function terrainCanvas(th){
+    if(!th||typeof document==='undefined'||!cv||!cv.width)return null;
+    const key=th.id+'|'+cv.width;
+    if(terKey===key&&terCv)return terCv;
+    if(!terCv)terCv=document.createElement('canvas');
+    terCv.width=cv.width;terCv.height=cv.height;
+    const b=terCv.getContext('2d');
+    if(!b)return null;
+    b.setTransform(cv.width/W,0,0,cv.width/W,0,0);
+    b.clearRect(0,0,W,W);
+    b.lineJoin='round';b.lineCap='round';
+    paintTerrain(b,th);
+    terKey=key;
+    return terCv;
+  }
+  function drawTerrain(th){
+    const tc=terrainCanvas(th);
+    if(tc)g.drawImage(tc,0,0,tc.width,tc.height,0,0,W,W);
+  }
+  /* Place names. Not baked: they go through fs(), which depends on the stage
+     width, and their text depends on the language — and applyLang() does not
+     repaint the canvas. Six calls a frame is cheaper than either of those bugs.
+     No halo: label()'s halo exists to lift a name off the field, and a terrain
+     name has to do the opposite. */
+  function drawTerrainNames(th){
+    const T=(typeof TERRAIN!=='undefined')&&th&&TERRAIN[th.id];
+    if(!T||!T.names)return;
+    g.save();
+    g.textAlign='center';
+    T.names.forEach(n=>{
+      const txt=lang==='zh'?n.zh:n.en;
+      if(!txt)return;
+      g.font=(n.w?'italic ':'')+'500 '+fs(10.5)+'px "Work Sans","PingFang SC",sans-serif';
+      g.fillStyle=n.w?TER.nameWater:TER.name;
+      g.save();
+      g.translate(C+R*n.u,C+R*n.v);
+      g.scale(1/SQ,1);                    // the cell squeezes the place, not the type
+      g.fillText(txt,0,0);
+      g.restore();
+    });
+    g.restore();
   }
 
   // territory is bounded by the same curve the troops stand on
@@ -3476,14 +4790,104 @@ const engine=(function(){
   /* The garrison, written faintly around its own keep. Names are what make the
      base a camp rather than a marker, and the brief asked for them here. */
   /* The barracks: one pool per Chef, each labelled, biggest pools fullest. */
-  function drawPools(t){
-    const pal=PAL.blue;
-    pools.slice().sort((a,b)=>a.y-b.y).forEach((p,i)=>{
-      const d=depth(p.y);
-      drawPool3D(g,p.x,p.y,p.s*d,pal,0.55+Math.min(p.share,0.3)*1.4,((t/2400)+i*0.17)%1);
+  function drawPools(t,razed){
+    const pal=PAL.blue,list=[];
+    pools.forEach(p=>list.push({p,rise:1}));
+    /* Barracks raised out of the rubble, one at a time. Nothing can go up until
+       the first load has actually been walked back, which is why the queue
+       starts at HAUL rather than at the blast. */
+    if(built.length&&razed>=0){
+      built.forEach((p,i)=>{
+        const k=clamp((razed-(HAUL+i*BUILD))/900,0,1);
+        if(k>0)list.push({p,rise:k});
+      });
+    }
+    list.sort((a,b)=>a.p.y-b.p.y).forEach(it=>{
+      const p=it.p,d=depth(p.y);
+      /* A barracks that has just been shelled is shoved back and still ringing. */
+      let dx=0,shk=0,bm=-1;
+      for(let k2=0;k2<fx.length;k2++){
+        const m=fx[k2];
+        if(m.kind!=='rout')continue;
+        if(!pools.length||(m.pi%pools.length)!==p.idx)continue;
+        const age=t-m.t;
+        if(age<0||age>ROUT)continue;
+        const q=age/ROUT;
+        dx=-(1-q)*40;shk=(1-q)*2.6*Math.sin(age/38);
+        if(age<BOOM)bm=age/BOOM;
+      }
+      const px=p.x+dx,py=p.y+shk;
+      /* A barracks under construction comes up out of the ground rather than
+         appearing, so the eye reads it as being built. */
+      const grow=it.rise<1?0.35+0.65*it.rise:1;
+      const sc=p.odin?p.s*d*(1+odinFill*1.55):p.s*d*grow;
+      const fill=p.odin?clamp(0.22+odinFill*0.7,0.2,0.94)
+                       :(0.55+Math.min(p.share,0.3)*1.4)*grow;
+      drawPool3D(g,px,py,sc,pal,fill,((t/2400)+p.idx*0.17)%1);
+      if(bm>=0)drawBoom(g,px,py,1.7,bm);
+      if(it.rise<0.85)return;                          // no nameplate until it is up
+      if(p.odin){
+        label(px,py+(30*sc)+fs(12)-12,I18N[lang].odinPool,'rgba(252,209,79,.9)',12);
+        return;
+      }
       if(!p.name)return;
-      label(p.x,p.y+(26*p.s*d)+fs(12)-12,p.name.slice(0,11),'rgba(143,233,194,.95)',12);
+      label(px,py+(26*p.s*d)+fs(12)-12,p.name.slice(0,11),'rgba(143,233,194,.95)',12);
     });
+  }
+
+  /* Men bringing the enemy keep back one load at a time. Each carrier is tied to
+     the barracks he is building, so the traffic on the ground and the buildings
+     going up are one event seen twice rather than two that have to be kept in
+     step. */
+  function drawCarriers(t,razed){
+    if(!built.length||razed<0)return;
+    const fx0=RED.x-R*0.10,fy0=RED.y+R*0.10;
+    built.forEach((p,i)=>{
+      const k=(razed-i*BUILD)/HAUL;
+      if(k<0||k>1)return;
+      const e=k*k*(3-2*k);
+      const x=fx0+(p.x-fx0)*e,y=fy0+(p.y-fy0)*e;
+      drawCarrier3D(g,x,y,1.4*depth(y),-1,PAL.blue,((t/560)+i*0.31)%1);
+    });
+  }
+
+  /* A short stretch of line either side of one point on it, for a works party
+     that is only fortifying its own patch. */
+  function worksSeg(off,lat,half,n){
+    const pts=[];
+    for(let i=0;i<=n;i++){
+      const p=frontPoint(lat-half+(2*half)*(i/n));
+      pts.push({x:p.x+off,y:p.y});
+    }
+    return pts;
+  }
+
+  /* Liquidity going into the pool puts a works party on the green line;
+     liquidity coming out puts one on the red. Three men, a short berm and a coil
+     of wire that grows while they are on it — the same three drawing functions
+     the permanent works use, so a patch of new line looks like the old line. */
+  function drawWorksFx(now,t){
+    for(let i=0;i<fx.length;i++){
+      const m=fx[i];
+      if(m.kind!=='works')continue;
+      const age=t-m.t;
+      if(age<0||age>WORKS)continue;
+      const home=m.side==='blue'?-1:1;
+      const pal=PAL[m.side];
+      const grow=clamp(age/2400,0.15,1);
+      const n=Math.max(3,Math.round(9*grow)),half=R*0.085*grow;
+      /* Marks are built by the page, which has no idea how wide this field is,
+         so they carry a lane as a fraction of the frontage. */
+      const lat=(m.lat01||0)*R*0.5;
+      drawParapet(worksSeg(home*R*0.035,lat,half,n));
+      drawWire(worksSeg(-home*R*0.05,lat,half,Math.max(6,n*2)));
+      for(let k=0;k<3;k++){
+        const p=frontPoint(lat+(k-1)*R*0.05);
+        const x=p.x+home*R*0.085,y=p.y+(k%2?9:-7);
+        drawDigger3D(g,x,y,1.32*depth(y),-home,pal,
+                     reduceMotion?0.35:((now/1150)+k*0.41+i*0.17)%1);
+      }
+    }
   }
 
   /* ---- the works ----------------------------------------------------
@@ -3495,7 +4899,12 @@ const engine=(function(){
     for(let i=0;i<=N;i++){
       const lat=-R*0.66+(2*R*0.66)*(i/N);
       const p=frontPoint(lat);
-      pts.push({x:p.x+face*(pull*(1+Math.abs(lat)/R)+ahead),y:p.y});
+      const x=p.x+face*(pull*(1+Math.abs(lat)/R)+ahead);
+      /* Pushed up against the rim the ends of this line fall outside the bowl.
+         Trim them rather than let the clip path eat them: a line that stops
+         where the ground stops reads right, one that stops mid-air does not. */
+      if(Math.hypot(x-C,p.y-C)>R*0.94)continue;
+      pts.push({x,y:p.y});
     }
     return pts;
   }
@@ -3520,6 +4929,7 @@ const engine=(function(){
   /* Spoil thrown up out of the cut. Uneven along the lip, because it was dug by
      hand and a stamped-looking earthwork reads as a wall, not a trench. */
   function drawParapet(pts){
+    if(!pts||pts.length<2)return;
     const WD=11;
     const nrm=normals(pts);
     const west=offsetPath(pts,nrm,WD),east=offsetPath(pts,nrm,-WD*0.8);
@@ -3532,10 +4942,18 @@ const engine=(function(){
     g.fillStyle='#544835';g.fill();
     /* the cut itself, dark down the middle */
     tracePath(pts);
-    g.strokeStyle='rgba(0,0,0,.55)';g.lineWidth=6.5;g.stroke();
+    g.strokeStyle='rgba(0,0,0,.62)';g.lineWidth=8;g.stroke();
+    /* revetment: short ties across the cut, which is what stops a trench from
+       reading as a road at a glance */
+    g.strokeStyle='rgba(0,0,0,.34)';g.lineWidth=1.6;
+    for(let i=1;i<pts.length;i+=2){
+      g.beginPath();
+      g.moveTo(west[i].x,west[i].y);g.lineTo(east[i].x,east[i].y);
+      g.stroke();
+    }
     /* lip on the lit side, shadow on the other */
     tracePath(west);
-    g.strokeStyle='#9b8862';g.lineWidth=3;g.stroke();
+    g.strokeStyle='#8a7856';g.lineWidth=2.2;g.stroke();
     tracePath(offsetPath(pts,nrm,WD*0.62));
     g.strokeStyle='rgba(0,0,0,.20)';g.lineWidth=2;g.stroke();
     tracePath(east);
@@ -3553,6 +4971,7 @@ const engine=(function(){
   /* Concertina: overlapping coils on X-frame stakes. Drawn as a run of rings
      rather than as strung strands, because rings survive the line bowing. */
   function drawWire(pts){
+    if(!pts||pts.length<2)return;
     g.save();
     g.lineJoin='round';g.lineCap='round';
     for(let i=0;i<pts.length;i+=8){
@@ -3588,13 +5007,17 @@ const engine=(function(){
   function drawWorks(now,side){
     const pal=PAL[side],face=side==='blue'?1:-1;
     const pull=side==='red'?R*0.34:R*0.02;
-    drawParapet(worksPath(face,0,pull));
-    drawWire(worksPath(face,R*0.085,pull,52));
+    /* The Alliance dug in beyond the keep it took, so its works sit forward of
+       the line the men are standing on — with the ruins between the two. */
+    const ahead=side==='red'?0:R*0.16;
+    const belt=side==='red'?R*0.085:R*0.24;
+    drawParapet(worksPath(face,ahead,pull));
+    drawWire(worksPath(face,belt,pull,52));
     const D=5,det=[];
     for(let i=0;i<D;i++){
       const lat=-R*0.44+(2*R*0.44)*(i/(D-1));
       const p=frontPoint(lat);
-      det.push({x:p.x+face*(pull*(1+Math.abs(lat)/R)-R*0.085),
+      det.push({x:p.x+face*(pull*(1+Math.abs(lat)/R)+ahead-R*0.02),
                 y:p.y+(i%2?11:-8),i});
     }
     det.sort((a,b)=>a.y-b.y).forEach(o=>{
@@ -3727,7 +5150,10 @@ const engine=(function(){
     if(loaded&&curPrice){
       g.save();
       const btc=curPrice/MS, usd=btc*loaded.btcUsd, sats=btc*1e8;
-      const anchor=frontPoint(-LMAX*0.60), lx=anchor.x, ly=anchor.y;
+      const anchor=frontPoint(-LMAX*0.60);
+      /* The line can end up hard against the rim, and this is a box rather than
+         a point: pin it back inside the bowl or the clip path eats half of it. */
+      const lx=sqx(Math.min(anchor.x,C+R*0.42)), ly=anchor.y;
       const a=fmtUsd(usd), b=nf(sats,2)+' sats';
       g.font='700 '+fs(21)+'px "Work Sans",sans-serif';
       const w=Math.max(g.measureText(a).width,120)+28;
@@ -3749,8 +5175,32 @@ const engine=(function(){
 
 
   return {
+    /* What to do when somebody clicks the ground next door. */
+    onWalk(fn){walkCb=fn;},
     init(cb){
       cv=$('#field');onFeed=cb;
+      /* The strips are the neighbouring theatres, so they are the way there. */
+      cv.addEventListener('click',e=>{
+        if(!walkCb||e.isTrusted===false)return;
+        const r=cv.getBoundingClientRect();
+        if(!r.width||!e.clientX)return;
+        const x=(e.clientX-r.left)/r.width*W;
+        const y=(e.clientY-r.top)/r.height*W;
+        if(x<0||x>W||y<0||y>W)return;      // not actually on the canvas
+        if(x<C-R*SQ)walkCb(-1);
+        else if(x>C+R*SQ)walkCb(1);
+      });
+      /* The strips are the only part of the picture that does anything, so they
+         are the only part that says so. */
+      cv.addEventListener('mousemove',e=>{
+        const r=cv.getBoundingClientRect();
+        if(!r.width)return;
+        const x=(e.clientX-r.left)/r.width*W;
+        const near=(x<C-R*SQ||x>C+R*SQ)&&x>0&&x<W;
+        const want=near&&walkCb?'pointer':'default';
+        if(cv.style.cursor!==want)cv.style.cursor=want;
+      });
+      cv.style.cursor='default';
       seedStars();
       fit();
       addEventListener('resize',()=>{clearTimeout(fit.t);fit.t=setTimeout(fit,160);});
@@ -3768,7 +5218,10 @@ const engine=(function(){
     /* Trades that have happened since the replay was built, joining the fight in
        progress. Returns false if the battle is in no state to take them. */
     enlist(list){
-      if(!units.length||repeat||!list||!list.length)return false;
+      /* A recording is not a place to put a trade that has just happened: it
+         would push tEnd out and move tCease, and the aftermath keyed off tCease
+         would jump backwards under whoever is watching it. */
+      if(!loaded||loaded.launch||repeat||!list||!list.length)return false;
       enlist(list,Math.max(0,tNow));
       halt=false;
       if(!raf&&!reduceMotion&&!document.hidden)start();
@@ -3790,6 +5243,8 @@ const engine=(function(){
       if(set){ load(set); }
       else { frame(performance.now()); }
     },
+    /* Put a different cut of the same battle on the field. */
+    show(set){ load(set); },
     /* The launch, once somebody has walked over to look at it. */
     setLaunch(set){
       launchSet=set;
@@ -3839,15 +5294,20 @@ $('#langBtn').addEventListener('click',()=>{
 /* The launch is the oldest end of the trade feed, so it is a separate walk back
    through the pages — done once, and only if somebody goes and looks. */
 let launchPending=false,launchSet=null;
+let winMode='24h',shownSet=null,winPending=false;
 /* Whichever battle is actually on screen — held ground has none. */
 function battleSet(){
   const th=THEATRES[theatre];
-  return th.id==='live'?S:(th.id==='launch'?launchSet:null);
+  return th.id==='live'?(shownSet||S):(th.id==='launch'?launchSet:null);
 }
-async function loadLaunch(){
-  if(launchPending||engine.hasLaunch()||!S)return;
-  launchPending=true;
-  paintTheatre();
+
+/* The whole trade history, oldest first, and the index at which the market cap
+   first touched 0.211 BTC. The launch is everything up to that; the campaign is
+   everything after it. One download, both halves. */
+let histAll=null,histCut=-1,histPending=false;
+async function ensureHistory(){
+  if(histAll||histPending||!S)return histAll;
+  histPending=true;paintTheatre();
   try{
     let all=[],n=0,total=0;
     for(let pg=1;pg<=12;pg++){
@@ -3860,21 +5320,159 @@ async function loadLaunch(){
     for(let i=0;i<all.length;i++){
       if(Number(all[i].price)/MS*S.supply>=WON){cut=i;break;}
     }
-    const win=all.slice(0,cut+1).map(toUnit);
-    launchSet={
-      launch:true,
-      stamp:Date.now(),btcUsd:S.btcUsd,supply:S.supply,
-      /* the price this battle finished on, not the one it is now */
-      price:cut>=0&&all[cut]?Number(all[cut].price):S.price,
-      mcBtc:WON,poolBtc:S.poolBtc,chg:0,
-      since:win.length?win[0].time:null,
-      lastTrade:win.length?win[win.length-1].time:null,
-      fighters:{blue:[],red:[]},chefs:S.chefs,sellers:S.sellers,
-      seen:new Set(),units:win,blue:S.blue,red:S.red,
-      blueN:win.filter(u=>u.side==='blue').length,
-      redN:win.filter(u=>u.side==='red').length
-    };
-    engine.setLaunch(launchSet);
+    histAll=all;histCut=cut;
+  }catch(e){ console.error(e); }
+  histPending=false;
+  paintTheatre();
+  return histAll;
+}
+
+/* How fast a window plays. A short engagement keeps its unhurried pace; anything
+   long enough to need it is compressed into about a minute. */
+function spacingFor(n){
+  return n<=48?300:Math.max(45,Math.min(300,58000/Math.max(1,n)));
+}
+
+/* Trades netted per side per time bucket. Buys and sells are kept apart — the
+   netting between them is the fight's job, and doing it here would erase the
+   very back-and-forth this window exists to show. */
+function bucketRows(rows,N){
+  if(rows.length<=N*1.3)return rows.map(toUnit);
+  const a=Date.parse(rows[0].time),b=Date.parse(rows[rows.length-1].time);
+  const span=Math.max(1,b-a),cells=[];
+  rows.forEach(r=>{
+    const i=Math.min(N-1,Math.floor((Date.parse(r.time)-a)/span*N));
+    const k=r.buy?'b':'s';
+    const c=cells[i]||(cells[i]={});
+    const e=c[k]||(c[k]={btc:0,tok:0,price:0,time:0,best:0,name:'',user:''});
+    const btc=Number(r.amount_btc)/MS;
+    e.btc+=btc;e.tok+=Number(r.amount_token)/MS;
+    e.price=Number(r.price)||e.price;e.time=Date.parse(r.time);
+    if(btc>=e.best){e.best=btc;e.user=r.user;e.name=r.user_username||r.user.slice(0,8);}
+  });
+  const out=[];
+  cells.forEach(c=>{
+    ['b','s'].forEach(k=>{
+      const e=c[k];if(!e||e.btc<=0)return;
+      const cl=classify(e.btc);
+      out.push({id:null,side:k==='b'?'blue':'red',kind:cl.kind,n:cl.n,btc:e.btc,
+                price:e.price,tok:e.tok,user:e.user,name:e.name,time:e.time});
+    });
+  });
+  return out.sort((a2,b2)=>a2.time-b2.time);
+}
+
+/* The second timeline for a window: where liquidity went in or came out, and
+   where the line broke hard enough to be a rout rather than a pullback. Both are
+   placed on the clock by trade index, which is the only clock the field has. */
+function marksFor(units,spacing,lp){
+  const out=[];
+  if(!units.length)return out;
+  const t0=units[0].time,t1=units[units.length-1].time;
+  /* The liquidity stream reaches back to the day the pool opened — a couple of
+     hundred events. Over a window that spans all of it, one works party each
+     would put a squad on the ground every quarter second and bury the battle
+     under diggers, so a long window keeps an even spread instead of the lot. */
+  const CAP=14;
+  let ev=(lp||[]).filter(e=>e.t>=t0&&e.t<=t1);
+  if(ev.length>CAP){
+    const keep=[];
+    for(let i=0;i<CAP;i++)keep.push(ev[Math.floor(i*ev.length/CAP)]);
+    ev=keep;
+  }
+  let at=0;
+  ev.forEach((e,i)=>{
+    while(at<units.length&&units[at].time<e.t)at++;
+    out.push({t:at*spacing,kind:'works',side:e.add?'blue':'red',
+              lat01:((i*0.618)%1)*2-1});
+  });
+  const N=units.length;
+  if(N>=60){
+    const K=Math.max(8,Math.round(N*0.06));
+    let last=-1e9,pi=0;
+    for(let i=K;i<N;i++){
+      const p=units[i].price||0,q=units[i-K].price||0;
+      if(!p||!q)continue;
+      if((q-p)/q>0.06&&i*spacing-last>4200){
+        last=i*spacing;out.push({t:last,kind:'rout',pi:pi++});
+      }
+    }
+  }
+  return out.sort((a,b)=>a.t-b.t);
+}
+
+/* One window of the live campaign, cut out of what is already in memory. */
+function buildLive(mode){
+  if(!S)return null;
+  let units=null;
+  if(mode==='all'){
+    if(!histAll)return null;
+    units=bucketRows(histAll.slice(histCut+1),300);
+  }else if(mode==='6h'){
+    const from=Date.now()-6*3600e3;
+    units=(S.recent||[]).filter(u=>u.time>=from);
+  }else{
+    units=(S.recent||[]).slice();
+  }
+  if(!units||!units.length)units=S.units;
+  const spacing=spacingFor(units.length);
+  return {
+    stamp:Date.now(),btcUsd:S.btcUsd,price:S.price,supply:S.supply,
+    mcBtc:S.mcBtc,poolBtc:S.poolBtc,chg:S.chg,
+    since:units.length?units[0].time:S.since,
+    lastTrade:units.length?units[units.length-1].time:S.lastTrade,
+    fighters:S.fighters,chefs:S.chefs,sellers:S.sellers,seen:S.seen,
+    units,blue:S.blue,red:S.red,
+    spacing,marks:marksFor(units,spacing,S.lp),
+    blueN:units.filter(u=>u.side==='blue').length,
+    redN:units.filter(u=>u.side==='red').length
+  };
+}
+
+/* Put a window on the field. 'all' has to be fetched the first time. */
+async function showWindow(mode){
+  if(!S)return;
+  winMode=mode;
+  paintTheatre();
+  if(mode==='all'&&!histAll){
+    winPending=true;paintTheatre();
+    await ensureHistory();
+    winPending=false;
+  }
+  const set=buildLive(winMode);
+  if(!set)return;
+  shownSet=set;
+  engine.show(set);
+  engine.follow(true);       // once it catches up with the market, stay caught up
+  looping=false;paintPlay();paintHud();paintTheatre();
+}
+
+async function loadLaunch(){
+  if(launchPending||engine.hasLaunch()||!S)return;
+  launchPending=true;
+  paintTheatre();
+  try{
+    const all=await ensureHistory();
+    if(all){
+      const cut=histCut;
+      const win=all.slice(0,cut+1).map(toUnit);
+      const spacing=spacingFor(win.length);
+      launchSet={
+        launch:true,odin:true,
+        stamp:Date.now(),btcUsd:S.btcUsd,supply:S.supply,
+        /* the price this battle finished on, not the one it is now */
+        price:cut>=0&&all[cut]?Number(all[cut].price):S.price,
+        mcBtc:WON,poolBtc:S.poolBtc,chg:0,
+        since:win.length?win[0].time:null,
+        lastTrade:win.length?win[win.length-1].time:null,
+        fighters:{blue:[],red:[]},chefs:S.chefs,sellers:S.sellers,
+        seen:new Set(),units:win,blue:S.blue,red:S.red,
+        spacing,marks:marksFor(win,spacing,S.lp),
+        blueN:win.filter(u=>u.side==='blue').length,
+        redN:win.filter(u=>u.side==='red').length
+      };
+      engine.setLaunch(launchSet);
+    }
   }catch(e){ console.error(e); }
   launchPending=false;
   paintTheatre();
@@ -3892,6 +5490,17 @@ function paintTheatre(){
     :th.held==='blue'?ui.thTaken
     :th.shop?ui.thShop
     :th.held==='red'?ui.thHeld:ui.thLive;
+  const ws=$('#wsel');
+  if(ws){
+    ws.hidden=th.id!=='live';
+    const NAME={'6h':'win6','24h':'win24','all':'winAll'};
+    ws.querySelectorAll('button').forEach(b=>{
+      const m=b.dataset.w;
+      b.textContent=(m==='all'&&winPending)?ui.winLoading:ui[NAME[m]];
+      b.classList.toggle('on',m===winMode);
+      b.disabled=winPending;
+    });
+  }
   const rp=$('#tReplay');
   if(rp){
     rp.hidden=th.id!=='launch';
@@ -3922,6 +5531,12 @@ $('#tReplay').addEventListener('click',()=>{
   if(!engine.hasLaunch())return;
   engine.theatre(THEATRES[0]);          // reload the set, which restarts the clock
 });
+$('#wsel').addEventListener('click',e=>{
+  const b=e.target&&e.target.closest?e.target.closest('button[data-w]'):null;
+  if(!b||b.disabled||b.dataset.w===winMode)return;
+  showWindow(b.dataset.w);
+});
+engine.onWalk(d=>goTheatre(theatre+d));
 $('#tPrev').addEventListener('click',()=>goTheatre(theatre-1));
 $('#tNext').addEventListener('click',()=>goTheatre(theatre+1));
 /* Arrow keys walk between theatres, but only while the field is actually being
@@ -3979,7 +5594,17 @@ async function checkFresh(){
 
   fresh.forEach(u=>S.seen.add(u.id));
   S.units=S.units.concat(fresh);
+  S.recent=(S.recent||[]).concat(fresh);
   S.lastTrade=Math.max(S.lastTrade,fresh[fresh.length-1].time);
+  /* The window on screen is its own cut of the same campaign, so it has to be
+     told as well or the field and the roster disagree about what just landed. */
+  if(shownSet&&shownSet!==S){
+    shownSet.units=shownSet.units.concat(fresh);
+    shownSet.lastTrade=Math.max(shownSet.lastTrade||0,fresh[fresh.length-1].time);
+    fresh.forEach(u=>{if(u.side==='blue')shownSet.blueN++;else shownSet.redN++;});
+    const lastP=fresh[fresh.length-1];
+    if(lastP.price){shownSet.price=lastP.price;shownSet.mcBtc=lastP.price/MS*S.supply;}
+  }
   /* The front line is the price, so the price has to move with the trade that
      just moved it — market cap follows from it and the supply we already have. */
   const last=fresh[fresh.length-1];
