@@ -94,6 +94,33 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 20p
    scaled by the device pixel ratio, so the same code serves any screen size. */
 .field{display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:16px;align-items:start}
 .stage{position:relative;width:100%;aspect-ratio:1;max-width:720px;margin:0 auto}
+/* the name of the ground you are standing on, and the way out of it */
+.theatres{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  max-width:720px;margin:0 auto 6px;
+}
+.tnav{
+  width:34px;height:34px;flex:none;border:1px solid var(--line);background:transparent;
+  color:var(--text-2);border-radius:8px;font:400 20px/1 "Work Sans",sans-serif;cursor:pointer;
+}
+.tnav:hover:not(:disabled){color:var(--text);border-color:var(--dim)}
+.tnav:disabled{opacity:.28;cursor:default}
+.tlabel{text-align:center;min-width:0;flex:1}
+.tlabel b{
+  display:block;font-size:16px;font-weight:700;letter-spacing:.01em;color:var(--text);
+}
+.tlabel i{
+  display:block;margin-top:1px;font-style:normal;font-size:12.5px;font-weight:600;
+  font-variant-numeric:tabular-nums;color:var(--text-2);
+}
+.tlabel span{display:block;margin-top:2px;font-size:11.5px;color:var(--dim)}
+.tlabel.held-blue b{color:var(--blue)}
+.tlabel.held-red b{color:var(--red)}
+.tlabel.live b{color:#fcd14f}
+.treplay{display:flex;justify-content:center;margin:0 auto 8px}
+.field.solo{grid-template-columns:minmax(0,1fr)}
+.field.solo .feed{display:none}
+.treplay button[hidden]{display:none}
 #field{display:block;width:100%;height:100%;border-radius:50%}
 .stage-note{
   text-align:center;font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.6;
@@ -274,6 +301,16 @@ footer a:hover{color:var(--cyan)}
 
   <div class="field">
     <div>
+      <div class="theatres">
+        <button class="tnav" id="tPrev" type="button" aria-label="previous">&lsaquo;</button>
+        <div class="tlabel">
+          <b id="tName"></b>
+          <i id="tRange"></i>
+          <span id="tState"></span>
+        </div>
+        <button class="tnav" id="tNext" type="button" aria-label="next">&rsaquo;</button>
+      </div>
+      <div class="treplay"><button class="fbtn" id="tReplay" type="button" hidden></button></div>
       <div class="stage"><canvas id="field" role="img" aria-describedby="alt"></canvas></div>
       <p class="sr-only" id="alt"></p>
       <p class="stage-note" data-i="stageNote"></p>
@@ -325,6 +362,16 @@ const TANK=0.005, PLANE=0.01, PER_SOLDIER=0.0005, MAX_SOLDIERS=8;
 /* The two ends of the road NOODL is on: the bonding curve it already cleared,
    and the next milestone. The battle is fought between them. */
 const WON=0.211, GOAL=5;
+/* Every stretch of the road, in order. 'held' is who is standing on it now:
+   the Alliance took the first one, the last three have never been crossed. */
+const THEATRES=[
+  {id:'launch',lo:0,    hi:0.211,held:'blue'},
+  {id:'live',  lo:0.211,hi:5,    held:null},
+  {id:'t50',   lo:5,    hi:50,   held:'red'},
+  {id:'t500',  lo:50,   hi:500,  held:'red'},
+  {id:'t5000', lo:500,  hi:5000, held:'red',shop:true}
+];
+let theatre=1;                                   // the contested one, where the story is
 const DUST=1e-3;                            // below this a holder has left the field
 
 /* ================= i18n ================= */
@@ -349,6 +396,19 @@ zh:{
   quit:'已退出战场',fighters:'本轮参战',traded:v=>'本轮 '+v,
   liveOn:t=>'实时跟进 · 最近一笔 '+t,
   btnPlay:'↻ 循环播放',btnStop:'■ 停止循环',
+  thLive:'交战中 · 每一笔买卖实时上场',
+  thTaken:'已拿下 · 看涨联盟全胜，发射那一战',
+  thHeld:'尚未攻下 · 看空部落全面驻守',
+  thShop:'尚未攻下 · 终点：伦敦兰州拉面馆',
+  thReplay:'↻ 回放发射',thReplaying:'回放中…',
+  shopSub:'伦敦 · 兰州拉面',
+  shopGoal:v=>'5000 BTC ≈ 1 NOODL 换一碗面（'+v+'）',
+  thLoading:'正在调取战史…',
+  /* The silk road, west from where the noodles come from. */
+  thNames:{launch:'兰州启航',live:'长安战役',t50:'撒马尔罕战役',
+           t500:'君士坦丁堡战役',t5000:'伦敦战役'},
+  thStop:(i,n)=>'丝路第 '+i+' 站 / 共 '+n+' 站',
+  worksZ:'前线工事 · 挖战壕、架铁丝网',
   fresh:'有新交易 · 刷新战场',freshing:'刷新中…',
   objBlue:'上一轮已达成 · 联合曲线毕业',
   objRed:p=>'本阶段目标市值 · 已完成 '+p+'%',
@@ -386,6 +446,19 @@ en:{
   quit:'left the field',fighters:'in this engagement',traded:v=>'traded '+v,
   liveOn:t=>'live · last shot '+t,
   btnPlay:'↻ Loop',btnStop:'■ Stop loop',
+  thLive:'contested · every trade lands here live',
+  thTaken:'taken · the launch, won outright by the Alliance',
+  thHeld:'not taken yet · held in force by the Bear Tribe',
+  thShop:'not taken yet · the end of the road: a Lanzhou noodle shop in London',
+  thReplay:'↻ Replay the launch',thReplaying:'replaying…',
+  shopSub:'London · Lanzhou hand-pulled',
+  shopGoal:v=>'5000 BTC \u2248 one NOODL buys one bowl ('+v+')',
+  thLoading:'reading the war record…',
+  thNames:{launch:'Setting out from Lanzhou',live:'Battle of Chang’an',
+           t50:'Battle of Samarkand',t500:'Battle of Constantinople',
+           t5000:'Battle of London'},
+  thStop:(i,n)=>'Silk Road, stop '+i+' of '+n,
+  worksZ:'works detail · digging in and wiring the line',
   fresh:'New trades · refresh the battlefield',freshing:'Refreshing…',
   objBlue:'already taken · graduated the bonding curve',
   objRed:p=>'stage target market cap · '+p+'% of the way',
@@ -499,6 +572,32 @@ async function load(){
     api('/token/'+TOKEN+'/owners?limit=1000'),api('/token/'+TOKEN+'/liquidity?limit=1000')
   ]);
 
+  /* How long each Chef's liquidity has actually been sitting there. Adds and
+     removes are filed under the lp_ token rather than the token itself, so this
+     is a separate stream; tenure is the earliest add that survived that user's
+     most recent withdrawal. */
+  const lpActs=[];
+  for(let pg=1;pg<=4;pg++){
+    const d=await api('/activities?token=lp_'+TOKEN+'&limit=100&page='+pg);
+    const rows=d.data||[];
+    lpActs.push(...rows);
+    if(!rows.length||lpActs.length>=(d.count||0))break;
+  }
+  const heldSince={};
+  {
+    const byUser={};
+    lpActs.forEach(a=>{(byUser[a.user]=byUser[a.user]||[]).push(a);});
+    Object.keys(byUser).forEach(u=>{
+      const list=byUser[u].slice().sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
+      let out=0;
+      list.forEach(a=>{if(a.action==='REMOVE_LIQUIDITY')out=Date.parse(a.time);});
+      const adds=list.filter(a=>a.action==='ADD_LIQUIDITY');
+      const kept=adds.filter(a=>Date.parse(a.time)>out);
+      const first=(kept[0]||adds[0]);
+      if(first)heldSince[u]=Date.parse(first.time);
+    });
+  }
+
   /* Seven days of trades. The feed is newest-first, so paging stops as soon as a
      page ends older than the window rather than pulling the whole history. */
   const cutoff=Date.now()-WEEK;
@@ -563,6 +662,12 @@ async function load(){
     .map(o=>({user:o.user,name:o.name,sold:sold7[o.user],bal:o.bal}))
     .sort((a,b)=>b.sold-a.sold);
 
+  /* Who garrisons the ground above us: the twenty heaviest sellers of the week,
+     by how much they sold rather than by what they still hold. */
+  const sellers=Object.keys(sold7)
+    .map(u=>({user:u,name:nameOf[u]||u.slice(0,10),sold:sold7[u]}))
+    .sort((a,b)=>b.sold-a.sold).slice(0,20);
+
   const battle=lastEngagement(trades);
   const since=battle.length?Date.parse(battle[0].time):null;
   const units=battle.map(toUnit);
@@ -587,11 +692,12 @@ async function load(){
   /* The barracks are the pools themselves. Only the biggest fit on the field —
      the rest stay in the roster — and each carries the name of the Chef who
      opened it, because that is whose liquidity the troops are made of. */
-  const chefs=lpRows.slice(0,8).map(o=>({
-    name:o.name, share:lpTotal?o.lp/lpTotal:0
+  const chefs=lpRows.slice(0,12).map(o=>({
+    name:o.name, share:lpTotal?o.lp/lpTotal:0,
+    days:heldSince[o.user]?(Date.now()-heldSince[o.user])/864e5:null
   }));
 
-  S={stamp:Date.now(),btcUsd,price,supply,mcBtc,poolBtc,chg,since,fighters,chefs,
+  S={stamp:Date.now(),btcUsd,price,supply,mcBtc,poolBtc,chg,since,fighters,chefs,sellers,
      seen:new Set(trades.map(t=>t.id)),        // every trade already accounted for
 
      lastTrade:trades.length?Date.parse(trades[0].time):null,
@@ -602,7 +708,7 @@ async function load(){
   paintHud();
   engine.load(S);
   engine.follow(true);            // once the replay reaches the newest trade, stay there
-  looping=false;paintPlay();
+  looping=false;paintPlay();paintTheatre();
 }
 
 /* ================= HUD ================= */
@@ -621,16 +727,22 @@ function paintHud(){
   const ui=I18N[lang],s=S;
   if(!s)return;
 
-  const priceBtc=s.price/MS;                       // BTC per NOODL
-  const sats=priceBtc*1e8;
   paintStamp();
 
-  const dir=s.chg>=0?'up':'down';
+  /* The first three cards read the line the battle on screen finished on; the
+     last one counts the men in it. Held ground has no battle, so it falls back
+     to the live token and says so with a dash rather than a stale number. */
+  const b=battleSet()||s;
+  const priceBtc=b.price/MS;                       // BTC per NOODL
+  const sats=priceBtc*1e8;
+  const dir=b.chg>=0?'up':'down';
+  const force=battleSet();
   $('#frontline').innerHTML=
-     card(ui.flPrice,fmtUsd(priceBtc*s.btcUsd),ui.flPriceSub(nf(sats,2)),dir)
-    +card(ui.flMcap,fmtBtc(s.mcBtc)+' BTC',fmtUsd(s.mcBtc*s.btcUsd),dir)
-    +card(ui.flPool,fmtBtc(s.poolBtc)+' BTC',fmtUsd(s.poolBtc*s.btcUsd),'')
-    +card(ui.flForce,s.units.length,ui.flForceSub(s.blueN,s.redN),'');
+     card(ui.flPrice,fmtUsd(priceBtc*b.btcUsd),ui.flPriceSub(nf(sats,2)),dir)
+    +card(ui.flMcap,fmtBtc(b.mcBtc)+' BTC',fmtUsd(b.mcBtc*b.btcUsd),dir)
+    +card(ui.flPool,fmtBtc(b.poolBtc)+' BTC',fmtUsd(b.poolBtc*b.btcUsd),'')
+    +card(ui.flForce,force?force.units.length:'—',
+          force?ui.flForceSub(force.blueN,force.redN):'',''); 
 
   $('#blueN').textContent=s.blue.length+s.fighters.blue.length;
   $('#redN').textContent=s.red.length+s.fighters.red.length;
@@ -653,6 +765,7 @@ function paintHud(){
   $('#alt').textContent=ui.alt(s.blueN,s.redN,fmtUsd(priceBtc*s.btcUsd));
   paintFeed(feedShown);
   paintPlay();
+  paintTheatre();
   const note=document.querySelector('[data-i="stageNote"]');
   if(note)note.textContent=s.since?ui.window(s.units.length,ago(s.since)):ui.stageNote;
 }
@@ -692,17 +805,23 @@ function roster(main,fighters){
 
 /* ---- the dispatches, in step with the replay ---- */
 let feedShown=0;
-function paintFeed(n){
+/* Whose dispatches these are. The engine hands over the battle it is currently
+   playing, because the panel followed the page-level S and went on listing the
+   live window while the launch was on screen. */
+let feedSet=null;
+function paintFeed(n,set){
   const ui=I18N[lang];
-  if(!S)return;
+  if(set)feedSet=set;
+  const F=feedSet||S;                   // whichever battle is actually on screen
+  if(!F)return;
   /* The count comes from the engine timeline and the rows from the order list;
      they are written in lockstep, but a feed that can only ever be a prefix of
      what it is listing is one less thing that can ever read as nonsense. */
-  n=Math.min(n,S.units.length);
+  n=Math.min(n,F.units.length);
   feedShown=n;
-  $('#feedN').textContent=n?n+' / '+S.units.length:'';
+  $('#feedN').textContent=n?n+' / '+F.units.length:'';
   if(!n){$('#feedList').innerHTML='<div class="feed-wait">'+esc(ui.feedWait)+'</div>';return;}
-  const rows=S.units.slice(0,n).reverse();      // newest at the top
+  const rows=F.units.slice(0,n).reverse();      // newest at the top
   $('#feedList').innerHTML=rows.map(u=>{
     const kindLabel=u.kind==='plane'?ui.lgPlane:u.kind==='tank'?ui.lgTank:ui.lgSoldier;
     return '<div class="fd '+u.side+'">'
@@ -711,7 +830,7 @@ function paintFeed(n){
         +'<span class="fd-act">'+esc(u.side==='blue'?ui.buy:ui.sell)+'</span></div>'
       +'<div class="fd-sub"><span>'+esc(fmtTok(u.tok))+' NOODL</span>'
         +'<span>'+esc(nf(u.btc,5))+' BTC</span>'
-        +'<span class="fd-usd">'+esc(fmtUsd(u.btc*S.btcUsd))+'</span>'
+        +'<span class="fd-usd">'+esc(fmtUsd(u.btc*F.btcUsd))+'</span>'
         +'<span class="fd-kind"><canvas data-kind="'+u.kind+'" data-side="'+u.side+'"></canvas>'
           +esc(kindLabel)+(u.n>1?' ×'+u.n:'')+'</span></div>'
     +'</div>';
@@ -730,6 +849,9 @@ const PAL={
   blue:{base:'#22d18c',light:'#7dffc8',dark:'#0d6a47',edge:'#07110d',accent:'#c8ffe4'},
   red :{base:'#ff4d4d',light:'#ff9a9a',dark:'#7d1d1d',edge:'#140708',accent:'#ffd7d7'}
 };
+/* Noodle colours. The shop at the end of the road is the only warm thing on any
+   of these fields, and it is deliberately not either team's colour. */
+const WARM={base:'#f0b64a',light:'#ffd98a',dark:'#7a4a12',edge:'#241606',accent:'#fff0c4'};
 function rr(g,x,y,w,h,r){
   g.beginPath();
   g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);
@@ -2333,6 +2455,480 @@ function burst(g,x,y,hot,col,r,k){
 }
 /* A tank does not shoot, it bombards: a blast at the barrel, a round crossing
    no-man's-land, and a burst where it lands. ph runs 0..1 over one reload. */
+/* A man on a shovel. Same rules as everyone else standing on this field: the
+   point he is handed is the ground under his boots, the lamp is up and to the
+   left, and he faces by being mirrored rather than turned. One phase drives the
+   whole stroke — blade in the cut, lift, spoil away over the shoulder — and the
+   dirt only leaves the blade at the top of it, which is the only moment that
+   reads as work rather than as a man waving a stick. */
+function drawDigger3D(g, x, y, s, dir, pal, ph){
+  g.save();
+  var TAU = Math.PI * 2;
+  var d = dir < 0 ? -1 : 1;
+  var f = (typeof ph === 'number' && isFinite(ph)) ? ph - Math.floor(ph) : 0;
+  var up = f < 0.52 ? f / 0.52 : 1 - (f - 0.52) / 0.48;   /* 0 down, 1 at the top */
+  var e = up * up * (3 - 2 * up);                          /* eased, so it lands */
+  var ang  = -0.46 + e * 1.62;                             /* shaft angle at the hands */
+  var bend =  0.50 - e * 0.34;                             /* he straightens as he lifts */
+  var toss = f > 0.44 && f < 0.68 ? 1 - Math.abs(f - 0.56) / 0.12 : 0;
+
+  var base = pal.base, lit = pal.light, drk = pal.dark, edge = pal.edge, acc = pal.accent;
+  var KD = '#202028', KM = '#33333d', KL = '#4a4a58';      /* boots, gloves, webbing */
+  var WD = '#4a3524', WM = '#6d4f33', WL = '#8f6b47';      /* shovel haft */
+  var SD = '#2b2b33', SM = '#4d4d59', SL = '#70707f';      /* the blade */
+  var DRT = 'rgba(122,102,74,';                            /* spoil */
+
+  function poly(p){
+    g.beginPath();
+    g.moveTo(p[0], p[1]);
+    for(var i = 2; i < p.length; i += 2) g.lineTo(p[i], p[i+1]);
+    g.closePath();
+  }
+  function rf(bx, by, bw, bh, br){ g.beginPath(); rr(g, bx, by, bw, bh, br); g.fill(); }
+
+  g.translate(x, y);
+  g.scale(d * s, s);
+  g.lineJoin = 'round';
+  g.lineCap = 'round';
+  g.lineWidth = Math.max(0.5, Math.min(1.3, 1 / (s || 1)));
+
+  /* ---------- the spoil he has already thrown, and his own shadow ---------- */
+  g.save();
+  g.translate(0.6, -0.8);
+  g.scale(1, 0.32);
+  var sh = g.createRadialGradient(0, 0, 0, 0, 0, 8.4);
+  sh.addColorStop(0, 'rgba(0,0,0,.34)');
+  sh.addColorStop(0.55, 'rgba(0,0,0,.20)');
+  sh.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = sh;
+  g.beginPath(); g.arc(0, 0, 8.4, 0, TAU); g.fill();
+  g.restore();
+
+  /* ---------- legs: braced apart, the forward one bent over the cut ---------- */
+  g.fillStyle = drk;
+  poly([-4.4,-10.6, -2.2,-10.6, -3.4,-2.4, -5.6,-2.4]); g.fill();
+  g.fillStyle = KD;  rf(-6.3, -2.4, 4.1, 2.4, 0.8);
+  g.fillStyle = KM;  rf(-6.3, -2.4, 4.1, 0.9, 0.45);
+
+  g.fillStyle = base;
+  poly([0.2,-10.9, 3.0,-10.9, 4.4,-2.3, 1.8,-2.3]); g.fill();
+  g.fillStyle = KM;  rf(1.3, -2.3, 4.6, 2.3, 0.8);
+  g.fillStyle = KL;  rf(1.3, -2.3, 4.6, 0.9, 0.45);
+  g.fillStyle = 'rgba(0,0,0,.30)';
+  rf(1.3, -0.7, 4.6, 0.8, 0.4);
+
+  /* ---------- hips, then everything above them pitched forward ---------- */
+  g.fillStyle = base;
+  rf(-4.0, -12.6, 7.6, 3.0, 1.1);
+  g.fillStyle = KD;
+  rf(-4.0, -12.6, 7.6, 0.9, 0.4);
+
+  g.save();
+  g.translate(-0.2, -12.2);
+  g.rotate(bend);                       /* mirrored with him, so the light holds */
+
+  /* torso, lit along its upper-left edge */
+  var tg = g.createLinearGradient(-3.4, -8, 4.2, 0);
+  tg.addColorStop(0, lit); tg.addColorStop(0.55, base); tg.addColorStop(1, drk);
+  g.fillStyle = tg;
+  rf(-3.6, -8.6, 8.0, 8.8, 2.0);
+  g.fillStyle = 'rgba(0,0,0,.22)';      /* the pack rides high on a bent back */
+  rf(-3.9, -8.2, 3.0, 6.4, 1.2);
+  g.fillStyle = KD;
+  rf(-3.6, -4.6, 8.0, 1.1, 0.5);
+
+  /* head and helmet, hung off the front of the shoulders */
+  g.fillStyle = '#5a5364';
+  rf(2.4, -11.4, 3.6, 3.4, 1.4);
+  g.fillStyle = drk;
+  g.beginPath(); g.ellipse(4.2, -11.6, 3.5, 2.5, 0, Math.PI, TAU); g.fill();
+  g.fillStyle = base;
+  g.beginPath(); g.ellipse(4.2, -11.8, 3.3, 2.3, 0, Math.PI, TAU); g.fill();
+  g.fillStyle = acc;
+  g.beginPath(); g.ellipse(3.4, -12.4, 1.7, 0.9, 0, Math.PI, TAU); g.fill();
+  g.fillStyle = edge;
+  rf(1.0, -9.8, 6.4, 0.9, 0.4);
+
+  /* ---------- the shovel, swung about the hands ---------- */
+  g.save();
+  g.translate(3.2, -5.4);
+  g.rotate(ang);
+
+  g.strokeStyle = WM; g.lineWidth = 1.15;
+  g.beginPath(); g.moveTo(-3.4, 1.2); g.lineTo(8.6, -1.0); g.stroke();
+  g.strokeStyle = WL; g.lineWidth = 0.45;
+  g.beginPath(); g.moveTo(-3.2, 0.8); g.lineTo(8.4, -1.4); g.stroke();
+  g.fillStyle = WD;
+  rf(-4.6, 0.5, 1.8, 1.5, 0.6);
+
+  /* the blade, and whatever is still riding on it */
+  g.save();
+  g.translate(9.0, -1.1);
+  g.rotate(-0.25);
+  var bg = g.createLinearGradient(-1.2, -2.4, 3.4, 2.4);
+  bg.addColorStop(0, SL); bg.addColorStop(0.5, SM); bg.addColorStop(1, SD);
+  g.fillStyle = bg;
+  poly([-1.0,-2.2, 3.4,-1.6, 3.9,0.9, -0.6,2.2]); g.fill();
+  g.strokeStyle = 'rgba(0,0,0,.45)'; g.lineWidth = 0.4; g.stroke();
+  if(up > 0.12){
+    g.fillStyle = DRT + (0.55 + 0.30 * up) + ')';
+    g.beginPath(); g.ellipse(1.5, -1.4, 2.1, 1.0, -0.2, 0, TAU); g.fill();
+  }
+  g.restore();
+  g.restore();   /* shovel */
+
+  /* forward arm to the haft, drawn over the shaft so the grip reads */
+  g.fillStyle = base;
+  g.strokeStyle = base; g.lineWidth = 2.0;
+  g.beginPath(); g.moveTo(1.2, -6.6); g.lineTo(3.2, -5.4); g.stroke();
+  g.fillStyle = KL;
+  g.beginPath(); g.arc(3.2, -5.4, 1.0, 0, TAU); g.fill();
+
+  g.restore();   /* torso */
+
+  /* ---------- the spoil in the air, once it has left the blade ---------- */
+  if(toss > 0.02){
+    for(var i = 0; i < 7; i++){
+      var a = 0.6 + i * 0.42;
+      var r = 3.5 + i * 1.15;
+      g.fillStyle = DRT + (0.42 * toss) + ')';
+      g.beginPath();
+      g.arc(-6.0 - Math.cos(a) * r * 0.55, -15.5 - Math.sin(a) * r * 0.30 - toss * 3.4,
+            0.55 + (i % 3) * 0.22, 0, TAU);
+      g.fill();
+    }
+  }
+
+  g.restore();
+}
+
+function drawNoodleShop3D(g, x, y, s, warm, glow){
+  g.save();
+
+  /* ---------------- guards ---------------- */
+  s = (typeof s === 'number' && isFinite(s) && s > 0) ? s : 1;
+  var TAU = Math.PI * 2;
+  var GL  = (typeof glow === 'number' && isFinite(glow)) ? glow - Math.floor(glow) : 0;
+
+  /* ---------------- palette (all paintwork comes from warm) ---------------- */
+  var W       = warm || {};
+  var C_BASE  = W.base   || '#f0b64a';
+  var C_LIGHT = W.light  || '#f8d68d';
+  var C_DARK  = W.dark   || '#5e3410';
+  var C_EDGE  = W.edge   || '#241606';
+  var C_ACC   = W.accent || '#fff0c4';
+  /* light + food only: sanctioned warm neutrals */
+  var L_HOT   = '#fff6e2';
+  var L_MID   = '#fcd14f';
+  var L_DEEP  = '#ef9530';
+  var L_SOFT  = '#f6e6c4';
+
+  var breathe = 0.90 + 0.10 * Math.sin(GL * TAU);   /* interior light */
+  var pulse   = 0.50 + 0.50 * Math.sin(GL * TAU);   /* 0..1, same beat */
+
+  function chan(c){
+    if (typeof c !== 'string') return null;
+    var t = c.replace(/\s/g, ''), v;
+    if (t.charAt(0) === '#'){
+      if (t.length === 4) v = [parseInt(t.charAt(1) + t.charAt(1), 16), parseInt(t.charAt(2) + t.charAt(2), 16), parseInt(t.charAt(3) + t.charAt(3), 16)];
+      else if (t.length === 7) v = [parseInt(t.substr(1, 2), 16), parseInt(t.substr(3, 2), 16), parseInt(t.substr(5, 2), 16)];
+      else return null;
+    } else {
+      var m = t.match(/-?[0-9.]+/g);
+      if (!m || m.length < 3) return null;
+      v = [+m[0], +m[1], +m[2]];
+    }
+    if (isNaN(v[0]) || isNaN(v[1]) || isNaN(v[2])) return null;
+    return v;
+  }
+  function mix(a, b, t){
+    var A = chan(a), B = chan(b);
+    if (!A || !B) return a;
+    return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' + Math.round(A[1] + (B[1] - A[1]) * t) + ',' + Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+  }
+  function al(c, a){
+    var A = chan(c);
+    if (!A) return c;
+    if (!(a > 0)) a = 0;
+    if (a > 1) a = 1;
+    return 'rgba(' + Math.round(A[0]) + ',' + Math.round(A[1]) + ',' + Math.round(A[2]) + ',' + (Math.round(a * 1000) / 1000) + ')';
+  }
+
+  /* ---------------- local -> canvas ---------------- */
+  function PX(u){ return x + u * s; }
+  function PY(v){ return y + v * s; }
+  var LW  = Math.max(0.5, Math.min(1.8, 0.85 * s));   /* hairline seams at any scale */
+  var LW2 = Math.max(0.4, Math.min(1.1, 0.65 * s));
+
+  function fr(u, v, w, h, c){ g.fillStyle = c; g.fillRect(PX(u), PY(v), w * s, h * s); }
+  function sr(u, v, w, h, c, lw){ g.strokeStyle = c; g.lineWidth = lw || LW; g.strokeRect(PX(u), PY(v), w * s, h * s); }
+  function poly(p, f, st, lw){
+    g.beginPath();
+    for (var i = 0; i < p.length; i += 2){
+      if (i) g.lineTo(PX(p[i]), PY(p[i + 1])); else g.moveTo(PX(p[i]), PY(p[i + 1]));
+    }
+    g.closePath();
+    if (f){ g.fillStyle = f; g.fill(); }
+    if (st){ g.strokeStyle = st; g.lineWidth = lw || LW; g.stroke(); }
+  }
+  function ln(u1, v1, u2, v2, c, lw){
+    g.beginPath(); g.moveTo(PX(u1), PY(v1)); g.lineTo(PX(u2), PY(v2));
+    g.strokeStyle = c; g.lineWidth = lw || LW; g.stroke();
+  }
+  function ell(u, v, ru, rv, c){
+    g.beginPath(); g.ellipse(PX(u), PY(v), Math.max(0.01, ru * s), Math.max(0.01, rv * s), 0, 0, TAU);
+    g.fillStyle = c; g.fill();
+  }
+
+  /* ---------------- massing ----------------
+     depth recedes to the UPPER RIGHT, one light from the UPPER LEFT       */
+  var DX = 13, DY = -7.5;                            /* ground-floor depth vector */
+  var FL = -34, FR = 20, T1 = -38;                   /* ground-floor front face   */
+  var FASCIA = T1 + 7;                               /* bottom of the fascia band */
+  var UL = -27, UR = 17, UB = -41, UT = -64, UDX = 6.5, UDY = -3.75;
+  var PL = UL - 1.5, PR = UR + 1.5, PT = UT - 2.5;   /* parapet cap */
+  var wx0 = -31, wx1 = 0, wy0 = -30, wy1 = -9;       /* the big window */
+  var dx0 = 3, dx1 = 14, dy0 = -29;                  /* the doorway    */
+
+  var cRight = mix(C_DARK, C_EDGE, 0.25);            /* receding right faces */
+  var cRoof  = mix(C_LIGHT, C_BASE, 0.30);           /* lit top faces        */
+  var cSeam  = mix(C_EDGE, C_DARK, 0.35);
+  var cFront = mix(C_BASE, C_DARK, 0.20);            /* front faces sit mid  */
+  var cSil   = al(C_EDGE, 0.9);                      /* people, warm near-black */
+
+  /* ---------------- 1. ground shadow ---------------- */
+  ell(5, 4, 44, 11, 'rgba(0,0,0,.18)');
+  ell(4, 3.5, 37, 8.5, 'rgba(0,0,0,.34)');
+
+  /* ---------------- 2. warm pool of light on the ground ---------------- */
+  g.save();
+  g.translate(PX(-6), PY(9));
+  g.scale(1, 0.30);
+  var pg = g.createRadialGradient(0, 0, 0, 0, 0, 46 * s);
+  pg.addColorStop(0,    'rgba(255,224,150,' + (0.40 * breathe).toFixed(3) + ')');
+  pg.addColorStop(0.42, 'rgba(252,209,79,'  + (0.17 * breathe).toFixed(3) + ')');
+  pg.addColorStop(1,    'rgba(252,209,79,0)');
+  g.fillStyle = pg;
+  g.beginPath(); g.arc(0, 0, 46 * s, 0, TAU); g.fill();
+  g.restore();
+
+  /* light falling out of the open door */
+  var dg = g.createLinearGradient(0, PY(-2), 0, PY(15));
+  dg.addColorStop(0, 'rgba(255,240,196,' + (0.34 * breathe).toFixed(3) + ')');
+  dg.addColorStop(1, 'rgba(252,209,79,0)');
+  poly([dx0, -1, dx1, -1, dx1 + 3, 14, dx0 - 11, 14], dg);
+
+  /* tight contact occlusion, so the pool cannot wash the building off the ground */
+  ell(2, 1.6, 27, 4.6, 'rgba(0,0,0,.30)');
+
+  /* ---------------- 3. ground floor: receding faces first ---------------- */
+  poly([FR, T1, FR + DX, T1 + DY, FR + DX, DY, FR, 0], cRight);
+  ln(FR, T1, FR + DX, T1 + DY, C_EDGE);          /* only the edges that are not on the ground */
+  ln(FR + DX, T1 + DY, FR + DX, DY, C_EDGE);
+  poly([FL, T1, FR, T1, FR + DX, T1 + DY, FL + DX, T1 + DY], cRoof, cSeam);
+  /* contact shadow where the upper storey meets the roof */
+  poly([UL, UB, UR, UB, UR + 1.4, UB + 1.1, UL - 1.4, UB + 1.1], 'rgba(0,0,0,.24)');
+
+  /* ---------------- 4. upper storey ---------------- */
+  poly([UR, UT, UR + UDX, UT + UDY, UR + UDX, UB + UDY, UR, UB], mix(C_DARK, C_EDGE, 0.14), C_EDGE);
+  fr(UL, UT, UR - UL, UB - UT, mix(C_BASE, C_DARK, 0.32));
+  sr(UL, UT, UR - UL, UB - UT, cSeam);
+  ln(UL + 0.5, UT, UL + 0.5, UB, al(C_LIGHT, 0.28));
+
+  /* small lit window above the shop */
+  fr(10, -60, 6, 9, mix(C_EDGE, C_DARK, 0.3));
+  var uw = g.createLinearGradient(0, PY(-60), 0, PY(-51));
+  uw.addColorStop(0, al(L_HOT, 0.92 * breathe));
+  uw.addColorStop(1, al(L_DEEP, 0.85 * breathe));
+  fr(10.7, -59.3, 4.6, 7.6, uw);
+  ln(13, -59.3, 13, -51.7, al(C_EDGE, 0.8), LW2);
+
+  /* parapet cap: right face, lit top, front lip */
+  poly([PR, PT, PR + UDX, PT + UDY, PR + UDX, UT + UDY, PR, UT], mix(C_DARK, C_EDGE, 0.3));
+  poly([PL, PT, PR, PT, PR + UDX, PT + UDY, PL + UDX, PT + UDY], mix(C_LIGHT, C_ACC, 0.18), cSeam);
+  fr(PL, PT, PR - PL, 2.5, mix(C_BASE, C_DARK, 0.12));
+  ln(PL, PT + 2.5, PR, PT + 2.5, al(C_EDGE, 0.75));
+
+  /* ---------------- 5. roof vent ---------------- */
+  var v0 = -8, v1 = 4, vb = -68.5, vh = 5.5, vdx = 4, vdy = -2.3;
+  poly([v1, vb, v1 + vdx, vb + vdy, v1 + vdx, vb - vh + vdy, v1, vb - vh], mix(C_DARK, C_EDGE, 0.35));
+  fr(v0, vb - vh, v1 - v0, vh, mix(C_BASE, C_DARK, 0.5));
+  poly([v0, vb - vh, v1, vb - vh, v1 + vdx, vb - vh + vdy, v0 + vdx, vb - vh + vdy], mix(C_LIGHT, C_BASE, 0.3), cSeam);
+  ell((v0 + v1) / 2 + vdx / 2, vb - vh + vdy / 2, 3.4, 1.5, al(C_EDGE, 0.9));
+
+  /* ---------------- 6. shopfront wall ---------------- */
+  fr(FL, T1, FR - FL, -T1, cFront);
+  ln(FL + 0.5, T1, FL + 0.5, 0, al(C_LIGHT, 0.34));
+  /* fascia band under the roof lip */
+  fr(FL, T1, FR - FL, 7, mix(C_BASE, C_DARK, 0.42));
+  ln(FL, T1 + 0.6, FR, T1 + 0.6, al(C_LIGHT, 0.5));
+  ln(FL, FASCIA, FR, FASCIA, al(C_EDGE, 0.8));
+  /* stall riser under the window */
+  fr(FL, -9, wx1 - FL, 9, mix(C_BASE, C_DARK, 0.36));
+  /* wall seams: left / top / right only — no stroke on the ground line,
+     so nothing bleeds below y                                            */
+  ln(FL, 0, FL, T1, cSeam);
+  ln(FL, T1, FR, T1, cSeam);
+  ln(FR, T1, FR, 0, cSeam);
+
+  /* warm bloom of the interior spilling onto the wall (kept inside the silhouette) */
+  var bg = g.createRadialGradient(PX(-16), PY(-20), 0, PX(-16), PY(-20), 26 * s);
+  bg.addColorStop(0, 'rgba(252,209,79,' + (0.22 * breathe).toFixed(3) + ')');
+  bg.addColorStop(1, 'rgba(252,209,79,0)');
+  g.fillStyle = bg;
+  g.fillRect(PX(FL), PY(T1), (FR - FL) * s, -T1 * s);
+
+  /* ---------------- 7. the big lit window ---------------- */
+  fr(wx0 - 1.5, wy0 - 1.5, (wx1 - wx0) + 3, (wy1 - wy0) + 3, mix(C_DARK, C_EDGE, 0.45));
+  var gg = g.createLinearGradient(0, PY(wy0), 0, PY(wy1));
+  gg.addColorStop(0,   L_HOT);
+  gg.addColorStop(0.5, mix(L_HOT, L_MID, 0.5));
+  gg.addColorStop(1,   L_MID);
+  fr(wx0, wy0, wx1 - wx0, wy1 - wy0, gg);
+
+  g.save();
+  g.beginPath();
+  g.rect(PX(wx0), PY(wy0), (wx1 - wx0) * s, (wy1 - wy0) * s);
+  g.clip();
+  /* hanging lamp inside, sitting in the glass that the awning leaves visible */
+  var ig = g.createRadialGradient(PX(-17), PY(-23), 0, PX(-17), PY(-23), 14 * s);
+  ig.addColorStop(0, 'rgba(255,252,238,' + (0.80 * breathe).toFixed(3) + ')');
+  ig.addColorStop(1, 'rgba(255,252,238,0)');
+  g.fillStyle = ig;
+  g.fillRect(PX(wx0), PY(wy0), (wx1 - wx0) * s, (wy1 - wy0) * s);
+  /* seated people, silhouettes only */
+  var seats = [[-24, 0], [-16.5, 0.8], [-9, -0.5]];
+  for (var q = 0; q < seats.length; q++){
+    var hx = seats[q][0], hd = seats[q][1];
+    ell(hx, -15.4 + hd, 2.4, 2.5, cSil);
+    g.beginPath();
+    rr(g, PX(hx - 3.3), PY(-13.2 + hd), 6.6 * s, 5.6 * s, 2.2 * s);
+    g.fillStyle = cSil; g.fill();
+  }
+  /* counter they sit at, and two bowls of broth on it */
+  fr(wx0, -12.2, wx1 - wx0, 1.7, al(mix(C_EDGE, C_DARK, 0.3), 0.85));
+  fr(wx0, -10.5, wx1 - wx0, 1.5, al(C_EDGE, 0.35));
+  ell(-21.5, -12.6, 1.7, 0.9, al(L_HOT, 0.9));
+  ell(-12.5, -12.6, 1.7, 0.9, al(L_HOT, 0.9));
+  g.restore();
+
+  /* mullions + frame */
+  fr(-21.5, wy0, 1.9, wy1 - wy0, mix(C_EDGE, C_DARK, 0.22));
+  fr(-11.5, wy0, 1.9, wy1 - wy0, mix(C_EDGE, C_DARK, 0.22));
+  sr(wx0, wy0, wx1 - wx0, wy1 - wy0, C_EDGE);
+  /* sill */
+  fr(wx0 - 2.4, -10.4, (wx1 - wx0) + 4.8, 1.7, mix(C_LIGHT, C_BASE, 0.4));
+  ln(wx0 - 2.4, -8.7, wx1 + 2.4, -8.7, al(C_EDGE, 0.7));
+
+  /* ---------------- 8. open doorway ---------------- */
+  fr(dx0 - 1.2, dy0 - 1.4, (dx1 - dx0) + 2.4, 1.4, mix(C_EDGE, C_DARK, 0.2));
+  fr(dx0, dy0, dx1 - dx0, -dy0, C_EDGE);
+  var dl = g.createLinearGradient(0, PY(dy0), 0, PY(0));
+  dl.addColorStop(0,    L_HOT);
+  dl.addColorStop(0.45, mix(L_HOT, L_MID, 0.55));
+  dl.addColorStop(1,    mix(L_MID, L_DEEP, 0.35));
+  fr(dx0 + 0.9, dy0 + 1.2, (dx1 - dx0) - 1.8, -dy0 - 1.2, dl);
+  fr(dx0 + 0.9, dy0 + 1.2, (dx1 - dx0) - 1.8, -dy0 - 1.2, al(L_HOT, 0.06 + 0.16 * pulse));
+  fr(dx0 + 0.9, -1.7, (dx1 - dx0) - 1.8, 1.7, al(L_HOT, 0.5 + 0.2 * pulse));
+  ln(dx0, 0, dx0, dy0, C_EDGE);
+  ln(dx0, dy0, dx1, dy0, C_EDGE);
+  ln(dx1, dy0, dx1, 0, C_EDGE);
+  /* the leaf, swung open against the wall */
+  fr(dx1, -28, 2.7, 28, mix(C_DARK, C_EDGE, 0.2));
+  ln(dx1 + 0.4, -28, dx1 + 0.4, 0, al(C_ACC, 0.45));
+  ln(dx1 + 2.7, -28, dx1 + 2.7, 0, al(C_EDGE, 0.8));
+
+  /* ---------------- 9. awning over the window ---------------- */
+  var aL = -32, aR = 2, aT = -31, fL = -35, fR = -1, aF = -25.5;
+  poly([aL, aT, aR, aT, fR, aF, fL, aF], mix(C_LIGHT, C_BASE, 0.34), cSeam);
+  for (var t3 = 1; t3 <= 3; t3++){
+    var u3 = t3 / 4;
+    ln(aL + (aR - aL) * u3, aT, fL + (fR - fL) * u3, aF, al(C_BASE, 0.5));
+  }
+  /* scalloped valance, dark underneath */
+  var sc = 3, sw = (fR - fL) / sc;
+  g.beginPath();
+  g.moveTo(PX(fL), PY(aF));
+  for (var c3 = 0; c3 < sc; c3++){
+    g.quadraticCurveTo(PX(fL + sw * (c3 + 0.5)), PY(aF + 8.6), PX(fL + sw * (c3 + 1)), PY(aF));
+  }
+  g.closePath();
+  g.fillStyle = mix(C_BASE, C_DARK, 0.26); g.fill();
+  g.strokeStyle = al(C_EDGE, 0.8); g.lineWidth = LW; g.stroke();
+  /* eave shadow cast down the glass */
+  var eg = g.createLinearGradient(0, PY(-21.5), 0, PY(-16));
+  eg.addColorStop(0, 'rgba(0,0,0,.22)');
+  eg.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = eg;
+  g.fillRect(PX(wx0), PY(-21.5), (wx1 - wx0) * s, 5.5 * s);
+
+  /* ---------------- 10. paper lanterns under the eaves ---------------- */
+  function lantern(u, v, ru, rv, top, ph){
+    var k = 0.82 + 0.18 * Math.sin(GL * TAU + ph);
+    var hg = g.createRadialGradient(PX(u), PY(v), 0, PX(u), PY(v), (ru + 7) * s);
+    hg.addColorStop(0, 'rgba(252,209,79,' + (0.42 * k).toFixed(3) + ')');
+    hg.addColorStop(1, 'rgba(252,209,79,0)');
+    g.fillStyle = hg;
+    g.beginPath(); g.arc(PX(u), PY(v), (ru + 7) * s, 0, TAU); g.fill();
+    ln(u, top, u, v - rv - 0.6, al(C_EDGE, 0.75), LW2);
+    var lg = g.createRadialGradient(PX(u - ru * 0.35), PY(v - rv * 0.4), 0, PX(u), PY(v), ru * 1.15 * s);
+    lg.addColorStop(0, L_HOT);
+    lg.addColorStop(0.62, L_MID);
+    lg.addColorStop(1, L_DEEP);
+    ell(u, v, ru, rv, lg);
+    ell(u - ru * 0.22, v - rv * 0.25, ru * 0.62, rv * 0.6, al(L_HOT, 0.14 + 0.22 * k));
+    g.beginPath(); g.ellipse(PX(u), PY(v), ru * s, rv * s, 0, 0, TAU);
+    g.strokeStyle = al(mix(L_DEEP, C_EDGE, 0.45), 0.85); g.lineWidth = LW; g.stroke();
+    fr(u - ru * 0.36, v - rv - 0.9, ru * 0.72, 1.1, mix(C_EDGE, C_DARK, 0.15));
+    fr(u - ru * 0.3, v + rv - 0.2, ru * 0.6, 1.0, mix(C_EDGE, C_DARK, 0.15));
+  }
+  lantern(-29.5, -19.6, 4.1, 3.6, aF, 0);
+  lantern(16.8, -25.4, 3.2, 2.8, FASCIA, 1.6);
+
+  /* ---------------- 11. projecting sign board (left BLANK for the caller) ---------------- */
+  var bL = -35, bR = 5, bT = -61, bB = -44, bd = 2.2, bdy = -1.3;
+  /* its shadow on the wall behind */
+  poly([Math.max(bL + 3, UL), bT + 3, bR + 3, bT + 3, bR + 3, UB, Math.max(bL + 3, UL), UB], 'rgba(0,0,0,.30)');
+  /* bracket: post on the wall + two short arms */
+  fr(bR + 1.5, bT - 1.5, 2.8, (bB - bT) + 3, mix(C_DARK, C_EDGE, 0.25));
+  ln(bR + 1.9, bT - 1.5, bR + 1.9, bB + 1.5, al(C_LIGHT, 0.35));
+  fr(bR - 3, bT + 1.5, 6, 1.6, mix(C_DARK, C_EDGE, 0.25));
+  fr(bR - 3, bB - 3.5, 6, 1.6, mix(C_DARK, C_EDGE, 0.25));
+  /* board: receding edges first, then the pale lit face */
+  poly([bR, bT, bR + bd, bT + bdy, bR + bd, bB + bdy, bR, bB], mix(C_DARK, C_EDGE, 0.12));
+  poly([bL, bT, bR, bT, bR + bd, bT + bdy, bL + bd, bT + bdy], mix(C_LIGHT, C_ACC, 0.5));
+  fr(bL, bT, bR - bL, bB - bT, mix(C_LIGHT, C_ACC, 0.55));
+  sr(bL, bT, bR - bL, bB - bT, C_EDGE);
+  sr(bL + 1.8, bT + 1.8, (bR - bL) - 3.6, (bB - bT) - 3.6, al(C_EDGE, 0.4), LW2);
+  /* NOTHING is drawn inside bL+1.8 .. bR-1.8 / bT+1.8 .. bB-1.8 after this point */
+
+  /* ---------------- 12. steam from the vent ---------------- */
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  for (var i = 0; i < 3; i++){
+    var ph = GL + i / 3; ph -= Math.floor(ph);
+    var a = Math.sin(Math.PI * ph) * 0.5;
+    var bx = 0.5 + (i - 1) * 3.4;
+    var ty = -76 - ph * 9;
+    var len = 7.5 + i;
+    var sg = g.createLinearGradient(PX(bx), PY(ty), PX(bx), PY(ty - len));
+    sg.addColorStop(0,    al(L_SOFT, a * 0.9));
+    sg.addColorStop(0.55, al(L_HOT, a * 0.55));
+    sg.addColorStop(1,    'rgba(255,246,226,0)');
+    g.beginPath();
+    g.moveTo(PX(bx), PY(ty));
+    for (var k2 = 1; k2 <= 5; k2++){
+      var tt = k2 / 5;
+      g.lineTo(PX(bx + Math.sin(GL * TAU + tt * 3.1 + i * 2.1) * 3.2 * tt), PY(ty - len * tt));
+    }
+    g.strokeStyle = sg;
+    g.lineWidth = (1.5 + ph * 1.8) * s;
+    g.stroke();
+  }
+
+  g.restore();
+}
+
 function drawShell(g,x,y,side,rot,ph){
   const col=side==='blue'?'#c8ffe4':'#ffd7d7';
   const hot=side==='blue'?'#22d18c':'#ff4d4d';
@@ -2399,6 +2995,49 @@ const engine=(function(){
   let pending={blue:0,red:0};                        // launched, still marching
   let lastDeathAt=0,orderNo=0,tNow=0;
   let live=false,liveOn=false;                       // caught up, and allowed to stay caught up
+  let scene=null;                                    // the theatre being drawn
+  let liveSet=null,launchSet=null;                   // the two real battles we hold
+  /* Nothing writes text where it is drawn any more. Labels queue up here and go
+     down after the last sprite, so a man walking past a name cannot cover it. */
+  let labels=[];
+  function label(x,y,text,col,px,weight){
+    labels.push({x,y,text,col,px:px||13,w:weight||600});
+  }
+  /* Place, then draw. A label takes its natural spot if it is free and steps
+     away from it if it is not; one that cannot find room is dropped, because an
+     overlapped name is worse than an absent one. Priority goes to whoever was
+     queued first, which is the barracks before the passing traffic. */
+  function flushLabels(){
+    if(!labels.length)return;
+    g.save();
+    g.textAlign='center';g.lineJoin='round';
+    const placed=[];
+    const clear=(x,y,w,h)=>{
+      for(let i=0;i<placed.length;i++){
+        const p=placed[i];
+        if(Math.abs(x-p.x)*2<w+p.w&&Math.abs(y-p.y)*2<h+p.h)return false;
+      }
+      return true;
+    };
+    labels.forEach(l=>{
+      const px=fs(l.px);
+      g.font=l.w+' '+px+'px "Work Sans","PingFang SC",sans-serif';
+      const w=g.measureText(l.text).width+8, h=px+5;
+      let y=null;
+      for(let k=0;k<7&&y===null;k++){
+        const dy=Math.ceil(k/2)*(h+1)*(k%2?1:-1);
+        if(clear(l.x,l.y+dy,w,h))y=l.y+dy;
+      }
+      if(y===null)return;                       // no room: say nothing
+      placed.push({x:l.x,y,w,h});
+      g.lineWidth=3.2;g.strokeStyle='rgba(8,8,14,.92)';
+      g.strokeText(l.text,l.x,y);
+      g.fillStyle=l.col;
+      g.fillText(l.text,l.x,y);
+    });
+    g.restore();
+    labels=[];
+  }
   const EPS=1e-12;
 
   /* Depth: the ground recedes upward, so anything low on screen is nearer the
@@ -2408,20 +3047,44 @@ const engine=(function(){
   /* The Alliance musters out of the pools themselves. They stand in a shallow
      arc facing the enemy, biggest pool nearest the middle of the line, each one
      carrying the name of the Chef whose liquidity it is. */
+  /* Three rings, by how long the liquidity has been in. Anything over 30 days is
+     the main camp and sits furthest back where it cannot be overrun; a week earns
+     the inner ring; anything fresher musters out near the line, which is also
+     where it is easiest to withdraw from. Within a ring, size follows the share
+     of the pool. */
+  const RINGS=[
+    {band:'camp', min:30, dx:-0.10, w:0.30},        // dx and w are fractions of R
+    {band:'inner',min:7,  dx: 0.16, w:0.34},
+    {band:'outer',min:0,  dx: 0.42, w:0.38}
+  ];
+  function ringOf(days){
+    const d=days==null?0:days;
+    for(const r of RINGS)if(d>=r.min)return r;
+    return RINGS[RINGS.length-1];
+  }
   function layoutPools(chefs){
-    const list=(chefs||[]).slice(0,8);
-    if(!list.length)return [{name:'',share:1,x:BLUE.x,y:BLUE.y,s:1.5}];
-    const n=list.length;
-    const step=n>1?Math.min(84,(R*1.18)/(n-1)):0;
-    return list.map((c,i)=>{
-      const off=(i-(n-1)/2)*step;
-      return {
-        name:c.name,share:c.share,
-        x:BLUE.x+(i%2?24:-14)-Math.abs(off)*0.10,   // the arc bows toward the field
-        y:C+off,
-        s:1.15+Math.min(c.share,0.28)*3.0
-      };
+    const list=(chefs||[]).slice(0,12);
+    if(!list.length)return [{name:'',share:1,band:'camp',x:BLUE.x,y:BLUE.y,s:1.5}];
+    const out=[];
+    RINGS.forEach(ring=>{
+      const men=list.filter(c=>ringOf(c.days)===ring);
+      if(!men.length)return;
+      const n=men.length;
+      const span=R*2*ring.w;
+      const step=n>1?Math.min(96,span/(n-1)):0;
+      men.forEach((c,i)=>{
+        const off=(i-(n-1)/2)*step;
+        out.push({
+          name:c.name,share:c.share,days:c.days,band:ring.band,
+          /* the ring bows toward the field, deepest in the middle */
+          x:BLUE.x+R*ring.dx-Math.abs(off)*0.10+(i%2?16:-8),
+          y:C+off,
+          s:(ring.band==='camp'?1.35:ring.band==='inner'?1.15:0.98)
+            +Math.min(c.share,0.28)*2.6
+        });
+      });
     });
+    return out;
   }
 
   /* The front is not a straight chord. There is a bonding curve underneath this
@@ -2469,7 +3132,7 @@ const engine=(function(){
      wipes out a 0.001 buy and keeps 0.001 of itself on the field. Each sprite
      therefore knows up front whether it dies and at what moment, which makes the
      animation pure playback and the outcome identical every replay. */
-  const SPACING=300;                          // ms between sorties on screen
+  let SPACING=300;                            // ms between sorties on screen
 
   /* One sortie's worth of men. The opening replay and every trade that lands
      afterwards both go through here, so a live sortie is built exactly like a
@@ -2552,8 +3215,13 @@ const engine=(function(){
 
   function load(s){
     loaded=s;
+    if(s.launch)launchSet=s; else liveSet=s;
+    if(!scene)scene=THEATRES[1];
     pools=layoutPools(s.chefs);
     units=[];orderNo=0;
+    /* A month of launch compressed into a minute; the live window keeps its
+       own unhurried pace. */
+    SPACING=s.launch?Math.max(60,Math.min(300,52000/Math.max(1,s.units.length))):300;
     s.units.forEach((u,i)=>{units=units.concat(muster(u,orderNo++,i*SPACING));});
     units.sort((a,b)=>a.arrive-b.arrive);     // the queue the scheduler walks
 
@@ -2632,6 +3300,29 @@ const engine=(function(){
 
   function frame(now){
     if(!g)return;
+    if(scene&&scene.held==='red'){
+      g.setTransform(dpr*box/W,0,0,dpr*box/W,0,0);
+      g.clearRect(0,0,W,W);
+      g.save();
+      g.beginPath();g.arc(C,C,R,0,7);g.clip();
+      const sky=g.createRadialGradient(C,C,R*0.1,C,C,R);
+      sky.addColorStop(0,'#171219');sky.addColorStop(1,'#0b0b11');
+      g.fillStyle=sky;g.fillRect(0,0,W,W);
+      stars.forEach(st=>{
+        g.globalAlpha=reduceMotion?0.7:0.45+0.45*Math.sin(now/900+st.p);
+        g.fillStyle='#cfd3e6';
+        g.beginPath();g.arc(st.x,st.y,st.r,0,7);g.fill();
+      });
+      g.globalAlpha=1;
+      drawHeld(now,scene);
+      flushLabels();
+      g.restore();
+      g.strokeStyle='#2e2e38';g.lineWidth=9;
+      g.beginPath();g.arc(C,C,R+4,0,7);g.stroke();
+      g.strokeStyle='rgba(255,77,77,.16)';g.lineWidth=2;
+      g.beginPath();g.arc(C,C,R-6,0,7);g.stroke();
+      return;
+    }
     /* With motion off there is nothing to watch unfold, so the frame is the end
        of the battle: the fallen are gone and the survivors are holding the line. */
     /* The engagement runs forward to the newest trade and stops there, which is
@@ -2659,7 +3350,7 @@ const engine=(function(){
     const engaged=clamp((t-tFirst)/1600,0,1);
     front=p0?clamp((curPrice/p0-1)/0.05,-1,1)*R*0.28*engaged:0;
 
-    if(launched!==shown){shown=launched;if(onFeed)onFeed(launched);}
+    if(launched!==shown){shown=launched;if(onFeed)onFeed(launched,loaded);}
     g.setTransform(dpr*box/W,0,0,dpr*box/W,0,0);
     g.clearRect(0,0,W,W);
 
@@ -2676,11 +3367,24 @@ const engine=(function(){
     });
     g.globalAlpha=1;
 
+    /* A field taken outright is not shaded half and half — but only once the
+       last man is down, so the replay still shows the ground changing hands. */
+    const took=!!(scene&&scene.held==='blue'&&t>=tCease);
     drawTerritory();
+    if(took){
+      g.save();
+      const wash=g.createLinearGradient(C+R,C,C-R,C);
+      wash.addColorStop(0,'rgba(34,209,140,.05)');
+      wash.addColorStop(1,'rgba(34,209,140,.15)');
+      g.fillStyle=wash;
+      g.beginPath();g.arc(C,C,R,0,7);g.fill();
+      g.restore();
+    }
     drawBaseGlow(BLUE,'blue');
     drawBaseGlow(RED,'red');
-    drawKeep3D(g,RED.x,RED.y+R*0.10,1.5,PAL.red,(t/2600)%1);
-    if(loaded)drawGarrison(RED,loaded.red.map(o=>o.name),'red');
+    /* and the keep at the far end is theirs now, garrison and all */
+    drawKeep3D(g,RED.x,RED.y+R*0.10,1.5,took?PAL.blue:PAL.red,(t/2600)%1);
+    if(loaded&&!took)drawGarrison(RED,loaded.red.map(o=>o.name),'red');
     drawPools(t);
     drawFront(t);
 
@@ -2725,21 +3429,16 @@ const engine=(function(){
       /* Names ride in with the sortie and stay on the front rank once it digs
          in. Deeper ranks drop their labels or the line becomes a smear. */
       if(u.label&&(q.p<0.86||u.stack<2)){
-        g.globalAlpha=0.9;
-        g.font='600 '+fs(14)+'px "Work Sans","PingFang SC",sans-serif';
-        g.textAlign='center';
-        const ty=q.y-(u.kind==='plane'?64:34)*sc;
-        g.lineWidth=3;g.strokeStyle='rgba(8,8,14,.85)';
-        g.strokeText(u.name.slice(0,14),q.x,ty);
-        g.fillStyle=u.side==='blue'?'#8fe9c2':'#ffb0b0';
-        g.fillText(u.name.slice(0,14),q.x,ty);
-        g.globalAlpha=1;
+        label(q.x,q.y-(u.kind==='plane'?62:32)*sc,u.name.slice(0,14),
+              u.side==='blue'?'#8fe9c2':'#ffb0b0',12.5);
       }
     });
+    /* A won field does not stay a battle. Once the last man is down the
+       Alliance is a works detail: wire, a parapet, and shovels. */
+    if(scene&&scene.held==='blue'&&t>=tCease)drawWorks(now,'blue');
+    drawPriceChip();
+    flushLabels();                        // names last, so nothing can cover them
     g.restore();
-
-    drawObjective(BLUE,'blue');
-    drawObjective(RED,'red');
 
     // rim
     g.strokeStyle='#2e2e38';g.lineWidth=9;
@@ -2753,7 +3452,8 @@ const engine=(function(){
        whatever trades next. Otherwise a won field is still never quite still:
        the replay stops on the newest trade, but the survivors go on eating. */
     else if(live){ /* held open for the next trade */ }
-    else if(!reduceMotion&&units.length&&now-t0>=tEnd&&!victory)halt=true;
+    else if(!reduceMotion&&units.length&&now-t0>=tEnd&&!victory
+            &&!(scene&&scene.held==='blue'))halt=true;
   }
 
   // territory is bounded by the same curve the troops stand on
@@ -2782,30 +3482,195 @@ const engine=(function(){
       const d=depth(p.y);
       drawPool3D(g,p.x,p.y,p.s*d,pal,0.55+Math.min(p.share,0.3)*1.4,((t/2400)+i*0.17)%1);
       if(!p.name)return;
-      g.save();
-      g.font='600 '+fs(13)+'px "Work Sans","PingFang SC",sans-serif';
-      g.textAlign='center';
-      const ty=p.y+(30*p.s*d)+fs(13)-13;
-      g.lineWidth=3.4;g.strokeStyle='rgba(8,8,14,.9)';
-      g.strokeText(p.name.slice(0,11),p.x,ty);
-      g.fillStyle='rgba(143,233,194,.92)';
-      g.fillText(p.name.slice(0,11),p.x,ty);
-      g.restore();
+      label(p.x,p.y+(26*p.s*d)+fs(12)-12,p.name.slice(0,11),'rgba(143,233,194,.95)',12);
     });
+  }
+
+  /* ---- the works ----------------------------------------------------
+     Quiet ground still has a line on it; it is just that the men on it are
+     holding a shovel rather than a rifle. Everything below hangs off
+     frontPoint(), so the wire, the berm and the troops are one object. */
+  function worksPath(face,ahead,pull,n){
+    const pts=[],N=n||26;
+    for(let i=0;i<=N;i++){
+      const lat=-R*0.66+(2*R*0.66)*(i/N);
+      const p=frontPoint(lat);
+      pts.push({x:p.x+face*(pull*(1+Math.abs(lat)/R)+ahead),y:p.y});
+    }
+    return pts;
+  }
+
+  /* The line's own normal on screen, so a cross-section stands across it
+     wherever it is heading. Without this the berm turns into a road. */
+  function normals(pts){
+    return pts.map((p,i)=>{
+      const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];
+      const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;
+      return {x:-dy/L,y:dx/L};        // runs west, the way the lamp is
+    });
+  }
+  function offsetPath(pts,nrm,k){
+    return pts.map((p,i)=>({x:p.x+nrm[i].x*k,y:p.y+nrm[i].y*k}));
+  }
+  function tracePath(a){
+    g.beginPath();
+    a.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y));
+  }
+
+  /* Spoil thrown up out of the cut. Uneven along the lip, because it was dug by
+     hand and a stamped-looking earthwork reads as a wall, not a trench. */
+  function drawParapet(pts){
+    const WD=11;
+    const nrm=normals(pts);
+    const west=offsetPath(pts,nrm,WD),east=offsetPath(pts,nrm,-WD*0.8);
+    g.save();
+    g.lineJoin='round';g.lineCap='round';
+    /* the spoil, thrown both sides of the cut */
+    tracePath(west);
+    for(let i=east.length-1;i>=0;i--)g.lineTo(east[i].x,east[i].y);
+    g.closePath();
+    g.fillStyle='#544835';g.fill();
+    /* the cut itself, dark down the middle */
+    tracePath(pts);
+    g.strokeStyle='rgba(0,0,0,.55)';g.lineWidth=6.5;g.stroke();
+    /* lip on the lit side, shadow on the other */
+    tracePath(west);
+    g.strokeStyle='#9b8862';g.lineWidth=3;g.stroke();
+    tracePath(offsetPath(pts,nrm,WD*0.62));
+    g.strokeStyle='rgba(0,0,0,.20)';g.lineWidth=2;g.stroke();
+    tracePath(east);
+    g.strokeStyle='rgba(0,0,0,.42)';g.lineWidth=2.4;g.stroke();
+    /* sandbags built up on the lip, in twos and threes */
+    for(let i=1;i<pts.length;i+=3){
+      const c=west[i],w=9,h=4.2,lift=Math.sin(i*1.7)*1.2;
+      g.fillStyle='#6d5e45';rr(g,c.x-w/2,c.y-h-2.2+lift,w,h,1.6);g.fill();
+      g.fillStyle='#a08d68';rr(g,c.x-w/2,c.y-h-2.2+lift,w,1.5,0.75);g.fill();
+      g.fillStyle='rgba(0,0,0,.32)';rr(g,c.x-w/2,c.y-2.9+lift,w,1.3,0.65);g.fill();
+    }
+    g.restore();
+  }
+
+  /* Concertina: overlapping coils on X-frame stakes. Drawn as a run of rings
+     rather than as strung strands, because rings survive the line bowing. */
+  function drawWire(pts){
+    g.save();
+    g.lineJoin='round';g.lineCap='round';
+    for(let i=0;i<pts.length;i+=8){
+      const p=pts[i];
+      g.strokeStyle='#413d36';g.lineWidth=1.7;
+      g.beginPath();
+      g.moveTo(p.x-4.5,p.y);g.lineTo(p.x+4.5,p.y-13);
+      g.moveTo(p.x+4.5,p.y);g.lineTo(p.x-4.5,p.y-13);
+      g.stroke();
+    }
+    for(let i=0;i<pts.length;i++){
+      const p=pts[i],r=6.0+Math.sin(i*1.3)*0.7;
+      g.strokeStyle='rgba(178,182,198,.68)';g.lineWidth=1.05;
+      g.beginPath();
+      g.ellipse(p.x+Math.sin(i*2.1)*1.7,p.y-7,r*0.7,r,0.22*Math.sin(i),0,6.29);
+      g.stroke();
+      g.strokeStyle='rgba(206,210,224,.5)';g.lineWidth=0.7;
+      for(let k=0;k<3;k++){
+        const a=k*2.1+i*0.6;
+        const cx=p.x+Math.cos(a)*r*0.7,cy=p.y-7+Math.sin(a)*r;
+        g.beginPath();
+        g.moveTo(cx-1.5,cy-1.5);g.lineTo(cx+1.5,cy+1.5);
+        g.moveTo(cx-1.5,cy+1.5);g.lineTo(cx+1.5,cy-1.5);
+        g.stroke();
+      }
+    }
+    g.restore();
+  }
+
+  /* face is the way the holders look, +1 east. On held ground the line is
+     pushed out to the near edge — the same frontage the garrison uses — while
+     the launch already ends with its troops standing on the curve. */
+  function drawWorks(now,side){
+    const pal=PAL[side],face=side==='blue'?1:-1;
+    const pull=side==='red'?R*0.34:R*0.02;
+    drawParapet(worksPath(face,0,pull));
+    drawWire(worksPath(face,R*0.085,pull,52));
+    const D=5,det=[];
+    for(let i=0;i<D;i++){
+      const lat=-R*0.44+(2*R*0.44)*(i/(D-1));
+      const p=frontPoint(lat);
+      det.push({x:p.x+face*(pull*(1+Math.abs(lat)/R)-R*0.085),
+                y:p.y+(i%2?11:-8),i});
+    }
+    det.sort((a,b)=>a.y-b.y).forEach(o=>{
+      drawDigger3D(g,o.x,o.y,1.45*depth(o.y),face,pal,
+                   reduceMotion?0.35:((now/1300)+o.i*0.37)%1);
+    });
+    label(C,C+R*0.80,I18N[lang].worksZ,
+          side==='blue'?'rgba(143,233,194,.62)':'rgba(255,176,176,.62)',11.5,500);
+  }
+
+  /* Ground the Tribe holds. Static except for the breathing of the base and the
+     steam, because nothing is happening here — that is the point of it. */
+  function drawHeld(now,th){
+    const pal=PAL.red, ph=(now/2600)%1;
+    drawBaseGlow(RED,'red');
+    drawBaseGlow({x:C-R*0.45,y:C},'red');
+    /* their colour over the whole disc, deepest at the end they came from */
+    g.save();
+    const wash=g.createLinearGradient(C-R,C,C+R,C);
+    wash.addColorStop(0,'rgba(255,77,77,.05)');
+    wash.addColorStop(1,'rgba(255,77,77,.16)');
+    g.fillStyle=wash;
+    g.beginPath();g.arc(C,C,R,0,7);g.fill();
+    g.restore();
+
+    if(th.shop){
+      const sx=RED.x-R*0.04, sy=RED.y+R*0.13, ss=1.9;
+      drawNoodleShop3D(g,sx,sy,ss,WARM,ph);
+      /* the blank board on the front is 34 x 11 local units at (-32,-58) */
+      const ui=I18N[lang];
+      label(sx-15*ss,sy-54.5*ss,'NOODLE NOVA','#2e1c05',7.5,700);
+      label(sx-15*ss,sy-48.5*ss,ui.shopSub,'#4a2f0c',7,600);
+      /* and what the last milestone actually buys, at today's bitcoin price */
+      if(loaded&&loaded.btcUsd){
+        const perBowl=th.hi*loaded.btcUsd/(loaded.supply||21e6);
+        label(C,C+R*0.62,ui.shopGoal(fmtUsd(perBowl)),'#fcd14f',14,700);
+      }
+    }else{
+      drawKeep3D(g,RED.x,RED.y+R*0.10,1.5,pal,ph);
+    }
+
+    const s0=(loaded&&loaded.sellers)||[];
+    /* The heaviest of the week garrison the building — ranked down its right
+       flank rather than ringed around it, because a ring puts half the names on
+       the roof of the thing they are supposed to be holding. */
+    const gar=s0.slice(0,8);
+    gar.forEach((o,i)=>{
+      const n=gar.length;
+      label(RED.x-R*0.30,RED.y-R*0.30+i*(R*0.60/Math.max(1,n-1)),
+            o.name.slice(0,11),'rgba(255,176,176,.66)',11.5,500);
+    });
+    /* and the freshest stand at the near edge, which is the line we would meet */
+    /* They stand across the near edge, inside the rim rather than spilling past
+       it — the same frontage the live battle uses. */
+    const line=s0.slice(0,10);
+    line.forEach((o,i)=>{
+      const n=line.length;
+      const lat=n>1?(i-(n-1)/2)*(2*R*0.60/(n-1)):0;
+      const p=frontPoint(lat);
+      const x=p.x-R*0.34-Math.abs(lat)*0.34+(i%2?14:-10), y=p.y;
+      const sc=1.5*depth(y);
+      drawSoldier3D(g,x,y,sc,-1,pal,reduceMotion?0.5:((now/260)+i*0.37)%1);
+      if(i<6)label(x,y-32*sc,o.name.slice(0,12),'#ffb0b0',12);
+    });
+    /* the earthwork goes on last so they are standing in it rather than on it */
+    drawWorks(now,'red');
   }
 
   function drawGarrison(b,names,side){
     if(!names.length)return;
-    g.save();
-    g.font='500 '+fs(13)+'px "Work Sans","PingFang SC",sans-serif';
-    g.textAlign='center';g.textBaseline='middle';
-    g.fillStyle=side==='blue'?'rgba(156,205,255,.42)':'rgba(255,176,176,.42)';
     const n=Math.min(names.length,9),rad=R*0.215;
     for(let i=0;i<n;i++){
       const a=-Math.PI/2+(i/n)*Math.PI*2;
-      g.fillText(String(names[i]).slice(0,10),b.x+Math.cos(a)*rad,b.y+Math.sin(a)*rad);
+      label(b.x+Math.cos(a)*rad,b.y+Math.sin(a)*rad+4,String(names[i]).slice(0,10),
+            side==='blue'?'rgba(156,205,255,.5)':'rgba(255,176,176,.5)',11.5,500);
     }
-    g.restore();
   }
 
   /* The ground the base stands on: a pool of its own light, flattened because
@@ -2852,9 +3717,15 @@ const engine=(function(){
     g.stroke();
     g.setLineDash([]);
 
-    /* The line is the price, so it says so. The figure is the price of the last
-       order to have gone in, which means it moves the moment anyone trades. */
+    g.restore();
+  }
+
+  /* The chip that says what the line is worth. Drawn after the troops for the
+     same reason the names are: it is a label, and a label that can be stood on
+     is not doing its job. */
+  function drawPriceChip(){
     if(loaded&&curPrice){
+      g.save();
       const btc=curPrice/MS, usd=btc*loaded.btcUsd, sats=btc*1e8;
       const anchor=frontPoint(-LMAX*0.60), lx=anchor.x, ly=anchor.y;
       const a=fmtUsd(usd), b=nf(sats,2)+' sats';
@@ -2871,8 +3742,8 @@ const engine=(function(){
       g.font='500 '+fs(13)+'px "Work Sans",sans-serif';
       g.fillStyle='rgba(252,209,79,.72)';g.fillText(b,lx,ly+17);
       g.globalAlpha=1;
+      g.restore();
     }
-    g.restore();
   }
 
 
@@ -2905,6 +3776,26 @@ const engine=(function(){
     },
     /* Follow the market once the replay has caught up with it. */
     follow(on){liveOn=!!on;if(!on)live=false;},
+    /* Walk to another stretch of the road. Held ground needs no data; the live
+       battle and the launch each have their own set of orders. */
+    theatre(th){
+      scene=th;
+      halt=false;
+      if(th.held==='red'){
+        front=0;                          // nothing is pushing here
+        if(!raf&&!reduceMotion&&!document.hidden)start(); else frame(performance.now());
+        return;
+      }
+      const set=th.id==='launch'?launchSet:liveSet;
+      if(set){ load(set); }
+      else { frame(performance.now()); }
+    },
+    /* The launch, once somebody has walked over to look at it. */
+    setLaunch(set){
+      launchSet=set;
+      if(scene&&scene.id==='launch')load(set);
+    },
+    hasLaunch(){return !!launchSet;},
     isLive(){return live;},
     /* on: run it again and keep running. off: let this pass finish and hold. */
     replay(on){
@@ -2944,6 +3835,110 @@ $('#langBtn').addEventListener('click',()=>{
 })();
 
 /* ================= boot ================= */
+/* ================= theatres ================= */
+/* The launch is the oldest end of the trade feed, so it is a separate walk back
+   through the pages — done once, and only if somebody goes and looks. */
+let launchPending=false,launchSet=null;
+/* Whichever battle is actually on screen — held ground has none. */
+function battleSet(){
+  const th=THEATRES[theatre];
+  return th.id==='live'?S:(th.id==='launch'?launchSet:null);
+}
+async function loadLaunch(){
+  if(launchPending||engine.hasLaunch()||!S)return;
+  launchPending=true;
+  paintTheatre();
+  try{
+    let all=[],n=0,total=0;
+    for(let pg=1;pg<=12;pg++){
+      const d=await api('/token/'+TOKEN+'/trades?limit=1000&page='+pg);
+      const rows=d.data||[];total=d.count||total;n+=rows.length;all=all.concat(rows);
+      if(!rows.length||n>=total)break;
+    }
+    all.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));   // oldest first
+    let cut=all.length-1;
+    for(let i=0;i<all.length;i++){
+      if(Number(all[i].price)/MS*S.supply>=WON){cut=i;break;}
+    }
+    const win=all.slice(0,cut+1).map(toUnit);
+    launchSet={
+      launch:true,
+      stamp:Date.now(),btcUsd:S.btcUsd,supply:S.supply,
+      /* the price this battle finished on, not the one it is now */
+      price:cut>=0&&all[cut]?Number(all[cut].price):S.price,
+      mcBtc:WON,poolBtc:S.poolBtc,chg:0,
+      since:win.length?win[0].time:null,
+      lastTrade:win.length?win[win.length-1].time:null,
+      fighters:{blue:[],red:[]},chefs:S.chefs,sellers:S.sellers,
+      seen:new Set(),units:win,blue:S.blue,red:S.red,
+      blueN:win.filter(u=>u.side==='blue').length,
+      redN:win.filter(u=>u.side==='red').length
+    };
+    engine.setLaunch(launchSet);
+  }catch(e){ console.error(e); }
+  launchPending=false;
+  paintTheatre();
+  if(S)paintHud();
+}
+
+/* The label above the disc is the only place the numbers live now. */
+function paintTheatre(){
+  const ui=I18N[lang],th=THEATRES[theatre];
+  const box=$('.tlabel');if(!box)return;
+  const fmt=v=>v>=1?String(v):String(v);
+  $('#tName').textContent=ui.thNames[th.id]||'';
+  $('#tRange').textContent=fmt(th.lo)+' \u2192 '+fmt(th.hi)+' BTC · '+ui.thStop(theatre+1,THEATRES.length);
+  $('#tState').textContent=th.id==='launch'&&launchPending?ui.thLoading
+    :th.held==='blue'?ui.thTaken
+    :th.shop?ui.thShop
+    :th.held==='red'?ui.thHeld:ui.thLive;
+  const rp=$('#tReplay');
+  if(rp){
+    rp.hidden=th.id!=='launch';
+    rp.textContent=launchPending?ui.thLoading:ui.thReplay;
+    rp.disabled=launchPending||!engine.hasLaunch();
+  }
+  box.className='tlabel'+(th.held?' held-'+th.held:' live');
+  /* The note under the disc measures the live trading window. On ground where
+     nothing is trading it is not just irrelevant, it is wrong. */
+  const note=$('[data-i="stageNote"]');
+  if(note)note.style.display=th.id==='live'?'':'none';
+  $('#tPrev').disabled=theatre<=0;
+  $('#tNext').disabled=theatre>=THEATRES.length-1;
+  $('#btnPlay').hidden=th.id!=='live';
+  $('.field').classList.toggle('solo',th.held==='red');
+}
+function goTheatre(i){
+  const n=Math.max(0,Math.min(THEATRES.length-1,i));
+  if(n===theatre)return;
+  theatre=n;
+  const th=THEATRES[theatre];
+  paintTheatre();
+  if(S)paintHud();                 // the cards describe whichever battle is on screen
+  engine.theatre(th);
+  if(th.id==='launch'&&!engine.hasLaunch())loadLaunch().then(paintTheatre);
+}
+$('#tReplay').addEventListener('click',()=>{
+  if(!engine.hasLaunch())return;
+  engine.theatre(THEATRES[0]);          // reload the set, which restarts the clock
+});
+$('#tPrev').addEventListener('click',()=>goTheatre(theatre-1));
+$('#tNext').addEventListener('click',()=>goTheatre(theatre+1));
+/* Arrow keys walk between theatres, but only while the field is actually being
+   looked at — a global listener that eats the arrow keys takes scrolling away
+   from anyone reading the rest of the page. */
+addEventListener('keydown',e=>{
+  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+  if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const st=$('.stage');if(!st)return;
+  const r=st.getBoundingClientRect();
+  const seen=Math.min(r.bottom,innerHeight)-Math.max(r.top,0);
+  if(seen<r.height*0.5)return;                 // not on screen: leave the keys alone
+  e.preventDefault();
+  goTheatre(theatre+(e.key==='ArrowLeft'?-1:1));
+});
+
 /* ================= playback ================= */
 let looping=false;
 function paintPlay(){
