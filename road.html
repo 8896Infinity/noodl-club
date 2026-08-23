@@ -254,9 +254,12 @@ const SAYS=[
          about the token, except the one man who says he will sell his ---- */
   {d:'2026-06-11',zh:'奥丁平台已经没人玩了',           en:'Nobody is on Odin any more'},
   {d:'2026-06-15',zh:'符文已死',                       en:'Runes are dead'},
+  {d:'2026-06-17',zh:'出过安全事故，你还敢玩啊？你是不是疯了',
+                  en:'It had a security incident and you are still here? Are you mad?'},
   {d:'2026-06-19',zh:'比特币不需要生态',               en:'Bitcoin does not need an ecosystem'},
   {d:'2026-06-23',zh:'傻子才玩奥丁',                   en:'Only fools trade on Odin'},
   {d:'2026-06-27',zh:'罗宾汉才是未来',                 en:'Robinhood is the future'},
+  {d:'2026-06-29',zh:'人心散了',                       en:'Nobody believes in it any more'},
   {d:'2026-07-01',zh:'奥丁没流量了',                   en:'Odin has no traffic left'},
   {d:'2026-07-04',zh:'平台开发太慢了',                 en:'They ship far too slowly'},
   {d:'2026-07-07',zh:'我的谷歌验证无法解绑',           en:'I cannot unbind my Google authenticator'},
@@ -328,7 +331,7 @@ zh:{
   linkToken:'Odin.Fun ↗',linkCommunity:'社区 ↗',
   navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',
   title:'NOODL 来时路',hint:'从 0 到现在 · 进度条可以拖',
-  subMc:'市值',
+  subMc:'单枚价格',
   btnReplay:'重播',btnStop:'停',btnSound:'配乐',
   btnMute:'静音',btnUnmute:'开声音',
   sndHint:'没声音？把 iPhone 侧边的静音开关拨开',
@@ -342,7 +345,7 @@ en:{
   linkToken:'Odin.Fun ↗',linkCommunity:'Community ↗',
   navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',
   title:'The road here',hint:'zero to now — drag the bar',
-  subMc:'MARKET CAP',
+  subMc:'PRICE PER NOODL',
   btnReplay:'Replay',btnStop:'Stop',btnSound:'Sound',
   btnMute:'Mute',btnUnmute:'Unmute',
   sndHint:'No sound? Flick the iPhone side switch off silent',
@@ -461,13 +464,18 @@ function thin(rows,want){
    pace was asked for. */
 const REPLAY=98000;
 const MINSHOW=2400;                  /* what one line is owed, in ms */
-const SZ_LO=1e2, SZ_HI=2e7, SZ_EXP=0.28;
+/* Nothing grows until the cap has first printed this. Below the knee the
+   number sits at its smallest the whole way up, which is the joke: every line
+   on the road is aimed at a number too small to bother reading. */
+const SZ_KNEE=2.0e5, SZ_HI=2e7, SZ_EXP=0.80;
 const cv=$('#road'), g=cv.getContext('2d');
 let dpr=1,cw=0,ch=0;
 
 let series=null, meta=null, ATH=0;
 let t0=0, playing=false, done=false, raf=0;
-let head=0, peak=0;
+/* head is fractional and headT/headMc are where it actually is: the tape is
+   thin in June and a head locked to a sample stands still for days. */
+let head=0, headT=0, headMc=0, peak=0;
 let mom=0, lastMc=0;
 /* Everything the frame paints is a function of p alone, so RUN and MOM are
    worked out once and looked up. That is what lets the bar be dragged: a
@@ -487,13 +495,20 @@ function fit(){
 }
 addEventListener('resize',()=>{clearTimeout(fit.t);fit.t=setTimeout(()=>{fit();paint();},120);});
 
-const fmtUsd=v=>{
+/* how many NOODL there are, so a cap can be turned back into a price */
+let SUPPLY=0;
+/* Four significant figures and no trailing zeros: a tenth of a cent still has
+   to read as a number rather than as a row of noughts. */
+const fmtPrice=v=>{
   if(!(v>0))return '$0';
-  if(v>=1e6)return '$'+(v/1e6).toFixed(2)+'M';
-  if(v>=1e3)return '$'+Math.round(v).toLocaleString('en-US');
-  if(v>=1)return '$'+v.toFixed(2);
-  return '$'+v.toFixed(4);
+  if(v>=1)return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const e=Math.floor(Math.log10(v));
+  let t=v.toFixed(Math.min(12,Math.max(2,-e+3)));
+  if(t.indexOf('.')>-1)t=t.replace(/0+$/,'').replace(/\.$/,'');
+  return '$'+t;
 };
+/* the cap is still what the sizing and the anchors are measured in */
+const priceOf=mc=>SUPPLY>0?mc/SUPPLY:0;
 const fmtDate=ms=>{
   const d=new Date(ms);
   return lang==='zh' ? (d.getMonth()+1)+'月'+d.getDate()+'日'
@@ -519,6 +534,17 @@ function idxAt(p){
   let lo=0,hi=n-1;
   while(lo<hi){const m=(lo+hi)>>1;if(series[m].t<ms)lo=m+1;else hi=m;}
   return lo;
+}
+/* and where between two of them, so the head slides instead of stepping */
+function atTime(p){
+  const n=series.length, ms=T0+(T1-T0)*clamp(p,0,1);
+  if(ms<=series[0].t)return {i:0,f:0,t:series[0].t,mc:series[0].mc};
+  if(ms>=series[n-1].t)return {i:n-1,f:0,t:series[n-1].t,mc:series[n-1].mc};
+  let lo=0,hi=n-1;
+  while(lo<hi){const m=(lo+hi)>>1;if(series[m].t<ms)lo=m+1;else hi=m;}
+  const j=Math.max(1,lo), a=series[j-1], b=series[j];
+  const u=b.t>a.t?clamp((ms-a.t)/(b.t-a.t),0,1):0;
+  return {i:j-1,f:u,t:ms,mc:a.mc+(b.mc-a.mc)*u};
 }
 function buildSchedule(){
   const n=series.length, out=[];
@@ -593,12 +619,13 @@ function showSay(k,snap){
 }
 
 /* ---- the number ---- */
-/* How big a market cap looks, on a scale that runs to twenty million. Today's
-   two hundred thousand lands about a quarter of the way up it, so the number
-   ends the replay small with most of the room still above it — which is the
-   point of drawing it this way at all. */
+/* Flat below the knee, then logarithmic to twenty million. Two hundred and
+   some thousand lands a sixth of the way up, so it does grow — visibly, once
+   — and still ends the replay small with nearly all the room above it. */
 function szOf(mc){
-  return Math.pow(clamp(mc,SZ_LO,SZ_HI)/SZ_HI,SZ_EXP);
+  if(!(mc>SZ_KNEE))return 0;
+  const u=Math.log(mc/SZ_KNEE)/Math.log(SZ_HI/SZ_KNEE);
+  return Math.pow(clamp(u,0,1),SZ_EXP);
 }
 function paintNum(mc,at,hi){
   const el=$('#mc');
@@ -607,80 +634,129 @@ function paintNum(mc,at,hi){
      bounced about and read as noise rather than as a road. Nothing here reads
      momentum, so there is no kick either — only the colour still moves. */
   const wide=($('#stage').clientWidth)||900;
-  const maxPx=clamp(wide*0.20,46,112), minPx=clamp(wide*0.05,20,26);
+  const maxPx=clamp(wide*0.20,46,112), minPx=clamp(wide*0.030,15,20);
   const px=minPx+(maxPx-minPx)*szOf(hi==null?mc:hi);
-  el.style.fontSize=clamp(px,18,120).toFixed(1)+'px';
+  el.style.fontSize=clamp(px,15,120).toFixed(1)+'px';
   const up=mom>=0;
   const k=Math.min(1,Math.abs(mom)*4);
   const mix=(a,b)=>Math.round(a+(b-a)*k);
   el.style.color = up
     ? 'rgb('+mix(185,34)+','+mix(188,209)+','+mix(201,140)+')'
     : 'rgb('+mix(185,255)+','+mix(188,77)+','+mix(201,77)+')';
-  el.textContent=fmtUsd(mc);
+  el.textContent=fmtPrice(priceOf(mc));
   $('#when').textContent=at?fmtDate(at):'';
 }
 
-/* ---- the road ---- */
+/* ECG paper, baked once: a fine grid with a heavier line every fifth. Two
+   hundred strokes a frame is a waste when the thing never changes. */
+let gridCv=null,gridKey='';
+function gridFor(w,h){
+  const key=w+'x'+h+'x'+dpr;
+  if(gridCv&&gridKey===key)return gridCv;
+  const c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(w*dpr));c.height=Math.max(1,Math.round(h*dpr));
+  const q=c.getContext('2d');
+  q.setTransform(dpr,0,0,dpr,0,0);
+  const CELL=11;
+  q.lineWidth=1;
+  for(let k=0;k*CELL<=w;k++){
+    q.strokeStyle=(k%5)?'rgba(120,124,142,.05)':'rgba(120,124,142,.10)';
+    const x=Math.round(k*CELL)+0.5;
+    q.beginPath();q.moveTo(x,0);q.lineTo(x,h);q.stroke();
+  }
+  for(let k=0;k*CELL<=h;k++){
+    q.strokeStyle=(k%5)?'rgba(120,124,142,.05)':'rgba(120,124,142,.10)';
+    const y=Math.round(k*CELL)+0.5;
+    q.beginPath();q.moveTo(0,y);q.lineTo(w,y);q.stroke();
+  }
+  gridCv=c;gridKey=key;return c;
+}
+
+/* ---- the monitor ---- */
 function paint(){
   if(!series||!cw)return;
   g.setTransform(dpr,0,0,dpr,0,0);
   g.clearRect(0,0,cw,ch);
-  const PADT=12,PADB=20,PADL=6,PADR=62;
+  const PADT=12,PADB=20,PADL=6;
+  /* A price is eleven characters at its longest, and a phone is 330 pixels
+     wide: measure it rather than guess, or the gutter eats a quarter of the
+     panel on a phone and still clips it on a desktop. */
+  const n0=series.length;
+  const hi0=Math.min(n0-1,Math.max(0,Math.floor(head)));
+  const athV=series.reduce((m,r)=>Math.max(m,r.mc),0);
+  const lblH=fmtPrice(priceOf(headMc||series[hi0].mc)), lblA=fmtPrice(priceOf(athV));
+  const FS=cw<420?9.5:11;
+  g.font='700 '+FS+'px "Work Sans",sans-serif';
+  const PADR=clamp(Math.max(g.measureText(lblH).width,g.measureText(lblA).width)+14,44,96);
   const W=cw-PADL-PADR, H=ch-PADT-PADB;
-  const n=series.length;
+  const n=n0;
   const top=Math.max(peak, series.reduce((m,r)=>Math.max(m,r.mc),0))*1.06;
-  /* a gentle power scale: the first thousand still has somewhere to live,
-     without flattening the part where it actually ran */
-  const yOf=v=>PADT+H-H*Math.pow(clamp(v,0,top)/top,0.72);
+  /* A power scale, and the exponent is the whole argument between the two
+     halves of this page: nearer 1 and the first five weeks lie flat on the
+     floor, which on a heart monitor reads as dead; nearer 0 and July stops
+     being a leap. 0.52 gives June a visible pulse and still throws the launch
+     three fifths of the way up the panel. */
+  const yOf=v=>PADT+H-H*Math.pow(clamp(v,0,top)/top,0.52);
   /* by time, not by trade: a quiet June is still five weeks wide, and the
      head of the line then sits under the same fraction the bar shows */
   const span=Math.max(1,T1-T0);
-  const xOf=i=>PADL+W*clamp((series[i].t-T0)/span,0,1);
+  const xAt=ms=>PADL+W*clamp((ms-T0)/span,0,1);
+  const xOf=i=>xAt(series[i].t);
+
+  g.drawImage(gridFor(W,H),PADL,PADT,W,H);
 
   /* the whole road, faint: where it has been and where it is going */
-  g.strokeStyle='rgba(120,124,142,.16)';g.lineWidth=1.2;g.lineJoin='round';
+  g.strokeStyle='rgba(120,124,142,.13)';g.lineWidth=1.1;g.lineJoin='round';g.lineCap='round';
   g.beginPath();
   for(let i=0;i<n;i++){const x=xOf(i),y=yOf(series[i].mc);i?g.lineTo(x,y):g.moveTo(x,y);}
   g.stroke();
 
-  /* the part it has walked */
-  const hi=Math.min(n-1,Math.max(0,Math.floor(head)));
+  /* the part it has walked, ending wherever between two samples it actually
+     is — a head that snapped to a sample stood still for days in June */
+  const hi=hi0;
+  const hx=xAt(headT||series[hi].t), hy=yOf(headMc||series[hi].mc);
   const up=mom>=0;
   const col=up?'#22d18c':'#ff4d4d';
-  const fill=g.createLinearGradient(0,PADT,0,PADT+H);
-  fill.addColorStop(0,up?'rgba(34,209,140,.26)':'rgba(255,77,77,.24)');
-  fill.addColorStop(1,'rgba(34,209,140,0)');
-  g.beginPath();
-  for(let i=0;i<=hi;i++){const x=xOf(i),y=yOf(series[i].mc);i?g.lineTo(x,y):g.moveTo(x,y);}
-  const lastX=xOf(hi);
-  g.lineTo(lastX,PADT+H);g.lineTo(PADL,PADT+H);g.closePath();
-  g.fillStyle=fill;g.fill();
+  const rgb=up?'34,209,140':'255,77,77';
+  const trace=()=>{
+    g.beginPath();
+    for(let i=0;i<=hi;i++){const x=xOf(i),y=yOf(series[i].mc);i?g.lineTo(x,y):g.moveTo(x,y);}
+    g.lineTo(hx,hy);
+    g.stroke();
+  };
+  /* the phosphor: three passes rather than a shadow, because Safari's canvas
+     filter is off the table and a blur every frame is not worth it */
+  g.lineJoin='round';g.lineCap='round';
+  g.strokeStyle='rgba('+rgb+',.10)';g.lineWidth=7;trace();
+  g.strokeStyle='rgba('+rgb+',.26)';g.lineWidth=3.4;trace();
+  g.strokeStyle=col;g.lineWidth=1.7;trace();
 
-  g.strokeStyle=col;g.lineWidth=2;g.lineJoin='round';
-  g.beginPath();
-  for(let i=0;i<=hi;i++){const x=xOf(i),y=yOf(series[i].mc);i?g.lineTo(x,y):g.moveTo(x,y);}
-  g.stroke();
-
-  /* the head, and the level it is at */
-  const hy=yOf(series[hi].mc);
-  g.strokeStyle='rgba(250,250,250,.14)';g.lineWidth=1;g.setLineDash([4,5]);
+  /* the level it is at */
+  g.strokeStyle='rgba(250,250,250,.10)';g.lineWidth=1;g.setLineDash([3,6]);
   g.beginPath();g.moveTo(PADL,hy);g.lineTo(cw-PADR+4,hy);g.stroke();g.setLineDash([]);
+
+  /* and the beat itself */
+  const bt=(typeof performance!=='undefined'?performance.now():0)/1000;
+  const pu=0.5+0.5*Math.sin(bt*4.4);
+  g.fillStyle='rgba('+rgb+','+(0.16+0.20*pu).toFixed(3)+')';
+  g.beginPath();g.arc(hx,hy,7+5*pu,0,6.2832);g.fill();
+  g.fillStyle='rgba('+rgb+','+(0.28+0.24*pu).toFixed(3)+')';
+  g.beginPath();g.arc(hx,hy,4.6+2.2*pu,0,6.2832);g.fill();
   g.fillStyle=col;
-  g.beginPath();g.arc(lastX,hy,4.2,0,6.2832);g.fill();
-  g.strokeStyle='rgba(13,14,19,.9)';g.lineWidth=2;g.stroke();
+  g.beginPath();g.arc(hx,hy,3.4,0,6.2832);g.fill();
+  g.strokeStyle='rgba(13,14,19,.9)';g.lineWidth=1.6;g.stroke();
 
   g.fillStyle=col;
-  g.font='700 11px "Work Sans",sans-serif';g.textBaseline='middle';g.textAlign='left';
-  g.fillText(fmtUsd(series[hi].mc),cw-PADR+9,hy);
+  g.font='700 '+FS+'px "Work Sans",sans-serif';g.textBaseline='middle';g.textAlign='left';
+  g.fillText(lblH,cw-PADR+9,hy);
 
   /* the all-time high, so the road has a ceiling to be measured against */
-  const athV=series.reduce((m,r)=>Math.max(m,r.mc),0);
   const ay=yOf(athV);
   if(Math.abs(ay-hy)>13){
     g.strokeStyle='rgba(252,209,79,.20)';g.lineWidth=1;g.setLineDash([2,6]);
     g.beginPath();g.moveTo(PADL,ay);g.lineTo(cw-PADR+4,ay);g.stroke();g.setLineDash([]);
     g.fillStyle='rgba(252,209,79,.65)';
-    g.fillText(fmtUsd(athV),cw-PADR+9,ay);
+    g.fillText(lblA,cw-PADR+9,ay);
   }
 
   /* the ends of the road */
@@ -699,12 +775,12 @@ function seek(p,snap){
   if(!series)return;
   p=clamp(p,0,1);
   headP=p;
-  const i=idxAt(p);
-  head=i;
-  const mc=series[i].mc;
+  const at=atTime(p), i=at.i;
+  head=i+at.f; headT=at.t; headMc=at.mc;
+  const mc=at.mc;
   lastMc=mc;
   mom=MOM[i]||0;
-  paintNum(mc,series[i].t,RUN[i]);
+  paintNum(mc,at.t,Math.max(RUN[i]||0,mc));
   paint();
   setProg(p);
   showSay(sayAt(p),!!snap);
@@ -748,6 +824,7 @@ function finish(){
   stopRaf();
   playing=false;done=true;
   head=series.length-1;
+  headT=series[series.length-1].t; headMc=series[series.length-1].mc;
   $('#btnPlay').textContent=I18N[lang].btnReplay;
   headP=1;seek(1,false);
   quiet();
@@ -898,7 +975,7 @@ function soundUp(){
     soundOn=true;hiHeard=0;thudAt=0;
     keepAwake(true);
     master.gain.setTargetAtTime(0.42,AC.currentTime,0.9);
-    if(series)tone(series[Math.min(series.length-1,Math.max(0,head))].mc,mom,headP);
+    if(series)tone(headMc||series[series.length-1].mc,mom,headP);
     if(!said){said=true;hint();}
   };
   if(ac.state!=='running'){const pr=ac.resume();(pr&&pr.then?pr:Promise.resolve()).then(up,up);}
@@ -995,12 +1072,12 @@ async function boot(){
   let data=null;
   try{
     data=await pullSeries();
-    try{localStorage.setItem('noodl_road',JSON.stringify({at:Date.now(),rows:thin(data.rows,700),n:data.n}));}catch(e){}
+    try{localStorage.setItem('noodl_road',JSON.stringify({at:Date.now(),rows:thin(data.rows,700),n:data.n,supply:data.supply}));}catch(e){}
   }catch(e){
     /* last good tape rather than invented numbers */
     try{
       const c=JSON.parse(localStorage.getItem('noodl_road')||'null');
-      if(c&&c.rows&&c.rows.length>8)data={rows:c.rows,n:c.n||c.rows.length,cached:true};
+      if(c&&c.rows&&c.rows.length>8)data={rows:c.rows,n:c.n||c.rows.length,supply:c.supply,cached:true};
     }catch(e2){}
     if(!data){
       say(ui.errH,ui.errP,true);
@@ -1010,6 +1087,7 @@ async function boot(){
   }
   series=thin(data.rows,700);
   meta=data;
+  SUPPLY=Number(data.supply)||SUPPLY;
   $('#state').hidden=true;
   T0=series[0].t;T1=series[series.length-1].t;
   ATH=series.reduce((m,r)=>Math.max(m,r.mc),0);
@@ -1035,6 +1113,7 @@ async function boot(){
     try{
       const [tok,cur2]=await Promise.all([api('/token/'+TOKEN),api('/currency/btc')]);
       const supply=Number(tok.total_supply)/MS, usd=Number(cur2.amount)||0;
+      if(supply>0)SUPPLY=supply;
       const mc=Number(tok.marketcap)/MS*usd;
       if(!(mc>0&&supply>0&&usd>0))return;
       const prev=series[series.length-1].mc;
