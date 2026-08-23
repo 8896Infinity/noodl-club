@@ -120,6 +120,13 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
 .hud .nades b{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--dim)}
 .hud .nades .pips i{width:5px;height:12px;border-radius:2px;background:#31343f}
 .hud .nades .pips i.n{background:var(--noodle-y)}
+/* the cyan bowl, counting itself down */
+.hud .pow{position:absolute;left:14px;top:88px;display:flex;align-items:center;gap:8px;padding:5px 10px 6px;
+  border-color:rgba(0,255,255,.45)}
+.hud .pow[hidden]{display:none}
+.hud .pow b{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--cyan)}
+.hud .pow .bar{display:block;width:64px;height:5px;border-radius:3px;background:#1b2630;overflow:hidden}
+.hud .pow .bar u{display:block;height:100%;width:0;background:var(--cyan);border-radius:3px}
 .hud .radio{position:absolute;left:14px;bottom:12px;max-width:52%;font-size:12px;line-height:1.6;color:var(--text-2)}
 .hud .radio div{opacity:0;animation:rd 5.2s ease-out forwards}
 .hud .radio div b{color:var(--noodle-y);font-weight:700;margin-right:6px}
@@ -127,7 +134,7 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
 .hud .hurt{position:absolute;inset:0;box-shadow:inset 0 0 64px rgba(255,77,77,var(--hurt,0));transition:box-shadow .12s}
 .hud .vig{position:absolute;inset:0;box-shadow:inset 0 0 130px rgba(0,0,0,.5)}
 
-/* the gates: password, briefing, result */
+/* the two cards: the briefing, and how it ended */
 .gate{
   position:absolute;inset:0;z-index:3;display:grid;place-items:center;
   background:rgba(8,8,12,.78);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
@@ -140,12 +147,6 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
 .card h2{font-size:18px;font-weight:800;letter-spacing:.02em;margin-bottom:6px}
 .card p{font-size:12.5px;color:var(--text-2);line-height:1.7}
 .card .sub{font-size:11px;letter-spacing:.14em;font-weight:700;color:var(--dim);margin-bottom:8px}
-.card form{display:flex;gap:8px;margin-top:14px}
-.card input{
-  flex:1;min-width:0;font:600 14px/1 'Work Sans',monospace;letter-spacing:.08em;
-  color:var(--text);background:#0f1015;border:1px solid var(--line);border-radius:6px;padding:11px 12px;outline:none;
-}
-.card input:focus{border-color:var(--cyan)}
 .card .btn{
   font:700 13px/1 'Work Sans',sans-serif;letter-spacing:.04em;cursor:pointer;
   color:var(--cyan);background:rgba(0,255,255,.07);border:1px solid rgba(0,255,255,.45);border-radius:6px;padding:11px 16px;
@@ -153,9 +154,6 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
 .card .btn:hover{background:rgba(0,255,255,.13)}
 .card .btn.ghost{color:var(--text-2);background:transparent;border-color:var(--line)}
 .card .btn.ghost:hover{color:var(--text);border-color:var(--dim)}
-.card .err{color:var(--red);font-size:12px;margin-top:9px;min-height:1.2em}
-.card.shake{animation:shk .32s}
-@keyframes shk{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .card .keys{
   display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 12px;text-align:left;margin:14px auto 0;
   font-size:12.5px;color:var(--text-2);max-width:330px;
@@ -223,25 +221,13 @@ footer a:hover{color:var(--cyan)}
       <div class="obj plate"><b data-i="hudObj">CLEARED</b><span id="kills">0 <em>/ 12</em></span><span class="pips" id="pips"></span></div>
       <div class="feed" id="feed"></div>
       <div class="nades plate" id="nadeBox"><b data-i="hudNade">FRAGS</b><span class="pips" id="nadePips"></span></div>
+      <div class="pow plate" id="powBox" hidden><b data-i="hudPow">CHARGED</b><i class="bar"><u id="powBar"></u></i></div>
       <div class="stance plate" id="stanceBox">STANDING</div>
       <div class="ammo plate" id="ammoBox"><span id="ammo">30 <em>/ ∞</em></span></div>
       <div class="radio" id="radio"></div>
     </div>
 
-    <div class="gate" id="gate">
-      <div class="card" id="gateCard">
-        <div class="sub" data-i="gateSub">RESTRICTED</div>
-        <h2 data-i="gateH">Enter the password</h2>
-        <p data-i="gateP">This build is for testers only.</p>
-        <form id="gateForm" autocomplete="off">
-          <input id="pw" type="password" autocapitalize="characters" spellcheck="false" placeholder="••••••••••" aria-label="password">
-          <button class="btn" type="submit" data-i="gateBtn">Enter</button>
-        </form>
-        <div class="err" id="gateErr"></div>
-      </div>
-    </div>
-
-    <div class="gate" id="brief" hidden>
+    <div class="gate" id="brief">
       <div class="card">
         <div class="sub" data-i="briefSub">MISSION</div>
         <h2 data-i="briefH">Drop behind the Tribe's lines</h2>
@@ -254,7 +240,8 @@ footer a:hover{color:var(--cyan)}
           <kbd data-i="kCtrl">CTRL / C</kbd><span data-i="kCrouch">crouch — steadier, harder to hit</span>
           <kbd>R</kbd><span data-i="kReload">reload</span>
           <kbd data-i="kRight">RIGHT CLICK (HOLD)</kbd><span data-i="kNade">throw a grenade — the longer you hold, the further it goes</span>
-          <kbd data-i="kNood">NOODLES</kbd><span data-i="kNoodD">walk over one — back to full health</span>
+          <kbd data-i="kNood">GOLD BOWL</kbd><span data-i="kNoodD">walk over one — back to full health</span>
+          <kbd data-i="kNova">CYAN BOWL</kbd><span data-i="kNovaD">nova noodles — ×3 damage for a while</span>
         </div>
         <div class="row"><button class="btn" id="btnStart" type="button" data-i="btnStart">Jump</button></div>
       </div>
@@ -298,14 +285,14 @@ zh:{
   navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',
   title:'空降长安',hint:'测试版 · 桌面端键鼠，手机双摇杆',
   hudHp:'生命',hudObj:'已肃清',
-  gateSub:'内部测试',gateH:'输入密码',gateP:'这个版本只给测试员看。',gateBtn:'进入',gateErr:'密码不对',gateNo:'这个浏览器不支持密码校验，换一个再试。',
   briefSub:'任务',briefH:'空降到看空部落的长安据点',
-  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 十二个人，外加一辆坦克。地上有面碗，走过去就回满血。',
+  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 十二个人，外加两辆坦克。地上散着面碗：黄的回满血，青的让子弹威力 ×3。',
   kMove:'移动',kMouse:'鼠标',kAim:'瞄准',kClick:'左键',kFire:'射击',
   kRun:'冲刺',kCtrl:'CTRL / C',kCrouch:'蹲下 —— 更稳，也更难被打中',kReload:'换弹',
   kRight:'右键（按住）',kNade:'扔手雷 —— 按得越久扔得越远',
-  kNood:'面碗',kNoodD:'走过去就吃 —— 回满血',
-  hudNade:'手雷',tapNade:'雷',tankName:'部落坦克',
+  kNood:'黄面碗',kNoodD:'走过去就吃 —— 回满血',
+  kNova:'青面碗',kNovaD:'星辰面 —— 子弹威力 ×3，持续一阵子',
+  hudNade:'手雷',tapNade:'雷',hudPow:'星辰面',tankName:'部落坦克',
   btnStart:'跳伞',btnAgain:'再来一次',btnBack:'返回战场',
   stKills:'你的击毙',stTime:'用时',stAcc:'命中率',
   stStand:'站立',stCrouch:'蹲姿',stRun:'冲刺',
@@ -313,7 +300,8 @@ zh:{
   deadSub:'阵亡',deadH:'你倒下了',deadP:'他们是成群冲上来的，硬扛扛不住。下次先甩一颗手雷开路，蹲下再开枪，红圈一亮立刻挪窝，血见底就去踩那碗面。',
   rDrop:'跳伞中 · 风向西北',rLand:'着陆 · 部落守军警觉',rReload:'换弹中',
   rNood:'热汤下肚 —— 满血',rNoNade:'手雷用完了',
-  rTank:'坦克出来了 —— 别站在红圈里',rTankDown:'坦克报废',
+  rPow:'星辰面 —— 子弹变强了',rPowOut:'星辰面劲过了',
+  rTank:'坦克出来了 —— 别站在红圈里',rTank2:'第二辆坦克从西南上来了',rTankDown:'坦克报废',
   rMore:'又一队上来了',rLast:'最后一个',rAlly:'队友已着陆',
   fdKill:(a,b)=>a+' 击毙 '+b, youName:'你',
   allyNames:['刀削','拉条子','臊子'],
@@ -325,14 +313,14 @@ en:{
   navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',
   title:'Drop on Chang’an',hint:'test build · mouse and keys on desktop, twin sticks on a phone',
   hudHp:'HP',hudObj:'CLEARED',
-  gateSub:'RESTRICTED',gateH:'Enter the password',gateP:'This build is for testers only.',gateBtn:'Enter',gateErr:'Wrong password',gateNo:'This browser cannot check the password; try another.',
   briefSub:'MISSION',briefH:'Drop behind the Tribe’s lines',
-  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — twelve of them, and a tank. There are bowls of noodles down there; walk over one and you are back to full.',
+  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — twelve of them, and two tanks. There are bowls down there: the gold ones put you back to full, the cyan ones make your rounds bite three times as hard.',
   kMove:'move',kMouse:'MOUSE',kAim:'aim',kClick:'LEFT CLICK',kFire:'fire',
   kRun:'sprint',kCtrl:'CTRL / C',kCrouch:'crouch — steadier, and harder to hit',kReload:'reload',
   kRight:'RIGHT CLICK (HOLD)',kNade:'throw a grenade — the longer you hold, the further it goes',
-  kNood:'NOODLES',kNoodD:'walk over one — back to full health',
-  hudNade:'FRAGS',tapNade:'FRAG',tankName:'Tribe tank',
+  kNood:'GOLD BOWL',kNoodD:'walk over one — back to full health',
+  kNova:'CYAN BOWL',kNovaD:'nova noodles — ×3 damage for a while',
+  hudNade:'FRAGS',tapNade:'FRAG',hudPow:'CHARGED',tankName:'Tribe tank',
   btnStart:'Jump',btnAgain:'Again',btnBack:'Back to the battle',
   stKills:'YOUR KILLS',stTime:'TIME',stAcc:'ACCURACY',
   stStand:'STANDING',stCrouch:'CROUCHED',stRun:'SPRINT',
@@ -340,7 +328,8 @@ en:{
   deadSub:'KILLED IN ACTION',deadH:'You went down',deadP:'They came at you in a rush, and standing there trading shots was never going to work. Open with a grenade, go to a knee before you fire, move the instant the red ring lights, and walk over a bowl when the bar runs low.',
   rDrop:'jumping · wind from the north-west',rLand:'landed · the garrison is alerted',rReload:'reloading',
   rNood:'hot bowl down — back to full',rNoNade:'out of grenades',
-  rTank:'tank is out — do not stand in the red',rTankDown:'tank is wrecked',
+  rPow:'nova bowl — your rounds bite',rPowOut:'the nova bowl has worn off',
+  rTank:'tank is out — do not stand in the red',rTank2:'a second tank, coming up from the south-west',rTankDown:'tank is wrecked',
   rMore:'another squad coming',rLast:'last one',rAlly:'squad on the ground',
   fdKill:(a,b)=>a+' killed '+b, youName:'You',
   allyNames:['Daoxiao','Latiaozi','Saozi'],
@@ -374,39 +363,6 @@ $('#langBtn').addEventListener('click',()=>{
     box.appendChild(s);
   }
 })();
-
-/* ================= the gate ================= */
-/* The password never appears in this file: what is stored is its digest, and
-   what is typed is digested the same way and compared. Good enough for a test
-   build that only needs to keep passers-by out; it is not, and does not claim
-   to be, a lock. */
-const GATE_HASH='0cc34c8375f72321054cdff74148106c8379467cd56cc7721333bcee97cac1e6';
-async function digest(s){
-  const b=new TextEncoder().encode(s);
-  const h=await crypto.subtle.digest('SHA-256',b);
-  return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('');
-}
-let unlocked=false;
-try{unlocked=sessionStorage.getItem('noodl_demo')==='1';}catch(e){}
-$('#gateForm').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const ui=I18N[lang],err=$('#gateErr'),card=$('#gateCard');
-  const v=($('#pw').value||'').trim().toUpperCase();
-  if(!(crypto&&crypto.subtle)){err.textContent=ui.gateNo;return;}
-  let ok=false;
-  try{ok=(await digest(v))===GATE_HASH;}catch(e2){ok=false;}
-  if(ok){
-    unlocked=true;
-    try{sessionStorage.setItem('noodl_demo','1');}catch(e3){}
-    $('#gate').hidden=true;
-    $('#brief').hidden=false;
-    $('#btnStart').focus();
-  }else{
-    err.textContent=ui.gateErr;
-    card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');
-    $('#pw').select();
-  }
-});
 
 /* ================= the look =================
    One sun for the whole field. Every shadow — a man, a wall, a cart, a tree —
@@ -637,38 +593,102 @@ function drawNade(c,x,y,z,H,spin,fuse){
   }
 }
 
-/* A bowl of noodles on the ground. The steam is the part that moves, because
-   it is what says hot food from across the compound. */
-function drawBowl(c,x,y,tt,ph,pop){
+/* The bowl, as the logo draws it: a cream rim, a deep sky inside, one golden
+   spiral of noodle, four planets riding it, a pair of chopsticks out of the
+   top-left, and a couple of stars. The whole thing is squashed to 0.58 on y
+   because it is lying on the ground and everything else here is.
+
+   The second kind is the same bowl with the galaxy lit cyan — same object,
+   different star. Nobody has to be told which is which twice. */
+const BOWLKIT={
+  hp:{rim:'#f3ead4',rimD:'#cfc3a6',sky:'#2c3355',skyD:'#232a46',
+      arm:'#f8ce4e',armL:'#fde08c',glow:'rgba(252,209,79,',
+      planet:['#f0742e','#68b7b0','#b5522e','#f0742e','#68b7b0']},
+  ap:{rim:'#e6f6f6',rimD:'#a9c8c8',sky:'#0c2b31',skyD:'#082126',
+      arm:'#00ffff',armL:'#b8ffff',glow:'rgba(0,255,255,',
+      planet:['#00ffff','#8ef2ef','#00c9c9','#e6ffff','#00ffff']}
+};
+function bowlSpiral(c,K,R,turn,w,col){
+  c.strokeStyle=col;c.lineWidth=w;c.lineCap='round';c.lineJoin='round';
+  c.beginPath();
+  for(let i=0;i<=64;i++){
+    const u=i/64, a=turn+u*6.9, r=R*(0.14+0.80*u);
+    const px=Math.cos(a)*r, py=Math.sin(a)*r*0.58;
+    i?c.lineTo(px,py):c.moveTo(px,py);
+  }
+  c.stroke();
+}
+function drawBowl(c,x,y,tt,ph,pop,kind){
+  const K=BOWLKIT[kind==='ap'?'ap':'hp'];
   if(pop>0){
     const u=1-pop/0.42;
-    c.save();c.globalAlpha=(1-u)*0.85;
-    c.strokeStyle='#fcd14f';c.lineWidth=2.6*(1-u)+0.6;
-    c.beginPath();c.ellipse(x,y,14+u*36,(14+u*36)*0.5,0,0,6.2832);c.stroke();
+    c.save();c.globalAlpha=(1-u)*0.9;
+    c.strokeStyle=K.arm;c.lineWidth=2.8*(1-u)+0.6;
+    c.beginPath();c.ellipse(x,y,15+u*40,(15+u*40)*0.5,0,0,6.2832);c.stroke();
+    c.strokeStyle=K.rim;c.lineWidth=1.6*(1-u)+0.4;
+    c.beginPath();c.ellipse(x,y,9+u*24,(9+u*24)*0.5,0,0,6.2832);c.stroke();
     c.restore();return;
   }
   const bob=Math.sin(tt*1.9+ph)*1.4;
+  const R=16.5, spin=tt*(kind==='ap'?0.85:0.42)+ph;
   c.save();
   c.fillStyle='rgba(10,10,14,.30)';
-  c.beginPath();c.ellipse(x+SUN.x*7,y+SUN.y*5,13,6.4,0,0,6.2832);c.fill();
+  c.beginPath();c.ellipse(x+SUN.x*7,y+SUN.y*5,14,7,0,0,6.2832);c.fill();
   c.translate(x,y-3+bob);
-  c.fillStyle='#c9c2ae';c.beginPath();c.ellipse(0,0,14,8,0,0,6.2832);c.fill();
-  c.fillStyle='#3a2a18';c.beginPath();c.ellipse(0,0,10.6,5.9,0,0,6.2832);c.fill();
-  c.strokeStyle='#ef9530';c.lineWidth=1.9;c.lineCap='round';
-  c.beginPath();c.arc(-2.4,0.6,5.2,0.4,4.2);c.stroke();
-  c.beginPath();c.arc(3.4,-0.8,3.6,2.6,6.0);c.stroke();
-  c.strokeStyle='#fcd14f';c.lineWidth=1.7;
-  c.beginPath();c.arc(0.6,-0.4,6.4,3.4,6.1);c.stroke();
-  c.strokeStyle='#8f7449';c.lineWidth=1.5;
-  c.beginPath();c.moveTo(-11,-4.6);c.lineTo(9,3.4);
-  c.moveTo(-10,-6.4);c.lineTo(10,1.6);c.stroke();
-  c.fillStyle='rgba(255,255,255,.16)';
-  c.beginPath();c.ellipse(-5,-4.2,5.4,2.2,-0.35,0,6.2832);c.fill();
+
+  /* the chopsticks lean out of the top-left, as on the label */
+  c.save();c.rotate(0.62);
+  c.fillStyle='#c9a03c';c.fillRect(-R-13,-1.0,17,2.6);
+  c.fillStyle='#f5c74b';c.fillRect(-R-13,-4.0,17,2.6);
+  c.strokeStyle='rgba(120,88,26,.5)';c.lineWidth=0.7;
+  for(let i=0;i<5;i++){const px=-R-11+i*3.2;
+    c.beginPath();c.moveTo(px,-4.0);c.lineTo(px,1.6);c.stroke();}
   c.restore();
+
+  /* rim, then the sky inside it */
+  c.fillStyle=K.rimD;c.beginPath();c.ellipse(0,0.9,R,R*0.58,0,0,6.2832);c.fill();
+  c.fillStyle=K.rim;c.beginPath();c.ellipse(0,0,R,R*0.58,0,0,6.2832);c.fill();
+  c.fillStyle=K.skyD;c.beginPath();c.ellipse(0,0.4,R-2.7,(R-2.7)*0.58,0,0,6.2832);c.fill();
+  c.fillStyle=K.sky;c.beginPath();c.ellipse(0,0,R-3.1,(R-3.1)*0.58,0,0,6.2832);c.fill();
+
+  /* the galaxy */
+  c.save();
+  c.beginPath();c.ellipse(0,0,R-3.1,(R-3.1)*0.58,0,0,6.2832);c.clip();
+  const pulse=kind==='ap'?0.5+0.5*Math.sin(tt*4+ph):0.35;
+  c.globalAlpha=0.34+0.40*pulse;
+  bowlSpiral(c,K,R-3.4,spin,4.6,K.glow+'0.55)');
+  c.globalAlpha=1;
+  /* the arm is the thing the logo is: it has to be read before the planets,
+     which is why they are the smaller of the two and sit on top of it */
+  bowlSpiral(c,K,R-3.4,spin,3.0,K.arm);
+  bowlSpiral(c,K,R-3.4,spin+0.13,1.2,K.armL);
+  /* four planets, each with the logo's white ring */
+  for(let i=0;i<4;i++){
+    const u=0.20+i*0.23, a=spin+u*6.9, r=(R-3.4)*(0.14+0.80*u);
+    const px=Math.cos(a)*r, py=Math.sin(a)*r*0.58;
+    c.fillStyle='#fdfaf0';c.beginPath();c.arc(px,py,2.1,0,6.2832);c.fill();
+    c.fillStyle=K.planet[i];c.beginPath();c.arc(px,py,1.35,0,6.2832);c.fill();
+  }
+  c.restore();
+
+  /* two stars, and the sheen on the porcelain */
+  c.fillStyle=K.rim;
+  for(let i=0;i<2;i++){
+    const a=spin*0.5+i*2.4, px=Math.cos(a)*(R-5.5), py=Math.sin(a)*(R-5.5)*0.58;
+    const q=1.8+0.5*Math.sin(tt*3+i*2+ph);
+    c.beginPath();
+    c.moveTo(px,py-q*1.7);c.quadraticCurveTo(px,py,px+q,py);
+    c.quadraticCurveTo(px,py,px,py+q*1.7);c.quadraticCurveTo(px,py,px-q,py);
+    c.quadraticCurveTo(px,py,px,py-q*1.7);c.fill();
+  }
+  c.fillStyle='rgba(255,255,255,.20)';
+  c.beginPath();c.ellipse(-5.6,-4.6,5.6,1.9,-0.35,0,6.2832);c.fill();
+  c.restore();
+
   for(let i=0;i<3;i++){
     const u=((tt*0.55+ph*0.3+i*0.33)%1);
-    c.globalAlpha=0.26*(1-u);c.fillStyle='#e6e2d4';
-    c.beginPath();c.arc(x+Math.sin(u*5+i*2)*4,y-6-u*24,2.2+u*4.6,0,6.2832);c.fill();
+    c.globalAlpha=0.24*(1-u);c.fillStyle=kind==='ap'?'#cffcfc':'#e6e2d4';
+    c.beginPath();c.arc(x+Math.sin(u*5+i*2)*4,y-8-u*24,2.2+u*4.6,0,6.2832);c.fill();
   }
   c.globalAlpha=1;
 }
@@ -795,8 +815,18 @@ const COVER=SCENE.filter(p=>p.cover);
 /* Where the bowls are. Placed by hand and left there: a bowl you can learn the
    position of is a decision you get to make, a bowl scattered afresh each run
    is only luck. One sits on the drop zone so the first thing you find out is
-   that they exist at all. */
-const BOWLS=[[LZ.x+165,LZ.y-25],[505,1000],[1170,955],[1755,1030],[1240,575],[955,1250]];
+   that they exist at all.
+
+   'ap' is the cyan one and it is rarer and further forward, because a gun that
+   hits three times as hard should cost you the walk to get it. */
+const BOWLS=[
+  [LZ.x+165,LZ.y-25,'hp'],[LZ.x-120,LZ.y+150,'ap'],
+  [505,1000,'hp'],  [760,1330,'hp'],  [955,1250,'ap'],
+  [1170,955,'hp'],  [1240,575,'hp'],  [1015,700,'hp'],
+  [1470,1180,'hp'], [1755,1030,'hp'], [1610,760,'ap'],
+  [1900,1290,'hp'], [2010,880,'hp'],  [1420,330,'ap'],
+  [700,640,'hp'],   [2120,520,'hp'],  [1850,420,'hp']
+];
 /* and none of them inside a cart: rather than trust the arithmetic, walk out
    from the spot until the ground is clear */
 function freeSpot(x,y){
@@ -1139,18 +1169,20 @@ const P_REGEN=45;
 const DROP_T=4.6, DROP_ALT=460;
 const SC=1.72;
 
-/* the tank. one of them, and it is the reason you cannot stand still */
+/* the tanks. two of them, and they are the reason you cannot stand still */
 const TANK_HP=46, TANK_SPD=52, TANK_CD=4.6, TANK_TELE=1.75, TANK_R=62, TANK_STAND=430;
 /* grenades: how long a hold is worth, and what it does when it lands */
 const NADES=4, NADE_CHG=1.15, NADE_MIN=130, NADE_MAX=540, NADE_FUSE=0.85;
 const NADE_R=104, NADE_DMG=26, NADE_FF=0.45, NADE_TANK=20, NADE_CD=0.55;
 /* and the food */
 const BOWL_R=28, BOWL_RESP=15;
+/* the cyan bowl: three times the bite, for a while, and it stacks up to a cap */
+const POW_T=13, POW_MAX=26, POW_DMG=3;
 
 /* ---------------- state ---------------- */
-let phase='gate', t=0, last=0, raf=0;
+let phase='brief', t=0, last=0, raf=0;
 let P, foes, allies, bullets, sparks, bodies, shells;
-let tank=null, nades=[], blasts=[], pickups=[], shake=0;
+let tanks=[], nades=[], blasts=[], pickups=[], shake=0;
 let cam={x:0,y:0}, aim={x:0,y:0};
 let mouse={x:VW/2,y:350,down:false,r:false}, keys={};
 let cleared=0, myKills=0, spawned=0, spawnT=0, shots=0, hits=0, startAt=0, endAt=0, overT=0;
@@ -1164,12 +1196,12 @@ function reset(){
   const ui=I18N[lang];
   P=mkUnit(LZ.x,LZ.y,'blue',P_HP,ui.youName);
   P.mag=MAG;P.reload=0;P.alt=DROP_ALT;
-  P.nades=NADES;P.chg=0;P.ncd=0;
+  P.nades=NADES;P.chg=0;P.ncd=0;P.pow=0;
   foes=[];allies=[];bullets=[];sparks=[];bodies=[];shells=[];
   nades=[];blasts=[];shake=0;
-  tank=null;
+  tanks=[];
   pickups=BOWLS.map((b,i)=>{const q=freeSpot(b[0],b[1]);
-    return {x:q.x,y:q.y,on:true,t:0,pop:0,ph:i*1.7};});
+    return {x:q.x,y:q.y,kind:b[2]||'hp',on:true,t:0,pop:0,ph:i*1.7};});
   cleared=0;myKills=0;spawned=0;spawnT=1.2;shots=0;hits=0;lastHit=-9;
   /* two NOODLERs come down with you */
   [[-90,60],[95,42]].forEach((o,i)=>{
@@ -1385,19 +1417,25 @@ function die(u,killer){
   }
 }
 
-/* ---------------- the tank ----------------
-   One of them, and it is the reason standing still stops working. It does not
-   shoot you: it shoots a circle on the ground, and then a second and three
-   quarters later the circle goes off. Everything inside dies — you, your
+/* ---------------- the tanks ----------------
+   Two of them, and they are the reason standing still stops working. Neither
+   shoots at you: each shoots a circle onto the ground, and a second and three
+   quarters later that circle goes off. Everything inside dies — you, your
    squad, and any of the Tribe who happened to be standing there, because a
    shell does not check. That is the whole mechanic: it is never a surprise,
    only a decision you had time to make. */
-function spawnTank(){
-  tank={x:KEEP.x-40,y:KEEP.y+205,ang:1.9,turret:1.9,hp:TANK_HP,
-        cd:2.4,aim:null,tread:0,alive:true};
-  radio(I18N[lang].rTank);
+/* the first rolls down from the keep, the second comes round the south-west
+   with its fuse deliberately out of step with the first */
+const TANK_IN=[{x:KEEP.x-40,y:KEEP.y+205,ang:1.9,cd:2.4},
+               {x:620,y:1390,ang:-0.7,cd:5.1}];
+function spawnTank(n){
+  const d=TANK_IN[Math.min(n||0,TANK_IN.length-1)];
+  tanks.push({x:d.x,y:d.y,ang:d.ang,turret:d.ang,hp:TANK_HP,
+              cd:d.cd,aim:null,tread:0,alive:true});
+  radio(I18N[lang][tanks.length>1?'rTank2':'rTank']);
 }
-function stepTank(dt){
+function stepTanks(dt){for(let i=0;i<tanks.length;i++)stepTank(tanks[i],dt);}
+function stepTank(tank,dt){
   if(!tank||!tank.alive)return;
   const tx=P.alive?P.x:tank.x, ty=P.alive?P.y:tank.y;
   const dx=tx-tank.x, dy=ty-tank.y, d=Math.hypot(dx,dy)||1;
@@ -1439,14 +1477,16 @@ function stepTank(dt){
   }else if(P.alive&&phase==='fight'){
     tank.cd-=dt;
     if(tank.cd<=0){
-      tank.cd=TANK_CD;
+      /* jittered, or two tanks on the same fixed period stay locked out of
+         phase for ever and never once catch you between two circles */
+      tank.cd=TANK_CD*(0.80+Math.random()*0.40);
       /* it aims where you are, not where you will be — the circle is a promise
          it keeps, and moving off it is always enough */
       tank.aim={x:P.x,y:P.y,t:0};
     }
   }
 }
-function hurtTank(dmg,by){
+function hurtTank(tank,dmg,by){
   if(!tank||!tank.alive)return;
   tank.hp-=dmg;
   if(tank.hp>0)return;
@@ -1469,7 +1509,7 @@ function frame(now){
        backwards. performance.now() is monotonic, but nothing downstream should
        depend on that being true. */
     const dt=clamp((now-last)/1000||0,0,0.05);last=now;
-    if(phase!=='gate'&&phase!=='brief'){t+=dt;step(dt);}
+    if(phase!=='brief'){t+=dt;step(dt);}
     draw(now);
   }catch(e){raf=0;window.__gameErr=String(e&&e.stack||e);console.error(e);return;}
   raf=requestAnimationFrame(frame);
@@ -1533,9 +1573,14 @@ function step(dt){
     gaitOf(P,dt,mL*spd,P_WALK);
     if(P.reload>0){P.reload-=dt;if(P.reload<=0){P.reload=0;P.mag=MAG;}}
     else if(firing&&t-P.fire>=P_ROF&&P.run<0.5&&P.mag>0){
-      shoot(P,'blue',0.016+0.05*(1-P.cr)+0.03*Math.min(1,P.spd/P_WALK),1,SC);
+      shoot(P,'blue',0.016+0.05*(1-P.cr)+0.03*Math.min(1,P.spd/P_WALK),P.pow>0?POW_DMG:1,SC);
       P.mag--;shots++;
       if(P.mag===0)startReload();
+    }
+    if(P.pow>0){
+      P.pow-=dt;
+      if(P.pow<=0){P.pow=0;radio(I18N[lang].rPowOut);}
+      paintHud();
     }
     /* back to a floor and no further. everything above that line has to be
        eaten, which is what the bowls are for */
@@ -1554,13 +1599,15 @@ function step(dt){
       foes.push(f);spawned++;
       spawnT=1.05+rnd()*0.8;
       if(spawned===4)radio(ui.rMore);
-      if(spawned===5&&!tank)spawnTank();
+      /* one at five men down, the other at nine */
+      if(spawned===5&&tanks.length===0)spawnTank(0);
+      if(spawned===9&&tanks.length===1)spawnTank(1);
     }
     const mine=allies.filter(a=>a.alive).concat(P.alive?[P]:[]);
     const theirs=foes.filter(f=>f.alive);
     foes.forEach(e=>{if(e.alive)brain(e,dt,mine,true);});
     allies.forEach(a=>{if(a.alive)brain(a,dt,theirs,false);});
-    stepTank(dt);
+    stepTanks(dt);
   }
 
   /* ---- rounds in the air ---- */
@@ -1577,11 +1624,16 @@ function step(dt){
         }
       }
     }
-    if(!gone&&b.side==='blue'&&tank&&tank.alive){
-      if(Math.abs(nx-tank.x)<30&&Math.abs(ny-tank.y)<26){
-        spark(nx,ny,'#d8cfae',5,180);gone=true;
-        if(b.by===P)hits++;
-        hurtTank(b.dmg,b.by);
+    if(!gone&&b.side==='blue'){
+      for(let k=0;k<tanks.length;k++){
+        const tk=tanks[k];
+        if(!tk.alive)continue;
+        if(Math.abs(nx-tk.x)<30&&Math.abs(ny-tk.y)<26){
+          spark(nx,ny,'#d8cfae',5,180);gone=true;
+          if(b.by===P)hits++;
+          hurtTank(tk,b.dmg,b.by);
+          break;
+        }
       }
     }
     if(!gone){
@@ -1628,7 +1680,8 @@ function step(dt){
       dctx.fillStyle='rgba(26,22,17,.32)';
       dctx.beginPath();dctx.ellipse(n.x,n.y,28,16,0,0,6.2832);dctx.fill();
     }
-    if(tank&&tank.alive&&Math.hypot(tank.x-n.x,tank.y-n.y)<NADE_R+14)hurtTank(NADE_TANK,n.by);
+    for(let k=0;k<tanks.length;k++)
+      if(tanks[k].alive&&Math.hypot(tanks[k].x-n.x,tanks[k].y-n.y)<NADE_R+14)hurtTank(tanks[k],NADE_TANK,n.by);
     const all=foes.concat(allies,[P]);
     for(let k=0;k<all.length;k++){
       const u=all[k];if(!u.alive)continue;
@@ -1650,15 +1703,34 @@ function step(dt){
   for(let i=0;i<pickups.length;i++){
     const q=pickups[i];
     if(q.pop>0)q.pop-=dt;
-    if(!q.on){q.t-=dt;if(q.t<=0)q.on=true;continue;}
+    if(!q.on){
+      q.t-=dt;
+      if(q.t<=0){
+        q.on=true;
+        /* a bowl that comes back under your feet is a bowl you never have to
+           leave: standing on the cyan one would have been a permanent gun */
+        q.lock=!!(P&&P.alive&&Math.hypot(P.x-q.x,P.y-q.y)<=BOWL_R);
+      }
+      continue;
+    }
     if(phase!=='fight'||!P.alive)continue;
-    /* a full man walking over one would only waste it */
-    if(P.hp>=P_HP)continue;
+    if(q.lock){if(Math.hypot(P.x-q.x,P.y-q.y)>BOWL_R*1.4)q.lock=false;continue;}
     if(Math.hypot(P.x-q.x,P.y-q.y)>BOWL_R)continue;
-    P.hp=P_HP;lastHit=-9;
+    /* You always get the flash, full bar or not. Walking over a bowl and
+       having nothing happen reads as a bug, and a bowl that is only sometimes
+       a bowl is not worth learning the position of. */
+    if(q.kind==='ap'){
+      P.pow=Math.min(POW_MAX,P.pow+POW_T);
+      spark(q.x,q.y,'#00ffff',22,180);spark(q.x,q.y,'#b8ffff',12,120);
+      blasts.push({x:q.x,y:q.y,t:0,R:34,col:'#00ffff'});
+      radio(I18N[lang].rPow);
+    }else{
+      P.hp=P_HP;lastHit=-9;
+      spark(q.x,q.y,'#fcd14f',18,150);spark(q.x,q.y,'#ef9530',10,110);
+      blasts.push({x:q.x,y:q.y,t:0,R:30,col:'#fcd14f'});
+      radio(I18N[lang].rNood);
+    }
     q.on=false;q.t=BOWL_RESP;q.pop=0.42;
-    spark(q.x,q.y,'#fcd14f',18,150);spark(q.x,q.y,'#ef9530',10,110);
-    radio(I18N[lang].rNood);
     paintHud(true);
   }
 
@@ -1866,7 +1938,7 @@ function draw(now){
   for(let i=0;i<pickups.length;i++)
     if(pickups[i].on||pickups[i].pop>0)L.push({y:pickups[i].y,k:'n',n:pickups[i]});
   for(let i=0;i<nades.length;i++)L.push({y:nades[i].y,k:'g',g:nades[i]});
-  if(tank)L.push({y:tank.y,k:'t'});
+  for(let i=0;i<tanks.length;i++)L.push({y:tanks[i].y,k:'t',tk:tanks[i]});
   foes.forEach(u=>{if(u.alive)L.push({y:u.y,k:'u',u});});
   allies.forEach(u=>{if(u.alive)L.push({y:u.y,k:'u',u});});
   if(P&&P.alive)L.push({y:P.y,k:'u',u:P,me:true});
@@ -1910,12 +1982,13 @@ function draw(now){
       continue;
     }
     if(it.k==='b'){drawDown(g,it.b);continue;}
-    if(it.k==='n'){drawBowl(g,it.n.x,it.n.y,tt,it.n.ph,it.n.pop);continue;}
+    if(it.k==='n'){drawBowl(g,it.n.x,it.n.y,tt,it.n.ph,it.n.pop,it.n.kind);continue;}
     if(it.k==='g'){
       drawNade(g,it.g.x,it.g.y,it.g.z||0,it.g.H,it.g.spin,it.g.land?it.g.f:0);continue;
     }
     if(it.k==='t'){
-      drawTank(g,tank.x,tank.y,tank.ang,tank.turret,tank.tread,KIT.red,!tank.alive);continue;
+      const tk=it.tk;
+      drawTank(g,tk.x,tk.y,tk.ang,tk.turret,tk.tread,KIT.red,!tk.alive);continue;
     }
     const u=it.u;
     if(phase==='drop'&&u.alt>0){
@@ -1943,7 +2016,9 @@ function draw(now){
      so "how long have I got" is the size of the ring and nothing has to be
      read. It is drawn under the men, on the ground, because that is where it
      is. */
-  if(tank&&tank.alive&&tank.aim){
+  for(let ti=0;ti<tanks.length;ti++){
+    const tank=tanks[ti];
+    if(!tank.alive||!tank.aim)continue;
     const a=tank.aim, u=clamp(a.t/TANK_TELE,0,1);
     g.fillStyle='rgba(255,60,50,'+(0.10+0.16*u).toFixed(2)+')';
     g.beginPath();g.ellipse(a.x,a.y,TANK_R,TANK_R*0.52,0,0,6.2832);g.fill();
@@ -1990,10 +2065,12 @@ function draw(now){
   /* rounds, brass, dust */
   for(let i=0;i<bullets.length;i++){
     const b=bullets[i], L2=Math.hypot(b.vx,b.vy)||1, ux=b.vx/L2, uy=b.vy/L2;
-    g.strokeStyle=b.side==='blue'?'rgba(190,255,225,.5)':'rgba(255,190,150,.5)';
-    g.lineWidth=2.1;g.beginPath();g.moveTo(b.x-ux*26,b.y-uy*26);g.lineTo(b.x,b.y);g.stroke();
-    g.strokeStyle=b.side==='blue'?'#e6fff4':'#ffe9c8';
-    g.lineWidth=1.1;g.beginPath();g.moveTo(b.x-ux*9,b.y-uy*9);g.lineTo(b.x,b.y);g.stroke();
+    /* a charged round is longer and cyan, so you can see the bowl working */
+    const hot=b.side==='blue'&&b.dmg>1, tail=hot?38:26;
+    g.strokeStyle=hot?'rgba(0,255,255,.55)':(b.side==='blue'?'rgba(190,255,225,.5)':'rgba(255,190,150,.5)');
+    g.lineWidth=hot?3:2.1;g.beginPath();g.moveTo(b.x-ux*tail,b.y-uy*tail);g.lineTo(b.x,b.y);g.stroke();
+    g.strokeStyle=hot?'#e6ffff':(b.side==='blue'?'#e6fff4':'#ffe9c8');
+    g.lineWidth=hot?1.7:1.1;g.beginPath();g.moveTo(b.x-ux*(hot?14:9),b.y-uy*(hot?14:9));g.lineTo(b.x,b.y);g.stroke();
   }
   for(let i=0;i<shells.length;i++){
     const s=shells[i];
@@ -2090,6 +2167,9 @@ function paintHud(force){
     for(let i=0;i<NADES;i++)np.appendChild(document.createElement('i'));
   }
   for(let i=0;i<np.children.length;i++)np.children[i].className=i<P.nades?'n':'';
+  const pb=$('#powBox');
+  pb.hidden=!(P.pow>0);
+  if(P.pow>0)$('#powBar').style.width=Math.min(100,P.pow/POW_MAX*100).toFixed(1)+'%';
   const ab=$('#ammoBox');
   ab.classList.toggle('rl',P.reload>0);
   $('#ammo').innerHTML=(P.reload>0?'…':P.mag)+' <em>/ ∞</em>';
@@ -2125,8 +2205,7 @@ $('#btnAgain').addEventListener('click',begin);
 
 /* ---------------- boot ---------------- */
 fit();bakeGround();reset();
-if(unlocked){$('#gate').hidden=true;$('#brief').hidden=false;}
-else{setTimeout(()=>{try{$('#pw').focus();}catch(e){}},50);}
+setTimeout(()=>{try{$('#btnStart').focus();}catch(e){}},50);
 start();
 document.addEventListener('visibilitychange',()=>{if(document.hidden){keys={};mouse.down=false;}});
 })();

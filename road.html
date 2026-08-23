@@ -115,8 +115,10 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:22px 16p
 }
 .bar button:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
 .bar button.on{color:var(--noodle-y);border-color:rgba(252,209,79,.45);background:rgba(252,209,79,.08)}
-.bar .note{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
-.bar .note b{color:var(--text-2);font-weight:600}
+/* said only when the sound is switched on, and only on something with a
+   finger, because it is about a switch on the side of a phone */
+.bar .snote{flex-basis:100%;order:9;font-size:11.5px;color:var(--noodle-y);min-height:0;transition:opacity .2s}
+.bar .snote:empty{display:none}
 
 /* A bar you can put your finger anywhere on. The rail is three pixels but the
    thing you grab is twenty-two, because a three-pixel target is a bar you can
@@ -144,7 +146,6 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:22px 16p
 .dots::after{content:'';animation:dt 1.4s steps(4,end) infinite}
 @keyframes dt{0%{content:''}25%{content:'·'}50%{content:'··'}75%{content:'···'}}
 
-.foot-note{margin:16px auto 0;max-width:760px;font-size:12px;color:var(--dim);line-height:1.85;text-align:center}
 footer{position:relative;z-index:1;text-align:center;padding:26px 20px 34px;font-size:12px;color:var(--dim);line-height:1.8}
 footer a{color:var(--text-2);text-decoration:none}
 footer a:hover{color:var(--cyan)}
@@ -206,9 +207,9 @@ footer a:hover{color:var(--cyan)}
     <div class="bar">
       <div class="btns">
         <button id="btnPlay" type="button" data-i="btnReplay">Replay</button>
-        <button id="btnSound" type="button" aria-pressed="false" data-i="btnSound">Sound</button>
+        <button id="btnSound" type="button" aria-pressed="false">Mute</button>
       </div>
-      <div class="note" id="note"></div>
+      <div class="snote" id="snote" role="status" aria-live="polite"></div>
     </div>
 
     <div class="state" id="state">
@@ -220,7 +221,6 @@ footer a:hover{color:var(--cyan)}
     </div>
   </section>
 
-  <p class="foot-note" data-i="footNote"></p>
 </main>
 
 <footer>
@@ -311,7 +311,8 @@ const SAYS=[
                   en:'You dumped it in the middle of the night. Do not think I missed it'},
   {d:'2026-08-20',zh:'Bob 这个人太固执了，不会做营销，技术更新也慢',
                   en:'Bob is too stubborn. He cannot market, and he ships slowly'},
-  {d:'2026-08-22',zh:'等回调，回调再进',               en:'I will wait for the dip. I will wait for the dip'},
+  /* the road ends on the line it was launched with, one bowl later */
+  {d:'2026-08-22',zh:'面条太贵了',                     en:'The noodle is too expensive'},
 
   /* ---- still waiting, above every price it has ever printed ---- */
   {mc:350e3, zh:'面条的价格有巨大的泡沫',              en:'The noodle is a giant bubble'},
@@ -329,12 +330,13 @@ zh:{
   title:'NOODL 来时路',hint:'从 0 到现在 · 进度条可以拖',
   subMc:'市值',
   btnReplay:'重播',btnStop:'停',btnSound:'配乐',
+  btnMute:'静音',btnUnmute:'开声音',
+  sndHint:'没声音？把 iPhone 侧边的静音开关拨开',
   loadH:'正在调取全部成交',loadP:'从 odin.fun 拉 NOODL 的每一笔交易',
   errH:'拉不到行情',errP:'odin.fun 这会儿没给出数据。网络恢复后再试一次。',btnRetry:'再试一次',
   said:'当时有人说',scrubLabel:'时间轴',
   noteLive:(d,n)=>d+' 起 · '+n+' 笔成交',
   noteEnd:'现在',
-  footNote:'这条路上的每一句，都是当时真有人说的意思。市值由 odin.fun 的全部成交逐笔还原，统一按"当前"BTC 价折成美元 —— 所以早期那一段是用今天的钱在算，峰值会比 odin.fun 自己图上的美元峰值高一些。播完以后停在实时数字上，每 20 秒更新一次。'
 },
 en:{
   linkToken:'Odin.Fun ↗',linkCommunity:'Community ↗',
@@ -342,12 +344,13 @@ en:{
   title:'The road here',hint:'zero to now — drag the bar',
   subMc:'MARKET CAP',
   btnReplay:'Replay',btnStop:'Stop',btnSound:'Sound',
+  btnMute:'Mute',btnUnmute:'Unmute',
+  sndHint:'No sound? Flick the iPhone side switch off silent',
   loadH:'Reading the tape',loadP:'Pulling every NOODL trade off odin.fun',
   errH:'No tape',errP:'odin.fun did not hand over the data just now. Try again when the network is back.',btnRetry:'Try again',
   said:'SOMEBODY SAID',scrubLabel:'timeline',
   noteLive:(d,n)=>'since '+d+' · '+n+' trades',
   noteEnd:'now',
-  footNote:'Every line on this road is something people actually said at the time. The market cap is rebuilt trade by trade from the full history on odin.fun and converted at today’s BTC rate throughout — so the early stretch is priced in today’s money, and the peak here reads higher than the dollar peak on odin.fun’s own chart. When the replay catches up it stays on the live number, refreshed every 20 seconds.'
 }};
 let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
 if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
@@ -357,6 +360,8 @@ function applyLang(){
   document.querySelectorAll('[data-i]').forEach(el=>{const v=ui[el.dataset.i];if(typeof v==='string')el.textContent=v;});
   $('#langBtn').textContent=lang==='zh'?'EN':'中文';
   const sc=$('#scrub');if(sc)sc.setAttribute('aria-label',ui.scrubLabel);
+  /* the mute button says what it does, not what it is, so it is not a data-i */
+  if(typeof soundBtn==='function')soundBtn();
   document.title=lang==='zh'?'NOODL 来时路 · NOODL.club':'The road here · NOODL.club';
   if(window.__repaint)window.__repaint();
 }
@@ -752,13 +757,24 @@ function finish(){
    The reference clip has music on it that belongs to whoever made it, so this
    builds its own: a slow pulse whose brightness rides the same momentum the
    number does. Off until asked for, because sound nobody asked for is rude. */
-let AC=null,master=null,soundOn=false;
+/* on unless switched off: the page wants to be heard, and the only thing in
+   the way is a browser that will not open a context until something is
+   touched. armed says the intent, soundOn says whether it is actually out. */
+let AC=null,master=null,soundOn=false,armed=true,said=false;
 let pad=null,thudAt=0,hiHeard=0;
 function audio(){
   if(AC)return AC;
   const C=window.AudioContext||window.webkitAudioContext;
   if(!C)return null;
   AC=new C();
+  /* iOS wants to hear something come out of the context inside the gesture
+     that made it, or the audio session never actually opens. One sample of
+     nothing is enough to ask. */
+  try{
+    const b=AC.createBuffer(1,1,22050), sN=AC.createBufferSource();
+    sN.buffer=b;sN.connect(AC.destination);sN.start(0);
+  }catch(e){}
+  AC.onstatechange=()=>{if(soundOn&&AC.state!=='running')AC.resume().catch(()=>{});};
   master=AC.createGain();master.gain.value=0.0001;master.connect(AC.destination);
 
   /* A long delay standing in for a hall. Something this slow needs somewhere
@@ -832,20 +848,84 @@ function quiet(){
   if(!AC||!master)return;
   master.gain.setTargetAtTime(0.0001,AC.currentTime,0.5);
 }
-$('#btnSound').addEventListener('click',()=>{
-  const b=$('#btnSound');
-  if(!soundOn){
-    const ac=audio();
-    if(!ac){b.disabled=true;return;}
-    if(ac.state==='suspended')ac.resume();
+/* one second of digital silence, made here rather than shipped */
+let keeper=null,keeperURL=null;
+function silentURL(){
+  if(keeperURL)return keeperURL;
+  const sr=8000,n=sr;
+  const buf=new ArrayBuffer(44+n*2), v=new DataView(buf);
+  const W=(o,txt)=>{for(let i=0;i<txt.length;i++)v.setUint8(o+i,txt.charCodeAt(i));};
+  W(0,'RIFF');v.setUint32(4,36+n*2,true);W(8,'WAVEfmt ');
+  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
+  W(36,'data');v.setUint32(40,n*2,true);
+  keeperURL=URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+  return keeperURL;
+}
+function keepAwake(on){
+  try{
+    if(on){
+      if(!keeper){keeper=new Audio();keeper.loop=true;keeper.preload='auto';keeper.src=silentURL();}
+      const pr=keeper.play();if(pr&&pr.catch)pr.catch(()=>{});
+    }else if(keeper){keeper.pause();}
+  }catch(e){}
+}
+/* A context that was running before the phone locked comes back suspended and
+   stays that way for ever unless somebody asks. Ask on the way back, and ask
+   again on the next thing the finger touches. */
+function wake(){
+  if(!armed||!AC||!soundOn)return;
+  if(AC.state!=='running')AC.resume().catch(()=>{});
+  keepAwake(true);
+}
+addEventListener('pointerdown',wake,{passive:true});
+addEventListener('touchend',wake,{passive:true});
+function soundBtn(){
+  const b=$('#btnSound');if(!b)return;
+  b.textContent=I18N[lang][armed?'btnMute':'btnUnmute'];
+  b.classList.toggle('on',!armed);
+  b.setAttribute('aria-pressed',armed?'false':'true');
+}
+/* bring it up. safe to call as often as you like; it only ever does the work
+   once the browser is actually willing. */
+function soundUp(){
+  if(!armed||soundOn)return;
+  const ac=audio();
+  if(!ac){armed=false;const b=$('#btnSound');if(b)b.disabled=true;soundBtn();return;}
+  const up=()=>{
+    if(!armed)return;
+    if(AC.state!=='running')return;      /* still blocked; the next touch tries again */
     soundOn=true;hiHeard=0;thudAt=0;
-    master.gain.setTargetAtTime(0.42,ac.currentTime,0.6);
-  }else{
-    soundOn=false;quiet();
-  }
-  b.classList.toggle('on',soundOn);
-  b.setAttribute('aria-pressed',soundOn?'true':'false');
+    keepAwake(true);
+    master.gain.setTargetAtTime(0.42,AC.currentTime,0.9);
+    if(series)tone(series[Math.min(series.length-1,Math.max(0,head))].mc,mom,headP);
+    if(!said){said=true;hint();}
+  };
+  if(ac.state!=='running'){const pr=ac.resume();(pr&&pr.then?pr:Promise.resolve()).then(up,up);}
+  else up();
+}
+function soundDown(){soundOn=false;quiet();keepAwake(false);}
+$('#btnSound').addEventListener('click',()=>{
+  armed=!armed;
+  if(armed)soundUp(); else soundDown();
+  soundBtn();
 });
+/* the first thing the finger or the key touches is the permission the browser
+   was waiting for, whatever it happened to be aimed at */
+['pointerdown','keydown','touchend'].forEach(ev=>
+  addEventListener(ev,()=>{if(armed&&!soundOn)soundUp();},{passive:true}));
+/* and try straight away, in case this browser does not need asking */
+soundBtn();
+setTimeout(soundUp,0);
+/* The one cause we cannot do anything about: on an iPhone the side switch
+   mutes web audio outright. Better to say so than to let it read as broken. */
+function hint(){
+  if(!(navigator.maxTouchPoints>0))return;
+  const n=$('#snote');if(!n)return;
+  n.textContent=I18N[lang].sndHint;
+  clearTimeout(hint._t);
+  hint._t=setTimeout(()=>{n.textContent='';},7000);
+}
 
 $('#btnPlay').addEventListener('click',()=>{
   if(playing)pause();
@@ -930,8 +1010,6 @@ async function boot(){
   }
   series=thin(data.rows,700);
   meta=data;
-  $('#note').innerHTML='<b>'+esc(fmtDate(series[0].t))+'</b> · '+
-    esc(String(meta.n))+(lang==='zh'?' 笔成交':' trades');
   $('#state').hidden=true;
   T0=series[0].t;T1=series[series.length-1].t;
   ATH=series.reduce((m,r)=>Math.max(m,r.mc),0);
@@ -971,8 +1049,14 @@ async function boot(){
   },20000);
 }
 $('#btnRetry').addEventListener('click',boot);
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&soundOn)quiet();
-  else if(!document.hidden&&soundOn&&AC)master.gain.setTargetAtTime(0.42,AC.currentTime,0.4);});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(soundOn)quiet();return;}
+  if(!soundOn||!AC)return;
+  const up=()=>master.gain.setTargetAtTime(0.42,AC.currentTime,0.4);
+  if(AC.state!=='running'){const pr=AC.resume();(pr&&pr.then?pr:Promise.resolve()).then(up,up);}
+  else up();
+  keepAwake(true);
+});
 
 window.__road={start,boot,seek,playFrom,pause,
   get series(){return series;},get head(){return head;},get headP(){return headP;},
