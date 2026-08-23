@@ -142,6 +142,12 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 20p
 }
 .joinlist b{font-weight:700;flex:none;min-width:6.2em}
 .joinlist .blue b{color:var(--blue)} .joinlist .red b{color:var(--red)} .joinlist .live b{color:#fcd14f}
+.joinlist li.go{padding:0}
+.joinlist li.go a{display:flex;gap:10px;align-items:baseline;flex:1;padding:8px 11px;text-decoration:none;border-radius:8px}
+.joinlist li.go a:hover{background:rgba(252,209,79,.06)}
+.joinlist .play{margin-left:auto;flex:none;font-style:normal;font-weight:700;color:var(--noodle-y);white-space:nowrap}
+.jointip .play{color:var(--noodle-y);font-style:normal;font-weight:700;margin-left:6px}
+.jc-live{cursor:pointer}
 .joinfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
 .joinw{
   border:1px solid rgba(0,255,255,.45);border-radius:6px;background:rgba(0,255,255,.07);
@@ -593,6 +599,7 @@ zh:{
   joinCity:{launch:'兰州',live:'长安',t50:'撒马尔罕',t500:'君士坦丁堡',t5000:'伦敦'},
   joinState:{launch:'已被 NOODLER 占领',live:'正在激烈交战',
              t50:'空军占领区',t500:'空军占领区',t5000:'空军占领区'},
+  joinPlay:'▶ 试玩 Demo',
   joinAct:{launch:'补给区 · 购买装备，研发武器（锁仓后可加入）',
            live:'正面战场 · 加入，改变战局',
            t50:'敌后战场 · 秘密潜入（5 分钟内买入 NOODL 加入）',
@@ -656,6 +663,7 @@ en:{
   joinCity:{launch:'Lanzhou',live:'Chang\u2019an',t50:'Samarkand',t500:'Constantinople',t5000:'London'},
   joinState:{launch:'held by the NOODLERs',live:'open battle',
              t50:'bear-held',t500:'bear-held',t5000:'bear-held'},
+  joinPlay:'▶ Play the demo',
   joinAct:{launch:'Supply zone \u00b7 buy kit, develop weapons (join once your stake is locked)',
            live:'The front \u00b7 join, and change the battle',
            t50:'Behind the lines \u00b7 slip in (buy NOODL within 5 minutes to join)',
@@ -8927,8 +8935,11 @@ function paintJoin(){
   if(list){
     list.innerHTML=THEATRES.map(th=>{
       const id=th.id,side=jSide[id]||'red';
-      return '<li class="'+side+'"><b>'+esc(ui.joinCity[id]||id)+'</b><span>'+
-             esc(ui.joinState[id]||'')+' — '+esc(ui.joinAct[id]||'')+'</span></li>';
+      const body='<b>'+esc(ui.joinCity[id]||id)+'</b><span>'+
+        esc(ui.joinState[id]||'')+' — '+esc(ui.joinAct[id]||'')+'</span>';
+      return id==='live'
+        ? '<li class="'+side+' go"><a href="demo.html">'+body+'<em class="play">'+esc(ui.joinPlay)+'</em></a></li>'
+        : '<li class="'+side+'">'+body+'</li>';
     }).join('');
   }
   jTip(null);
@@ -8944,7 +8955,8 @@ function jTip(id){
   }
   box.hidden=false;
   box.className='jointip '+(jSide[id]||'red');
-  box.innerHTML='<b>'+esc(ui.joinCity[id])+'</b>'+esc(ui.joinState[id])+' — '+esc(ui.joinAct[id]);
+  box.innerHTML='<b>'+esc(ui.joinCity[id])+'</b>'+esc(ui.joinState[id])+' — '+esc(ui.joinAct[id])
+    +(id==='live'?' <em class="play">'+esc(ui.joinPlay)+'</em>':'');
 }
 let jLast=null;
 function openJoin(){
@@ -8985,9 +8997,9 @@ document.querySelectorAll('#joinSvg .jc').forEach(g=>{
   g.addEventListener('mouseleave',()=>jTip(null));
   g.addEventListener('focus',()=>jTip(id));
   g.addEventListener('blur',()=>jTip(null));
-  g.addEventListener('click',()=>jTip(id));
+  g.addEventListener('click',()=>{jTip(id);if(id==='live')location.href='demo.html';});
   g.addEventListener('keydown',e=>{
-    if(e.key==='Enter'||e.key===' '){e.preventDefault();jTip(id);}
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();if(id==='live')location.href='demo.html';else jTip(id);}
   });
 });
 $('#joinWallet').addEventListener('click',()=>{
