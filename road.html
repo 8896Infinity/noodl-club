@@ -74,7 +74,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:22px 16p
 }
 /* the quotes: one at a time, at the top, where a heckler would be */
 .says{
-  position:relative;min-height:132px;display:flex;align-items:center;justify-content:center;
+  position:relative;min-height:96px;display:flex;align-items:center;justify-content:center;
   text-align:center;padding:4px 6px 10px;
 }
 .says .q{
@@ -86,10 +86,6 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:22px 16p
 .says.snap .q,.says.snap .q.on{transition:none}
 .says .q.out{opacity:0;transform:translateY(-10px);transition:opacity .35s,transform .35s}
 .says .q b{color:#b9bbc9;font-weight:700}
-.says .q i{
-  font-style:normal;display:block;margin-top:8px;
-  font-size:11px;letter-spacing:.16em;font-weight:700;color:#4a4c58;
-}
 
 /* the number, which is the answer */
 .num{text-align:center;padding:2px 0 6px}
@@ -97,10 +93,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:22px 16p
   font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;
   transition:color .18s;
 }
-.num .sub{
-  margin-top:9px;font-size:11px;letter-spacing:.2em;font-weight:700;color:var(--dim);
-}
-.num .when{margin-top:5px;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.num .when{margin-top:9px;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
 
 /* the road it came by */
 .chartbox{position:relative;margin-top:10px;border-top:1px solid var(--line-soft);padding-top:12px}
@@ -152,8 +145,7 @@ footer a:hover{color:var(--cyan)}
 @media (max-width:640px){
   main{padding:14px 10px 8px}
   .stage{padding:14px 12px 12px;border-radius:10px}
-  .says{min-height:112px}
-  .num .sub{letter-spacing:.14em}
+  .says{min-height:84px}
   #road{height:min(26vh,180px)}
 }
 @media (prefers-reduced-motion:reduce){
@@ -193,7 +185,6 @@ footer a:hover{color:var(--cyan)}
 
     <div class="num">
       <div class="mc" id="mc">$0</div>
-      <div class="sub" data-i="subMc">MARKET CAP</div>
       <div class="when" id="when"></div>
     </div>
 
@@ -331,13 +322,12 @@ zh:{
   linkToken:'Odin.Fun ↗',linkCommunity:'社区 ↗',
   navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',
   title:'NOODL 来时路',hint:'从 0 到现在 · 进度条可以拖',
-  subMc:'单枚价格',
   btnReplay:'重播',btnStop:'停',btnSound:'配乐',
   btnMute:'静音',btnUnmute:'开声音',
   sndHint:'没声音？把 iPhone 侧边的静音开关拨开',
   loadH:'正在调取全部成交',loadP:'从 odin.fun 拉 NOODL 的每一笔交易',
   errH:'拉不到行情',errP:'odin.fun 这会儿没给出数据。网络恢复后再试一次。',btnRetry:'再试一次',
-  said:'当时有人说',scrubLabel:'时间轴',
+  scrubLabel:'时间轴',
   noteLive:(d,n)=>d+' 起 · '+n+' 笔成交',
   noteEnd:'现在',
 },
@@ -345,13 +335,12 @@ en:{
   linkToken:'Odin.Fun ↗',linkCommunity:'Community ↗',
   navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',
   title:'The road here',hint:'zero to now — drag the bar',
-  subMc:'PRICE PER NOODL',
   btnReplay:'Replay',btnStop:'Stop',btnSound:'Sound',
   btnMute:'Mute',btnUnmute:'Unmute',
   sndHint:'No sound? Flick the iPhone side switch off silent',
   loadH:'Reading the tape',loadP:'Pulling every NOODL trade off odin.fun',
   errH:'No tape',errP:'odin.fun did not hand over the data just now. Try again when the network is back.',btnRetry:'Try again',
-  said:'SOMEBODY SAID',scrubLabel:'timeline',
+  scrubLabel:'timeline',
   noteLive:(d,n)=>'since '+d+' · '+n+' trades',
   noteEnd:'now',
 }};
@@ -612,7 +601,7 @@ function showSay(k,snap){
   const s=SCHED[k].s;
   const el=document.createElement('div');
   el.className='q';
-  el.innerHTML='<div><b>“'+esc(lang==='zh'?s.zh:s.en)+'”</b><i>'+esc(I18N[lang].said)+'</i></div>';
+  el.innerHTML='<div><b>“'+esc(lang==='zh'?s.zh:s.en)+'”</b></div>';
   box.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');
