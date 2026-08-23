@@ -83,6 +83,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:22px 16p
   color:#8d8f9e;opacity:0;transform:translateY(10px);
 }
 .says .q.on{opacity:1;transform:none;transition:opacity .45s,transform .45s}
+.says.snap .q,.says.snap .q.on{transition:none}
 .says .q.out{opacity:0;transform:translateY(-10px);transition:opacity .35s,transform .35s}
 .says .q b{color:#b9bbc9;font-weight:700}
 .says .q i{
@@ -117,8 +118,20 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:22px 16p
 .bar .note{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 .bar .note b{color:var(--text-2);font-weight:600}
 
-.track{height:3px;border-radius:2px;background:#22252e;overflow:hidden;margin-top:11px}
-.track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--up-dim),var(--noodle-y));transition:width .1s linear}
+/* A bar you can put your finger anywhere on. The rail is three pixels but the
+   thing you grab is twenty-two, because a three-pixel target is a bar you can
+   only look at. */
+.scrub{position:relative;height:22px;margin-top:6px;cursor:pointer;touch-action:none}
+.scrub:focus-visible{outline:1px solid var(--cyan);outline-offset:3px;border-radius:4px}
+.scrub .rail,.scrub .fill{position:absolute;left:0;top:9px;height:3px;border-radius:2px}
+.scrub .rail{right:0;background:#22252e}
+.scrub .fill{width:0;background:linear-gradient(90deg,var(--up-dim),var(--noodle-y))}
+.scrub .knob{
+  position:absolute;top:4px;left:0;width:13px;height:13px;margin-left:-6.5px;
+  border-radius:50%;background:var(--noodle-y);border:2px solid #0d0e13;
+  box-shadow:0 0 0 1px rgba(252,209,79,.35);
+}
+.scrub:hover .knob,.scrub:focus-visible .knob{box-shadow:0 0 0 4px rgba(252,209,79,.18)}
 
 .state{
   position:absolute;inset:0;display:grid;place-items:center;background:rgba(13,14,19,.9);
@@ -144,7 +157,6 @@ footer a:hover{color:var(--cyan)}
 }
 @media (prefers-reduced-motion:reduce){
   .says .q.on,.says .q.out{transition:none}
-  .track i{transition:none}
 }
 </style>
 </head>
@@ -186,7 +198,10 @@ footer a:hover{color:var(--cyan)}
 
     <div class="chartbox"><canvas id="road"></canvas></div>
 
-    <div class="track"><i id="prog"></i></div>
+    <div class="scrub" id="scrub" role="slider" tabindex="0"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <i class="rail"></i><i class="fill" id="prog"></i><i class="knob" id="knob"></i>
+    </div>
 
     <div class="bar">
       <div class="btns">
@@ -221,48 +236,89 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const TOKEN='hjrg', MS=1e11;
 const ODIN=['https://api.odin.fun/v2','/api/odin'];
 
-/* ================= what was said on the way ================= */
-/* Anchored to the curve rather than to the clock, so a line lands where it was
-   actually said. `mc` fires the first time the replay climbs through a level,
-   `drop` the first time it falls back through one, `p` at a fraction of the
-   way. The last few sit above every price NOODL has ever printed: they are
-   waiting, and they will keep waiting until it gets there. */
+/* ================= what was said on the way =================
+   Each line carries the day it belongs to, not a fraction of the replay, so it
+   lands on the part of the road it was actually said about — and keeps landing
+   there as the road gets longer. `d` is a day, `dr` a span with `k` the way
+   through it, `mc` a market cap the road has not reached yet.
+
+   Before the first pump almost nobody was talking about NOODL; they were
+   talking about the platform. There is exactly one line about the token in
+   that whole stretch, and it is somebody promising to sell it.
+
+   The last five sit above every price NOODL has ever printed. They are not
+   dead entries — they are waiting, and they will show themselves the day the
+   road reaches them. */
 const SAYS=[
-  {p:0.015,zh:'奥丁平台已经没人玩了',                 en:'Nobody is on Odin any more'},
-  {p:0.055,zh:'符文已死',                             en:'Runes are dead'},
-  {p:0.095,zh:'比特币不需要生态',                     en:'Bitcoin does not need an ecosystem'},
-  {p:0.135,zh:'傻子才玩奥丁',                         en:'Only fools trade on Odin'},
-  {p:0.175,zh:'没人在乎 First',                       en:'Nobody cares about being first'},
-  {p:0.215,zh:'筹码分布不公平',                       en:'The supply is unfairly held'},
-  {mc:3e3,  zh:'面条没人玩，冲这个',                  en:'The noodle is dead, ape this one instead'},
-  {mc:15e3, zh:'骗子！赔钱！',                        en:'Scam! I lost money!'},
-  {mc:45e3, zh:'都发射了，就不追高了',                en:'It already ran, I am not chasing'},
-  {mc:100e3,zh:'别让 Bob 跑了',                       en:'Do not let Bob run off with it'},
-  {mc:180e3,zh:'一碗面而已，凭什么值这么多',          en:'It is a bowl of noodles. Why is it worth this'},
-  {mc:215e3,zh:'面条太贵了',                          en:'The noodle is too expensive'},
-  {dn:150e3,zh:'图都走坏了，别接刀',                  en:'The chart is broken, do not catch it'},
-  {dn:100e3,zh:'看吧，我说的吧，要归零了',            en:'See? I told you. It is going to zero'},
-  {dn:78e3, zh:'早卖早超生',                          en:'Sell early, suffer less'},
-  {p:0.46,  zh:'罗宾汉才是未来',                      en:'Robinhood is the future'},
-  {p:0.50,  zh:'别死守奥丁了',                        en:'Stop holding the line on Odin'},
-  {p:0.54,  zh:'面条涨完了，该轮到我们了',            en:'The noodle is done, it is our turn now'},
-  {p:0.58,  zh:'我的谷歌验证无法解绑',                en:'I cannot unbind my Google authenticator'},
-  {p:0.62,  zh:'平台好像又出问题了',                  en:'The platform seems to be down again'},
-  {p:0.66,  zh:'奥丁没流量了',                        en:'Odin has no traffic left'},
-  {mc:230e3,zh:'谁涨的好，谁就是龙头',                en:'Whatever pumps hardest is the leader'},
-  {mc:250e3,zh:'平台开发太慢了',                      en:'They ship far too slowly'},
-  {mc:262e3,zh:'Bob 不会营销',                        en:'Bob cannot market'},
-  {dn:200e3,zh:'那帮人都是疯子',                      en:'That crowd are all lunatics'},
-  {dn:160e3,zh:'永远不可能迁移 v1',                   en:'The v1 migration will never happen'},
-  {dn:145e3,zh:'meme 币活不过三个月',                 en:'No meme coin lasts three months'},
-  {p:0.90,  zh:'odin.fun 是个平台，不是只有你 NOODL 一个币', en:'odin.fun is a platform, not just your NOODL'},
-  {p:0.95,  zh:'等回调，回调再进',                    en:'I will wait for the dip. I will wait for the dip'},
-  /* still waiting, above every price it has ever printed */
-  {mc:300e3, zh:'面条的价格有巨大的泡沫',             en:'The noodle is a giant bubble'},
-  {mc:400e3, zh:'面条到顶了',                         en:'The noodle has topped'},
-  {mc:600e3, zh:'兄弟们，我赚够了，先撤了',           en:'Lads, I made enough. I am out'},
-  {mc:900e3, zh:'他手里那么多筹码，你还敢上么',       en:'He holds that much. You still dare?'},
-  {mc:15e5,  zh:'这波是庄家拉的，散户接盘',           en:'This leg is the whale, and you are the exit'}
+  /* ---- before the first pump: all of it about the platform, none of it
+         about the token, except the one man who says he will sell his ---- */
+  {d:'2026-06-11',zh:'奥丁平台已经没人玩了',           en:'Nobody is on Odin any more'},
+  {d:'2026-06-15',zh:'符文已死',                       en:'Runes are dead'},
+  {d:'2026-06-19',zh:'比特币不需要生态',               en:'Bitcoin does not need an ecosystem'},
+  {d:'2026-06-23',zh:'傻子才玩奥丁',                   en:'Only fools trade on Odin'},
+  {d:'2026-06-27',zh:'罗宾汉才是未来',                 en:'Robinhood is the future'},
+  {d:'2026-07-01',zh:'奥丁没流量了',                   en:'Odin has no traffic left'},
+  {d:'2026-07-04',zh:'平台开发太慢了',                 en:'They ship far too slowly'},
+  {d:'2026-07-07',zh:'我的谷歌验证无法解绑',           en:'I cannot unbind my Google authenticator'},
+  {d:'2026-07-10',zh:'NOODL 我也有很多，涨了就会卖，确保它不会发射',
+                  en:'I hold plenty of NOODL too. I will sell into any pump, so it never launches'},
+  {d:'2026-07-12',zh:'永远不可能迁移 v1',              en:'The v1 migration will never happen'},
+
+  /* ---- 13-15 July, the launch itself ---- */
+  {dr:['2026-07-13','2026-07-15'],k:0.15,fast:1,zh:'都发射了，就不追高了',
+                  en:'It already ran, I am not chasing'},
+  {dr:['2026-07-13','2026-07-15'],k:0.52,fast:1,zh:'奥丁是个平台，不是只有你 NOODL 一个币',
+                  en:'Odin is a platform, not just your NOODL'},
+  {dr:['2026-07-13','2026-07-15'],k:0.88,fast:1,zh:'面条太贵了',
+                  en:'The noodle is too expensive'},
+
+  /* ---- and then it fell all the way back ---- */
+  {d:'2026-07-16',fast:1,zh:'天天就你在这里吆喝，还不是天天跌',
+                  en:'You shout about it every day, and every day it falls'},
+  {d:'2026-07-18',fast:1,zh:'图都走坏了，别接刀',             en:'The chart is broken, do not catch it'},
+  {d:'2026-07-20',fast:1,zh:'骗子！赔钱！',                   en:'Scam! I lost money!'},
+
+  /* ---- the bottom, around a hundred thousand ---- */
+  {d:'2026-07-22',zh:'看吧，我说的吧，要归零了',       en:'See? I told you. It is going to zero'},
+  {d:'2026-07-23',fast:1,zh:'说实话，10 万市值也高了，再过两天就归零了',
+                  en:'Honestly, even a hundred thousand is too much. Two more days and it is zero'},
+  {d:'2026-07-24',fast:1,zh:'还好我早跑了',                   en:'Just as well I got out early'},
+  {d:'2026-07-25',fast:1,zh:'早卖早超生',                     en:'Sell early, suffer less'},
+
+  /* ---- the flat stretch, where the complaints contradict each other.
+         these come quickly, one on top of the last: that is the joke ---- */
+  {d:'2026-07-27',fast:1,zh:'涨的太慢了',              en:'It goes up too slowly'},
+  {d:'2026-07-28',fast:1,zh:'波动太大了',              en:'It moves far too much'},
+  {d:'2026-07-29',fast:1,zh:'怎么不动了',              en:'Why has it stopped moving'},
+  {d:'2026-07-30',fast:1,zh:'没人敢抄底',              en:'Nobody dares buy the bottom'},
+  {d:'2026-07-31',zh:'面条没人玩，冲这个',             en:'The noodle is dead, ape this one instead'},
+  {d:'2026-08-01',zh:'别死守奥丁了',                   en:'Stop holding the line on Odin'},
+
+  /* ---- the second leg up ---- */
+  {d:'2026-08-03',zh:'面条涨完了，该轮到我们了',       en:'The noodle is done, it is our turn now'},
+  {d:'2026-08-05',zh:'谁涨的好，谁就是龙头',           en:'Whatever pumps hardest is the leader'},
+  {d:'2026-08-06',zh:'一碗面而已，凭什么值这么多',     en:'It is a bowl of noodles. Why is it worth this'},
+  {d:'2026-08-07',zh:'meme 币只玩一波，不拿过夜',      en:'A meme coin is one ride. You do not hold it overnight'},
+
+  /* ---- and back down again ---- */
+  {d:'2026-08-09',zh:'那帮人都是疯子',                 en:'That crowd are all lunatics'},
+  {d:'2026-08-11',zh:'平台好像又出问题了',             en:'The platform seems to be down again'},
+  {d:'2026-08-14',zh:'筹码分布不公平',                 en:'The supply is unfairly held'},
+  {d:'2026-08-16',zh:'没人在乎 First',                 en:'Nobody cares about being first'},
+
+  /* ---- the last few days ---- */
+  {d:'2026-08-18',zh:'上次你半夜砸盘，别以为我不知道',
+                  en:'You dumped it in the middle of the night. Do not think I missed it'},
+  {d:'2026-08-20',zh:'Bob 这个人太固执了，不会做营销，技术更新也慢',
+                  en:'Bob is too stubborn. He cannot market, and he ships slowly'},
+  {d:'2026-08-22',zh:'等回调，回调再进',               en:'I will wait for the dip. I will wait for the dip'},
+
+  /* ---- still waiting, above every price it has ever printed ---- */
+  {mc:350e3, zh:'面条的价格有巨大的泡沫',              en:'The noodle is a giant bubble'},
+  {mc:500e3, zh:'面条到顶了',                          en:'The noodle has topped'},
+  {mc:800e3, zh:'兄弟们，我赚够了，先撤了',            en:'Lads, I made enough. I am out'},
+  {mc:12e5,  zh:'他手里那么多筹码，你还敢上么',        en:'He holds that much. You still dare?'},
+  {mc:20e5,  zh:'这波是庄家拉的，散户接盘',            en:'This leg is the whale, and you are the exit'}
 ];
 
 /* ================= i18n ================= */
@@ -270,12 +326,12 @@ const I18N={
 zh:{
   linkToken:'Odin.Fun ↗',linkCommunity:'社区 ↗',
   navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',
-  title:'NOODL 来时路',hint:'从 0 到现在 · 一分钟',
+  title:'NOODL 来时路',hint:'从 0 到现在 · 进度条可以拖',
   subMc:'市值',
   btnReplay:'重播',btnStop:'停',btnSound:'配乐',
   loadH:'正在调取全部成交',loadP:'从 odin.fun 拉 NOODL 的每一笔交易',
   errH:'拉不到行情',errP:'odin.fun 这会儿没给出数据。网络恢复后再试一次。',btnRetry:'再试一次',
-  said:'当时有人说',
+  said:'当时有人说',scrubLabel:'时间轴',
   noteLive:(d,n)=>d+' 起 · '+n+' 笔成交',
   noteEnd:'现在',
   footNote:'这条路上的每一句，都是当时真有人说的意思。市值由 odin.fun 的全部成交逐笔还原，统一按"当前"BTC 价折成美元 —— 所以早期那一段是用今天的钱在算，峰值会比 odin.fun 自己图上的美元峰值高一些。播完以后停在实时数字上，每 20 秒更新一次。'
@@ -283,12 +339,12 @@ zh:{
 en:{
   linkToken:'Odin.Fun ↗',linkCommunity:'Community ↗',
   navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',
-  title:'The road here',hint:'zero to now, in a minute',
+  title:'The road here',hint:'zero to now — drag the bar',
   subMc:'MARKET CAP',
   btnReplay:'Replay',btnStop:'Stop',btnSound:'Sound',
   loadH:'Reading the tape',loadP:'Pulling every NOODL trade off odin.fun',
   errH:'No tape',errP:'odin.fun did not hand over the data just now. Try again when the network is back.',btnRetry:'Try again',
-  said:'SOMEBODY SAID',
+  said:'SOMEBODY SAID',scrubLabel:'timeline',
   noteLive:(d,n)=>'since '+d+' · '+n+' trades',
   noteEnd:'now',
   footNote:'Every line on this road is something people actually said at the time. The market cap is rebuilt trade by trade from the full history on odin.fun and converted at today’s BTC rate throughout — so the early stretch is priced in today’s money, and the peak here reads higher than the dollar peak on odin.fun’s own chart. When the replay catches up it stays on the live number, refreshed every 20 seconds.'
@@ -300,6 +356,7 @@ function applyLang(){
   const ui=I18N[lang];
   document.querySelectorAll('[data-i]').forEach(el=>{const v=ui[el.dataset.i];if(typeof v==='string')el.textContent=v;});
   $('#langBtn').textContent=lang==='zh'?'EN':'中文';
+  const sc=$('#scrub');if(sc)sc.setAttribute('aria-label',ui.scrubLabel);
   document.title=lang==='zh'?'NOODL 来时路 · NOODL.club':'The road here · NOODL.club';
   if(window.__repaint)window.__repaint();
 }
@@ -394,16 +451,27 @@ function thin(rows,want){
 }
 
 /* ================= the stage ================= */
-const REPLAY=68000;                  /* about a minute, as asked */
-const HOLD=2000;                     /* a line stays up long enough to be read */
+/* Thirty-seven lines that each have to be read. At the old sixty seconds they
+   went past faster than anyone could take them in, which is what the slower
+   pace was asked for. */
+const REPLAY=98000;
+const MINSHOW=2400;                  /* what one line is owed, in ms */
+const SZ_LO=1e2, SZ_HI=2e7, SZ_EXP=0.28;
 const cv=$('#road'), g=cv.getContext('2d');
 let dpr=1,cw=0,ch=0;
 
 let series=null, meta=null, ATH=0;
 let t0=0, playing=false, done=false, raf=0;
-let head=0, shown=-1, peak=0, trough=Infinity;
-let smooth=0, mom=0, lastMc=0;
-let queue=[], cur=null, curAt=0, fired=[];
+let head=0, peak=0;
+let mom=0, lastMc=0;
+/* Everything the frame paints is a function of p alone, so RUN and MOM are
+   worked out once and looked up. That is what lets the bar be dragged: a
+   momentum smoothed frame by frame, or a high-water mark raised frame by
+   frame, would both remember a place the drag has already left. */
+let SCHED=[], RUN=[], MOM=[], sayIdx=-1;
+/* the road is measured in time, so these are its two ends */
+let T0=0, T1=1, headP=0;
+let scrubbing=false, wasPlaying=false;
 let liveTimer=0;
 
 function fit(){
@@ -427,55 +495,116 @@ const fmtDate=ms=>{
                      : d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 };
 
-/* ---- the quotes ---- */
-function resetSays(){
-  queue=[];cur=null;curAt=0;fired=SAYS.map(()=>false);
-  $('#says').innerHTML='';
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---- the schedule ----
+   Where on the road each line gets said, worked out once from the tape. A day
+   becomes a position by finding it in the series, so the lines keep their
+   places as the road grows past them. */
+function pOfDate(iso){
+  const ms=Date.parse(iso+'T00:00:00Z');
+  if(!Number.isFinite(ms))return null;
+  return clamp((ms-T0)/Math.max(1,T1-T0),0,1);
 }
-function considerSays(p,mc){
+/* which trade the road is standing on at time p */
+function idxAt(p){
+  const n=series.length, ms=T0+(T1-T0)*clamp(p,0,1);
+  if(ms<=series[0].t)return 0;
+  if(ms>=series[n-1].t)return n-1;
+  let lo=0,hi=n-1;
+  while(lo<hi){const m=(lo+hi)>>1;if(series[m].t<ms)lo=m+1;else hi=m;}
+  return lo;
+}
+function buildSchedule(){
+  const n=series.length, out=[];
   for(let i=0;i<SAYS.length;i++){
-    if(fired[i])continue;
     const s=SAYS[i];
-    let hit=false;
-    if(s.p!=null)hit = p>=s.p;
-    else if(s.mc!=null)hit = mc>=s.mc;
-    else if(s.dn!=null)hit = peak>=s.dn*1.06 && mc<=s.dn;
-    if(hit){fired[i]=true;queue.push(s);}
+    let p=null;
+    if(s.d)p=pOfDate(s.d);
+    else if(s.dr){
+      const a=pOfDate(s.dr[0]), b=pOfDate(s.dr[1]);
+      if(a!=null&&b!=null)p=a+(b-a)*(s.k==null?0.5:s.k);
+    }else if(s.p!=null)p=s.p;
+    else if(s.mc!=null){
+      /* a level the road has not reached: the line is not said yet. when it
+         has been reached, the day it happened is what places the line. */
+      let at=-1;
+      for(let j=0;j<n;j++)if(series[j].mc>=s.mc){at=j;break;}
+      p=at<0?null:clamp((series[at].t-T0)/Math.max(1,T1-T0),0,1);
+    }
+    if(p==null)continue;
+    out.push({s,p:clamp(p,0,1)});
   }
+  out.sort((a,b)=>a.p-b.p);
+  /* Nothing may flash past unread. Push each line clear of the one before it
+     by what it is owed — and the four that contradict each other in the flat
+     stretch are owed less on purpose, because tripping over one another is the
+     whole point of them. */
+  /* Two passes, not one. Pushing only forwards piles the overflow onto the end
+     of the road, and shifting the whole lot back to fit moved every line off
+     the day it belongs to — 23 June came out as 20 June. Pushing forward and
+     then, if it still runs off the end, backward from the end, borrows room
+     only from the stretches that have some. */
+  const gap=MINSHOW/REPLAY, gapOf=i=>out[i].s.fast?gap*0.5:gap;
+  for(let pass=0;pass<4;pass++){
+    for(let i=1;i<out.length;i++)
+      if(out[i].p<out[i-1].p+gapOf(i))out[i].p=out[i-1].p+gapOf(i);
+    if(out[out.length-1].p<=1)break;
+    out[out.length-1].p=1;
+    for(let i=out.length-2;i>=0;i--)
+      if(out[i].p>out[i+1].p-gapOf(i+1))out[i].p=out[i+1].p-gapOf(i+1);
+    if(out[0].p>=0)break;
+    out[0].p=0;
+  }
+  return out;
 }
-function pumpSays(now){
-  /* one at a time, and when they bunch up the earlier ones get out of the way
-     faster rather than the later ones never being seen */
-  const hold=queue.length>2?Math.max(900,HOLD-queue.length*180):HOLD;
-  if(cur&&now-curAt<hold)return;
-  if(!queue.length)return;
-  const s=queue.shift();
+/* the last line whose moment has come */
+function sayAt(p){
+  let k=-1;
+  for(let i=0;i<SCHED.length;i++){if(SCHED[i].p<=p)k=i;else break;}
+  return k;
+}
+function showSay(k,snap){
+  if(k===sayIdx)return;
+  sayIdx=k;
   const box=$('#says');
   const old=box.querySelector('.q.on');
-  if(old){old.classList.remove('on');old.classList.add('out');setTimeout(()=>{if(old.parentNode)old.remove();},400);}
+  if(old){
+    if(snap){old.remove();}
+    else{old.classList.remove('on');old.classList.add('out');
+      setTimeout(()=>{if(old.parentNode)old.remove();},400);}
+  }
+  /* a drag can cross a dozen lines in a second; fading each of them in over
+     450ms just piles them on one another */
+  box.classList.toggle('snap',!!snap);
+  if(k<0)return;
+  const s=SCHED[k].s;
   const el=document.createElement('div');
   el.className='q';
   el.innerHTML='<div><b>“'+esc(lang==='zh'?s.zh:s.en)+'”</b><i>'+esc(I18N[lang].said)+'</i></div>';
   box.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');
-  cur=s;curAt=now;
 }
-function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
 /* ---- the number ---- */
-function paintNum(mc,at){
+/* How big a market cap looks, on a scale that runs to twenty million. Today's
+   two hundred thousand lands about a quarter of the way up it, so the number
+   ends the replay small with most of the room still above it — which is the
+   point of drawing it this way at all. */
+function szOf(mc){
+  return Math.pow(clamp(mc,SZ_LO,SZ_HI)/SZ_HI,SZ_EXP);
+}
+function paintNum(mc,at,hi){
   const el=$('#mc');
-  /* Measured against the highest it has ever been, not against the highest it
-     has been so far — otherwise the first trade is already the record and the
-     number starts at full size instead of growing into it. Sized in pixels off
-     the stage, because a vw clamp pins to its ceiling on any wide screen and
-     then nothing moves at all. */
+  /* Driven by the high-water mark, never by the current price: it grows out of
+     a small start and a fall only stops it. A number that shrank on every dip
+     bounced about and read as noise rather than as a road. Nothing here reads
+     momentum, so there is no kick either — only the colour still moves. */
   const wide=($('#stage').clientWidth)||900;
-  const maxPx=clamp(wide*0.15,54,124), minPx=clamp(wide*0.05,28,42);
-  const grow=Math.pow(clamp(mc/Math.max(ATH,1),0,1),0.42);
-  const px=(minPx+(maxPx-minPx)*grow)*(1+clamp(mom,-1,1)*0.10);
-  el.style.fontSize=clamp(px,22,136).toFixed(1)+'px';
+  const maxPx=clamp(wide*0.20,46,112), minPx=clamp(wide*0.05,20,26);
+  const px=minPx+(maxPx-minPx)*szOf(hi==null?mc:hi);
+  el.style.fontSize=clamp(px,18,120).toFixed(1)+'px';
   const up=mom>=0;
   const k=Math.min(1,Math.abs(mom)*4);
   const mix=(a,b)=>Math.round(a+(b-a)*k);
@@ -498,7 +627,10 @@ function paint(){
   /* a gentle power scale: the first thousand still has somewhere to live,
      without flattening the part where it actually ran */
   const yOf=v=>PADT+H-H*Math.pow(clamp(v,0,top)/top,0.72);
-  const xOf=i=>PADL+W*(n<2?0:i/(n-1));
+  /* by time, not by trade: a quiet June is still five weeks wide, and the
+     head of the line then sits under the same fraction the bar shows */
+  const span=Math.max(1,T1-T0);
+  const xOf=i=>PADL+W*clamp((series[i].t-T0)/span,0,1);
 
   /* the whole road, faint: where it has been and where it is going */
   g.strokeStyle='rgba(120,124,142,.16)';g.lineWidth=1.2;g.lineJoin='round';
@@ -553,52 +685,58 @@ function paint(){
   g.textAlign='right';
   g.fillText(I18N[lang].noteEnd,cw-PADR,ch-8);
 }
-window.__repaint=()=>{paint();if(series)paintNum(series[Math.min(series.length-1,Math.max(0,Math.floor(head)))].mc,series[Math.min(series.length-1,Math.max(0,Math.floor(head)))].t);};
+window.__repaint=()=>{if(series)seek(headP,true);};
 
-/* ---- the run ---- */
+/* ---- the run ----
+   One place decides what the whole stage shows, and it takes one number. The
+   clock calls it, and so does a finger on the bar. */
+function seek(p,snap){
+  if(!series)return;
+  p=clamp(p,0,1);
+  headP=p;
+  const i=idxAt(p);
+  head=i;
+  const mc=series[i].mc;
+  lastMc=mc;
+  mom=MOM[i]||0;
+  paintNum(mc,series[i].t,RUN[i]);
+  paint();
+  setProg(p);
+  showSay(sayAt(p),!!snap);
+  tone(mc,mom,p);
+}
+function setProg(p){
+  const w=(p*100).toFixed(2)+'%';
+  $('#prog').style.width=w;
+  const k=$('#knob');if(k)k.style.left=w;
+  const sc=$('#scrub');
+  if(sc)sc.setAttribute('aria-valuenow',String(Math.round(p*100)));
+}
 function frame(now){
   if(!raf)return;
   try{
-    const n=series.length;
     const p=clamp((now-t0)/REPLAY,0,1);
-    head=p*(n-1);
-    const i=Math.min(n-1,Math.floor(head));
-    const mc=series[i].mc;
-
-    peak=Math.max(peak,mc);
-    trough=Math.min(trough,mc);
-    /* momentum, smoothed, or the number strobes between red and green on every
-       tick the tape happens to hand back */
-    /* a wider look-back than a single tick: over a minute standing in for two
-       months, tick-level colour is a strobe rather than a direction */
-    const back=series[Math.max(0,i-12)].mc;
-    const d=back>0?(mc-back)/back:0;
-    lastMc=mc;
-    smooth=smooth*0.84+d*0.16;
-    mom=clamp(smooth*7,-1,1);
-
-    considerSays(p,mc);
-    pumpSays(now);
-    paintNum(mc,series[i].t);
-    paint();
-    $('#prog').style.width=(p*100).toFixed(2)+'%';
-    tone(mc,mom);
-
+    seek(p,false);
     if(p>=1){finish();return;}
   }catch(e){raf=0;window.__roadErr=String(e&&e.stack||e);console.error(e);return;}
   raf=requestAnimationFrame(frame);
 }
-function start(){
+function start(){playFrom(0);}
+function playFrom(p){
   if(!series)return;
   stopRaf();
-  head=0;shown=-1;peak=0;trough=Infinity;smooth=0;mom=0;lastMc=0;done=false;
-  /* ATH is the road's ceiling and survives a replay; peak is the running high
-     the drop-anchored lines are measured against, and must not */
-  resetSays();
-  playing=true;
+  done=false;playing=true;
+  sayIdx=-2;                          /* force the first line to be rendered */
+  $('#says').innerHTML='';
   $('#btnPlay').textContent=I18N[lang].btnStop;
-  t0=performance.now();
+  t0=performance.now()-clamp(p,0,1)*REPLAY;
+  seek(p,true);
   raf=requestAnimationFrame(frame);
+}
+function pause(){
+  stopRaf();playing=false;
+  $('#btnPlay').textContent=I18N[lang].btnReplay;
+  quiet();
 }
 function stopRaf(){if(raf){cancelAnimationFrame(raf);raf=0;}}
 function finish(){
@@ -606,14 +744,7 @@ function finish(){
   playing=false;done=true;
   head=series.length-1;
   $('#btnPlay').textContent=I18N[lang].btnReplay;
-  $('#prog').style.width='100%';
-  /* drain whatever is still queued, then sit on the live number */
-  const drain=setInterval(()=>{
-    if(!queue.length){clearInterval(drain);return;}
-    pumpSays(performance.now()+1e6);
-  },1400);
-  paintNum(series[head].mc,series[head].t);
-  paint();
+  headP=1;seek(1,false);
   quiet();
 }
 
@@ -621,45 +752,81 @@ function finish(){
    The reference clip has music on it that belongs to whoever made it, so this
    builds its own: a slow pulse whose brightness rides the same momentum the
    number does. Off until asked for, because sound nobody asked for is rude. */
-let AC=null,master=null,soundOn=false,step=0,stepAt=0;
+let AC=null,master=null,soundOn=false;
+let pad=null,thudAt=0,hiHeard=0;
 function audio(){
   if(AC)return AC;
   const C=window.AudioContext||window.webkitAudioContext;
   if(!C)return null;
   AC=new C();
   master=AC.createGain();master.gain.value=0.0001;master.connect(AC.destination);
+
+  /* A long delay standing in for a hall. Something this slow needs somewhere
+     to sit, and a real convolver would want an impulse file this page is not
+     going to ship. */
+  const dly=AC.createDelay(1.5), fb=AC.createGain(), damp=AC.createBiquadFilter(), wet=AC.createGain();
+  dly.delayTime.value=0.44;fb.gain.value=0.40;
+  damp.type='lowpass';damp.frequency.value=1700;
+  wet.gain.value=0.32;
+  master.connect(dly);dly.connect(damp);damp.connect(fb);fb.connect(dly);
+  damp.connect(wet);wet.connect(AC.destination);
+
+  /* The pad is built once and left running for the whole replay. Starting a
+     fresh oscillator every note is what made the old one a bleep, and over
+     ninety seconds it would also have left hundreds of dead nodes behind. */
+  pad={g:AC.createGain(),lp:AC.createBiquadFilter(),osc:[]};
+  pad.g.gain.value=0.0001;
+  pad.lp.type='lowpass';pad.lp.frequency.value=260;pad.lp.Q.value=0.8;
+  pad.g.connect(pad.lp);pad.lp.connect(master);
+  /* root, fifth, octave, and a twelfth on top: open intervals, no third, so it
+     stays wide rather than sad or triumphant */
+  [[0,0.50],[7,0.32],[12,0.24],[19,0.12]].forEach((v,i)=>{
+    const o=AC.createOscillator(), og=AC.createGain();
+    o.type='sawtooth';
+    o.frequency.value=55*Math.pow(2,v[0]/12);
+    o.detune.value=(i-1.5)*6;
+    og.gain.value=v[1];
+    o.connect(og);og.connect(pad.g);
+    o.start();
+    pad.osc.push(o);
+  });
   return AC;
 }
-function tone(mc,m){
-  if(!soundOn||!AC)return;
-  const now=AC.currentTime;
-  if(now-stepAt<0.29)return;
-  stepAt=now;
-  const SCALE=[0,3,5,7,10,12,15,14];
-  const deg=SCALE[step%SCALE.length];
-  const oct=m>0.25?12:(m<-0.25?-12:0);
-  const f=110*Math.pow(2,(deg+oct)/12);
-  const o=AC.createOscillator(),gg=AC.createGain(),lp=AC.createBiquadFilter();
-  o.type=m>=0?'triangle':'sawtooth';
-  o.frequency.value=f;
-  lp.type='lowpass';
-  lp.frequency.value=420+clamp((m+1)/2,0,1)*2600;
-  gg.gain.setValueAtTime(0.0001,now);
-  gg.gain.exponentialRampToValueAtTime(0.16,now+0.02);
-  gg.gain.exponentialRampToValueAtTime(0.0001,now+0.34);
-  o.connect(lp);lp.connect(gg);gg.connect(master);
-  o.start(now);o.stop(now+0.38);
-  if(step%4===0){                                   /* a low pulse to walk to */
-    const b=AC.createOscillator(),bg=AC.createGain();
-    b.type='sine';b.frequency.setValueAtTime(74,now);
-    b.frequency.exponentialRampToValueAtTime(40,now+0.16);
-    bg.gain.setValueAtTime(0.0001,now);
-    bg.gain.exponentialRampToValueAtTime(0.34,now+0.01);
-    bg.gain.exponentialRampToValueAtTime(0.0001,now+0.24);
-    b.connect(bg);bg.connect(master);
-    b.start(now);b.stop(now+0.26);
+/* The bed rides the same 0..1 the number grows on, so the room opens up as the
+   road climbs and closes when it stalls. */
+function tone(mc,m,p){
+  if(!soundOn||!AC||!pad)return;
+  const now=AC.currentTime, t=szOf(mc);
+  pad.g.gain.setTargetAtTime(0.05+0.09*t,now,0.7);
+  pad.lp.frequency.setTargetAtTime(240+2200*t+(m>0?420*m:0),now,0.6);
+  for(let i=0;i<pad.osc.length;i++)
+    pad.osc[i].detune.setTargetAtTime((i-1.5)*6+(m<0?-16:5),now,1.4);
+
+  if(now-thudAt>2.1){                     /* a slow heart under all of it */
+    thudAt=now;
+    const o=AC.createOscillator(), gg=AC.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(98,now);
+    o.frequency.exponentialRampToValueAtTime(36,now+0.32);
+    gg.gain.setValueAtTime(0.0001,now);
+    gg.gain.exponentialRampToValueAtTime(0.30+0.26*t,now+0.014);
+    gg.gain.exponentialRampToValueAtTime(0.0001,now+0.62);
+    o.connect(gg);gg.connect(master);
+    o.start(now);o.stop(now+0.66);
+    o.onended=()=>{try{o.disconnect();gg.disconnect();}catch(e){}};
   }
-  step++;
+  if(mc>hiHeard*1.06&&mc>8e3){            /* and a bell at every new high */
+    hiHeard=mc;
+    const o=AC.createOscillator(), gg=AC.createGain();
+    o.type='triangle';
+    o.frequency.value=659.25*Math.pow(2,Math.round(t*5)/12);
+    gg.gain.setValueAtTime(0.0001,now);
+    gg.gain.exponentialRampToValueAtTime(0.075,now+0.03);
+    gg.gain.exponentialRampToValueAtTime(0.0001,now+1.8);
+    o.connect(gg);gg.connect(master);
+    o.start(now);o.stop(now+1.85);
+    o.onended=()=>{try{o.disconnect();gg.disconnect();}catch(e){}};
+  }
 }
 function quiet(){
   if(!AC||!master)return;
@@ -671,8 +838,8 @@ $('#btnSound').addEventListener('click',()=>{
     const ac=audio();
     if(!ac){b.disabled=true;return;}
     if(ac.state==='suspended')ac.resume();
-    soundOn=true;step=0;
-    master.gain.setTargetAtTime(0.5,ac.currentTime,0.2);
+    soundOn=true;hiHeard=0;thudAt=0;
+    master.gain.setTargetAtTime(0.42,ac.currentTime,0.6);
   }else{
     soundOn=false;quiet();
   }
@@ -681,9 +848,57 @@ $('#btnSound').addEventListener('click',()=>{
 });
 
 $('#btnPlay').addEventListener('click',()=>{
-  if(playing){stopRaf();playing=false;$('#btnPlay').textContent=I18N[lang].btnReplay;quiet();}
-  else start();
+  if(playing)pause();
+  /* the button at the end means "again"; part way along it means "carry on" */
+  else if(done||headP<=0)start();
+  else playFrom(headP);
 });
+
+/* ---- the bar, which is now a place you can go ---- */
+(function(){
+  const sc=$('#scrub');
+  if(!sc)return;
+  const pOf=ev=>{
+    const r=sc.getBoundingClientRect();
+    return r.width>0?clamp((ev.clientX-r.left)/r.width,0,1):0;
+  };
+  const grab=ev=>{
+    if(!series)return;
+    ev.preventDefault();
+    scrubbing=true;wasPlaying=playing;
+    if(playing)pause();
+    try{sc.setPointerCapture(ev.pointerId);}catch(e){}
+    done=false;
+    seek(pOf(ev),true);
+  };
+  sc.addEventListener('pointerdown',grab);
+  sc.addEventListener('pointermove',ev=>{if(scrubbing)seek(pOf(ev),true);});
+  const drop=ev=>{
+    if(!scrubbing)return;
+    scrubbing=false;
+    try{sc.releasePointerCapture(ev.pointerId);}catch(e){}
+    /* carry on from where it was let go, if it was moving when it was grabbed */
+    if(wasPlaying)playFrom(headP);
+  };
+  sc.addEventListener('pointerup',drop);
+  sc.addEventListener('pointercancel',drop);
+  sc.addEventListener('keydown',ev=>{
+    if(!series)return;
+    const p=headP;
+    let np=null;
+    if(ev.key==='ArrowRight'||ev.key==='ArrowUp')np=p+0.01;
+    else if(ev.key==='ArrowLeft'||ev.key==='ArrowDown')np=p-0.01;
+    else if(ev.key==='PageUp')np=p+0.08;
+    else if(ev.key==='PageDown')np=p-0.08;
+    else if(ev.key==='Home')np=0;
+    else if(ev.key==='End')np=1;
+    if(np==null)return;
+    ev.preventDefault();
+    if(playing)pause();
+    done=false;
+    seek(clamp(np,0,1),true);
+  });
+})();
 
 /* ---- boot ---- */
 function say(h,p,retry){
@@ -718,8 +933,21 @@ async function boot(){
   $('#note').innerHTML='<b>'+esc(fmtDate(series[0].t))+'</b> · '+
     esc(String(meta.n))+(lang==='zh'?' 笔成交':' trades');
   $('#state').hidden=true;
+  T0=series[0].t;T1=series[series.length-1].t;
   ATH=series.reduce((m,r)=>Math.max(m,r.mc),0);
   peak=ATH;
+  /* the two lookups a drag needs: what the highest was by each point, and how
+     hard it was moving there */
+  RUN=[];MOM=[];
+  let run=0,sm=0;
+  for(let i=0;i<series.length;i++){
+    run=Math.max(run,series[i].mc);RUN.push(run);
+    const back=series[Math.max(0,i-12)].mc;
+    const d=back>0?(series[i].mc-back)/back:0;
+    sm=sm*0.84+d*0.16;
+    MOM.push(clamp(sm*7,-1,1));
+  }
+  SCHED=buildSchedule();
   paint();
   start();
   /* once it has caught up, keep the head on the live number */
@@ -733,18 +961,23 @@ async function boot(){
       if(!(mc>0&&supply>0&&usd>0))return;
       const prev=series[series.length-1].mc;
       series[series.length-1]={t:Date.now(),mc};
+      T1=series[series.length-1].t;
       peak=Math.max(peak,mc);
+      RUN[RUN.length-1]=Math.max(RUN[RUN.length-2]||0,mc);
       mom=clamp((mc-prev)/Math.max(1,prev)*40,-1,1);
-      paintNum(mc,Date.now());paint();
+      MOM[MOM.length-1]=mom;
+      paintNum(mc,Date.now(),RUN[RUN.length-1]);paint();
     }catch(e){}
   },20000);
 }
 $('#btnRetry').addEventListener('click',boot);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&soundOn)quiet();
-  else if(!document.hidden&&soundOn&&AC)master.gain.setTargetAtTime(0.5,AC.currentTime,0.3);});
+  else if(!document.hidden&&soundOn&&AC)master.gain.setTargetAtTime(0.42,AC.currentTime,0.4);});
 
-window.__road={start,boot,get series(){return series;},get head(){return head;},
-  get playing(){return playing;},get done(){return done;},get queued(){return queue.length;}};
+window.__road={start,boot,seek,playFrom,pause,
+  get series(){return series;},get head(){return head;},get headP(){return headP;},
+  get playing(){return playing;},get done(){return done;},
+  get sched(){return SCHED;},get sayIdx(){return sayIdx;}};
 boot();
 })();
 applyLang();

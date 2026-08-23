@@ -93,7 +93,7 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
 .hud .obj span{font-size:15px;font-weight:800}
 .hud .obj span em{font-style:normal;color:var(--dim);font-size:12px;font-weight:600}
 .hud .pips{display:flex;gap:3px}
-.hud .pips i{width:7px;height:7px;border-radius:2px;background:#31343f;display:block}
+.hud .pips i{width:5px;height:7px;border-radius:2px;background:#31343f;display:block}
 .hud .pips i.k{background:var(--red)}
 
 /* the kill feed, top right, the way a field net would read it out */
@@ -115,6 +115,11 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
   font-size:10.5px;font-weight:700;letter-spacing:.12em;color:var(--dim);
 }
 .hud .stance.run{color:var(--noodle-y)} .hud .stance.crouch{color:var(--cyan-dim)}
+/* under the bar: what is left of you, then what is left to throw */
+.hud .nades{position:absolute;left:14px;top:58px;display:flex;align-items:center;gap:8px;padding:5px 10px 6px}
+.hud .nades b{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--dim)}
+.hud .nades .pips i{width:5px;height:12px;border-radius:2px;background:#31343f}
+.hud .nades .pips i.n{background:var(--noodle-y)}
 .hud .radio{position:absolute;left:14px;bottom:12px;max-width:52%;font-size:12px;line-height:1.6;color:var(--text-2)}
 .hud .radio div{opacity:0;animation:rd 5.2s ease-out forwards}
 .hud .radio div b{color:var(--noodle-y);font-weight:700;margin-right:6px}
@@ -215,8 +220,9 @@ footer a:hover{color:var(--cyan)}
       <div class="vig"></div>
       <div class="hurt" id="hurt"></div>
       <div class="hp plate" id="hpBox"><b data-i="hudHp">HP</b><i></i></div>
-      <div class="obj plate"><b data-i="hudObj">CLEARED</b><span id="kills">0 <em>/ 6</em></span><span class="pips" id="pips"></span></div>
+      <div class="obj plate"><b data-i="hudObj">CLEARED</b><span id="kills">0 <em>/ 12</em></span><span class="pips" id="pips"></span></div>
       <div class="feed" id="feed"></div>
+      <div class="nades plate" id="nadeBox"><b data-i="hudNade">FRAGS</b><span class="pips" id="nadePips"></span></div>
       <div class="stance plate" id="stanceBox">STANDING</div>
       <div class="ammo plate" id="ammoBox"><span id="ammo">30 <em>/ ∞</em></span></div>
       <div class="radio" id="radio"></div>
@@ -247,6 +253,8 @@ footer a:hover{color:var(--cyan)}
           <kbd>SHIFT</kbd><span data-i="kRun">sprint</span>
           <kbd data-i="kCtrl">CTRL / C</kbd><span data-i="kCrouch">crouch — steadier, harder to hit</span>
           <kbd>R</kbd><span data-i="kReload">reload</span>
+          <kbd data-i="kRight">RIGHT CLICK (HOLD)</kbd><span data-i="kNade">throw a grenade — the longer you hold, the further it goes</span>
+          <kbd data-i="kNood">NOODLES</kbd><span data-i="kNoodD">walk over one — back to full health</span>
         </div>
         <div class="row"><button class="btn" id="btnStart" type="button" data-i="btnStart">Jump</button></div>
       </div>
@@ -292,15 +300,20 @@ zh:{
   hudHp:'生命',hudObj:'已肃清',
   gateSub:'内部测试',gateH:'输入密码',gateP:'这个版本只给测试员看。',gateBtn:'进入',gateErr:'密码不对',gateNo:'这个浏览器不支持密码校验，换一个再试。',
   briefSub:'任务',briefH:'空降到看空部落的长安据点',
-  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 六个人。',
+  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 十二个人，外加一辆坦克。地上有面碗，走过去就回满血。',
   kMove:'移动',kMouse:'鼠标',kAim:'瞄准',kClick:'左键',kFire:'射击',
   kRun:'冲刺',kCtrl:'CTRL / C',kCrouch:'蹲下 —— 更稳，也更难被打中',kReload:'换弹',
+  kRight:'右键（按住）',kNade:'扔手雷 —— 按得越久扔得越远',
+  kNood:'面碗',kNoodD:'走过去就吃 —— 回满血',
+  hudNade:'手雷',tapNade:'雷',tankName:'部落坦克',
   btnStart:'跳伞',btnAgain:'再来一次',btnBack:'返回战场',
   stKills:'你的击毙',stTime:'用时',stAcc:'命中率',
   stStand:'站立',stCrouch:'蹲姿',stRun:'冲刺',
   wonSub:'任务完成',wonH:'阵地肃清了',wonP:'部落守军全部倒下，外郭易手。Demo 到此为止 —— 正式版会把这一仗接到真实的战线上。',
-  deadSub:'阵亡',deadH:'你倒下了',deadP:'他们有掩体，你没有。下一次贴着沙袋走，蹲下再开火。',
+  deadSub:'阵亡',deadH:'你倒下了',deadP:'他们是成群冲上来的，硬扛扛不住。下次先甩一颗手雷开路，蹲下再开枪，红圈一亮立刻挪窝，血见底就去踩那碗面。',
   rDrop:'跳伞中 · 风向西北',rLand:'着陆 · 部落守军警觉',rReload:'换弹中',
+  rNood:'热汤下肚 —— 满血',rNoNade:'手雷用完了',
+  rTank:'坦克出来了 —— 别站在红圈里',rTankDown:'坦克报废',
   rMore:'又一队上来了',rLast:'最后一个',rAlly:'队友已着陆',
   fdKill:(a,b)=>a+' 击毙 '+b, youName:'你',
   allyNames:['刀削','拉条子','臊子'],
@@ -314,15 +327,20 @@ en:{
   hudHp:'HP',hudObj:'CLEARED',
   gateSub:'RESTRICTED',gateH:'Enter the password',gateP:'This build is for testers only.',gateBtn:'Enter',gateErr:'Wrong password',gateNo:'This browser cannot check the password; try another.',
   briefSub:'MISSION',briefH:'Drop behind the Tribe’s lines',
-  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — six of them.',
+  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — twelve of them, and a tank. There are bowls of noodles down there; walk over one and you are back to full.',
   kMove:'move',kMouse:'MOUSE',kAim:'aim',kClick:'LEFT CLICK',kFire:'fire',
   kRun:'sprint',kCtrl:'CTRL / C',kCrouch:'crouch — steadier, and harder to hit',kReload:'reload',
+  kRight:'RIGHT CLICK (HOLD)',kNade:'throw a grenade — the longer you hold, the further it goes',
+  kNood:'NOODLES',kNoodD:'walk over one — back to full health',
+  hudNade:'FRAGS',tapNade:'FRAG',tankName:'Tribe tank',
   btnStart:'Jump',btnAgain:'Again',btnBack:'Back to the battle',
   stKills:'YOUR KILLS',stTime:'TIME',stAcc:'ACCURACY',
   stStand:'STANDING',stCrouch:'CROUCHED',stRun:'SPRINT',
   wonSub:'MISSION COMPLETE',wonH:'The ground is clear',wonP:'The Tribe’s garrison is down and the compound has changed hands. That is the demo — the full build wires this onto the real front line.',
-  deadSub:'KILLED IN ACTION',deadH:'You went down',deadP:'They had cover and you did not. Next time work the sandbags, and go to a knee before you fire.',
+  deadSub:'KILLED IN ACTION',deadH:'You went down',deadP:'They came at you in a rush, and standing there trading shots was never going to work. Open with a grenade, go to a knee before you fire, move the instant the red ring lights, and walk over a bowl when the bar runs low.',
   rDrop:'jumping · wind from the north-west',rLand:'landed · the garrison is alerted',rReload:'reloading',
+  rNood:'hot bowl down — back to full',rNoNade:'out of grenades',
+  rTank:'tank is out — do not stand in the red',rTankDown:'tank is wrecked',
   rMore:'another squad coming',rLast:'last one',rAlly:'squad on the ground',
   fdKill:(a,b)=>a+' killed '+b, youName:'You',
   allyNames:['Daoxiao','Latiaozi','Saozi'],
@@ -401,8 +419,12 @@ const SUN={x:0.44,y:0.70};
 const KIT={
   blue:{coat:'#59683f',coatL:'#78885b',coatD:'#39442a',helm:'#4d5b36',helmL:'#728254',
         pack:'#414c2f',boot:'#2b3220',skin:'#c39068',mark:'#22d18c'},
-  red :{coat:'#7a5f3d',coatL:'#9c7c53',coatD:'#4d3b25',helm:'#6b5436',helmL:'#8f7249',
-        pack:'#5a4530',boot:'#33281b',skin:'#b98455',mark:'#ff4d4d'}
+  /* The Tribe used to wear desert brown, which is honest and unreadable: on
+     tan ground at this size a brown man is a smudge. They wear red now. Not
+     the marker's #ff4d4d — that sits on top of them and has to stay brighter
+     than the coat or it disappears into it. */
+  red :{coat:'#a8382f',coatL:'#c8564a',coatD:'#6d201b',helm:'#932c25',helmL:'#bb4d44',
+        pack:'#7c261f',boot:'#3a1512',skin:'#c08a5e',mark:'#ff7a6a'}
 };
 const GUN={d:'#212329',m:'#31343c',l:'#4a4e58'};
 
@@ -533,6 +555,124 @@ function drawMark(c,x,y,kit,me,now,s){
   c.globalAlpha=1;c.restore();
 }
 
+/* A tank, seen from above. Hull and turret turn separately — the turret finds
+   you while the hull is still coming round, which is most of what tells you it
+   is a tank. Same one sun as everything else: the top plate is lit, the near
+   skirt is not, and the shadow is thrown by the sun rather than by its facing. */
+function drawTank(c,x,y,ang,tur,tread,pal,dead){
+  c.save();
+  c.translate(x+SUN.x*13,y+SUN.y*10);c.rotate(ang);
+  c.fillStyle='rgba(10,10,14,.34)';
+  rr(c,-30,-19,60,38,7);c.fill();
+  c.restore();
+
+  c.save();c.translate(x,y);c.rotate(ang);
+  /* tracks, and the links crawling along them */
+  c.fillStyle=dead?'#241f1b':'#2a2521';
+  rr(c,-29,-21,58,10,3);c.fill();
+  rr(c,-29,11,58,10,3);c.fill();
+  c.strokeStyle='rgba(9,8,7,.55)';c.lineWidth=1.1;
+  for(let i=-26;i<26;i+=6){
+    const o=((i+tread)%6+6)%6-3;
+    c.beginPath();c.moveTo(i+o,-21);c.lineTo(i+o,-11);
+    c.moveTo(i+o,11);c.lineTo(i+o,21);c.stroke();
+  }
+  /* hull: near skirt, then the deck over it */
+  c.fillStyle=dead?'#3a2c26':pal.coatD;
+  rr(c,-27,-14,54,28,4);c.fill();
+  c.fillStyle=dead?'#4a382f':pal.coat;
+  rr(c,-27,-14,54,22,4);c.fill();
+  c.strokeStyle='rgba(8,9,12,.45)';c.lineWidth=1.1;
+  rr(c,-27,-14,54,28,4);c.stroke();
+  c.fillStyle=dead?'#553f34':pal.coatL;                 /* the plate that catches it */
+  rr(c,-22,-11,44,7,3);c.fill();
+  c.restore();
+
+  /* the turret is its own argument */
+  c.save();c.translate(x,y);c.rotate(tur);
+  c.fillStyle=dead?'#2f251f':pal.helm;
+  c.beginPath();c.ellipse(-1,0,15,13,0,0,6.2832);c.fill();
+  c.strokeStyle='rgba(8,9,12,.5)';c.lineWidth=1.2;c.stroke();
+  c.fillStyle=dead?'#20201f':'#26282d';                 /* the barrel */
+  rr(c,10,-3.2,34,6.4,2.4);c.fill();
+  c.fillStyle=dead?'#2b2b2a':'#34373d';
+  rr(c,40,-4.4,7,8.8,2.4);c.fill();
+  c.restore();
+
+  /* one highlight, square to the world, exactly as the helmets get */
+  c.save();c.translate(x,y);
+  c.fillStyle=dead?'rgba(120,96,80,.5)':pal.helmL;
+  c.beginPath();c.ellipse(-5,-6,7.5,5,0,0,6.2832);c.fill();
+  c.restore();
+  if(dead){
+    for(let k=0;k<3;k++){
+      const ph=((performance.now()/1000)*0.4+k*0.33)%1;
+      c.fillStyle='rgba(52,48,44,'+(0.30*(1-ph)).toFixed(2)+')';
+      c.beginPath();c.arc(x+Math.sin(ph*5+k)*11,y-ph*70,10+ph*24,0,6.2832);c.fill();
+    }
+  }
+}
+
+/* A grenade. The shadow stays on the ground and the body climbs off it: that
+   gap is the only thing in a plan view that reads as height. */
+function drawNade(c,x,y,z,H,spin,fuse){
+  const k=H>0?clamp(z/H,0,1):0;
+  c.save();
+  c.globalAlpha=0.34*(1-0.5*k);c.fillStyle='#0a0a0e';
+  c.beginPath();c.ellipse(x+SUN.x*z*0.5,y+SUN.y*z*0.4,4.6*(1-0.28*k),2.7*(1-0.28*k),0,0,6.2832);
+  c.fill();c.restore();
+  c.save();c.translate(x,y-z);c.rotate(spin);
+  c.fillStyle='#3c4433';rr(c,-3.2,-4.4,6.4,8.8,2.6);c.fill();
+  c.fillStyle='#4d573f';rr(c,-3.2,-4.4,6.4,3.4,2.2);c.fill();
+  c.strokeStyle='rgba(10,12,9,.5)';c.lineWidth=0.8;
+  c.beginPath();c.moveTo(-3.2,-0.6);c.lineTo(3.2,-0.6);
+  c.moveTo(-3.2,2.2);c.lineTo(3.2,2.2);c.stroke();
+  c.fillStyle='#6b6357';rr(c,-1.1,-6.2,2.2,2.2,0.8);c.fill();
+  c.restore();
+  if(fuse>0){
+    /* the blink runs away with itself as the fuse burns down */
+    const b=Math.sin(fuse*fuse*80)>0?1:0.15;
+    c.fillStyle='rgba(252,209,79,'+(b*0.95).toFixed(2)+')';
+    c.beginPath();c.arc(x,y-z-6,1.9,0,6.2832);c.fill();
+  }
+}
+
+/* A bowl of noodles on the ground. The steam is the part that moves, because
+   it is what says hot food from across the compound. */
+function drawBowl(c,x,y,tt,ph,pop){
+  if(pop>0){
+    const u=1-pop/0.42;
+    c.save();c.globalAlpha=(1-u)*0.85;
+    c.strokeStyle='#fcd14f';c.lineWidth=2.6*(1-u)+0.6;
+    c.beginPath();c.ellipse(x,y,14+u*36,(14+u*36)*0.5,0,0,6.2832);c.stroke();
+    c.restore();return;
+  }
+  const bob=Math.sin(tt*1.9+ph)*1.4;
+  c.save();
+  c.fillStyle='rgba(10,10,14,.30)';
+  c.beginPath();c.ellipse(x+SUN.x*7,y+SUN.y*5,13,6.4,0,0,6.2832);c.fill();
+  c.translate(x,y-3+bob);
+  c.fillStyle='#c9c2ae';c.beginPath();c.ellipse(0,0,14,8,0,0,6.2832);c.fill();
+  c.fillStyle='#3a2a18';c.beginPath();c.ellipse(0,0,10.6,5.9,0,0,6.2832);c.fill();
+  c.strokeStyle='#ef9530';c.lineWidth=1.9;c.lineCap='round';
+  c.beginPath();c.arc(-2.4,0.6,5.2,0.4,4.2);c.stroke();
+  c.beginPath();c.arc(3.4,-0.8,3.6,2.6,6.0);c.stroke();
+  c.strokeStyle='#fcd14f';c.lineWidth=1.7;
+  c.beginPath();c.arc(0.6,-0.4,6.4,3.4,6.1);c.stroke();
+  c.strokeStyle='#8f7449';c.lineWidth=1.5;
+  c.beginPath();c.moveTo(-11,-4.6);c.lineTo(9,3.4);
+  c.moveTo(-10,-6.4);c.lineTo(10,1.6);c.stroke();
+  c.fillStyle='rgba(255,255,255,.16)';
+  c.beginPath();c.ellipse(-5,-4.2,5.4,2.2,-0.35,0,6.2832);c.fill();
+  c.restore();
+  for(let i=0;i<3;i++){
+    const u=((tt*0.55+ph*0.3+i*0.33)%1);
+    c.globalAlpha=0.26*(1-u);c.fillStyle='#e6e2d4';
+    c.beginPath();c.arc(x+Math.sin(u*5+i*2)*4,y-6-u*24,2.2+u*4.6,0,6.2832);c.fill();
+  }
+  c.globalAlpha=1;
+}
+
 /* A man who is down. Sprawled, flattened, and going nowhere. */
 function drawDown(c,b){
   const k=Math.min(1,b.t/0.4), kit=b.kit;
@@ -651,6 +791,22 @@ SCENE.forEach(p=>{
 const SOLID=SCENE.filter(p=>p.solid);
 const BLOCK=SCENE.filter(p=>p.blocks);
 const COVER=SCENE.filter(p=>p.cover);
+
+/* Where the bowls are. Placed by hand and left there: a bowl you can learn the
+   position of is a decision you get to make, a bowl scattered afresh each run
+   is only luck. One sits on the drop zone so the first thing you find out is
+   that they exist at all. */
+const BOWLS=[[LZ.x+165,LZ.y-25],[505,1000],[1170,955],[1755,1030],[1240,575],[955,1250]];
+/* and none of them inside a cart: rather than trust the arithmetic, walk out
+   from the spot until the ground is clear */
+function freeSpot(x,y){
+  if(!blocked(x,y,18))return {x,y};
+  for(let r=30;r<=90;r+=30)for(let a=0;a<8;a++){
+    const nx=x+Math.cos(a*0.7854)*r, ny=y+Math.sin(a*0.7854)*r;
+    if(!blocked(nx,ny,18))return {x:nx,y:ny};
+  }
+  return {x,y};
+}
 
 /* ---------------- drawing the props ---------------- */
 const PROPCACHE={};
@@ -971,19 +1127,32 @@ function scuffAt(x,y){
 }
 
 /* ---------------- tuning ---------------- */
-const TARGET=6, MAX_ALIVE=3;   /* a slice, not a campaign: six of them, three at a time */
+const TARGET=12, MAX_ALIVE=4;  /* still a slice, but a busy one              */
 const P_WALK=150, P_RUN=232, P_CROUCH=82;
-const E_SPEED=92, E_HP=4, E_DMG=6, E_SHOOT=430;
-const A_SPEED=118, A_HP=48;
-const P_HP=100, P_ROF=0.11, MAG=30, RELOAD=1.35, BULLET_V=1500;
+const E_SPEED=106, E_HP=5, E_DMG=6, E_SHOOT=470;
+const A_SPEED=118, A_HP=24;    /* halved: the squad is a distraction, not a solution */
+const P_HP=100, P_ROF=0.11, MAG=25, RELOAD=1.5, BULLET_V=1500;
+/* The bar comes back to a floor and stops there. Above that line the only
+   thing that fills it is a bowl of noodles, which is the whole reason there
+   are bowls: healing for free would make them scenery. */
+const P_REGEN=45;
 const DROP_T=4.6, DROP_ALT=460;
 const SC=1.72;
+
+/* the tank. one of them, and it is the reason you cannot stand still */
+const TANK_HP=46, TANK_SPD=52, TANK_CD=4.6, TANK_TELE=1.75, TANK_R=62, TANK_STAND=430;
+/* grenades: how long a hold is worth, and what it does when it lands */
+const NADES=4, NADE_CHG=1.15, NADE_MIN=130, NADE_MAX=540, NADE_FUSE=0.85;
+const NADE_R=104, NADE_DMG=26, NADE_FF=0.45, NADE_TANK=20, NADE_CD=0.55;
+/* and the food */
+const BOWL_R=28, BOWL_RESP=15;
 
 /* ---------------- state ---------------- */
 let phase='gate', t=0, last=0, raf=0;
 let P, foes, allies, bullets, sparks, bodies, shells;
+let tank=null, nades=[], blasts=[], pickups=[], shake=0;
 let cam={x:0,y:0}, aim={x:0,y:0};
-let mouse={x:VW/2,y:350,down:false}, keys={};
+let mouse={x:VW/2,y:350,down:false,r:false}, keys={};
 let cleared=0, myKills=0, spawned=0, spawnT=0, shots=0, hits=0, startAt=0, endAt=0, overT=0;
 let lastHit=-9;
 
@@ -995,7 +1164,12 @@ function reset(){
   const ui=I18N[lang];
   P=mkUnit(LZ.x,LZ.y,'blue',P_HP,ui.youName);
   P.mag=MAG;P.reload=0;P.alt=DROP_ALT;
+  P.nades=NADES;P.chg=0;P.ncd=0;
   foes=[];allies=[];bullets=[];sparks=[];bodies=[];shells=[];
+  nades=[];blasts=[];shake=0;
+  tank=null;
+  pickups=BOWLS.map((b,i)=>{const q=freeSpot(b[0],b[1]);
+    return {x:q.x,y:q.y,on:true,t:0,pop:0,ph:i*1.7};});
   cleared=0;myKills=0;spawned=0;spawnT=1.2;shots=0;hits=0;lastHit=-9;
   /* two NOODLERs come down with you */
   [[-90,60],[95,42]].forEach((o,i)=>{
@@ -1033,11 +1207,32 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{keys={};mouse.down=false;});
 cv.addEventListener('mousemove',e=>{const v=toView(e.clientX,e.clientY);mouse.x=v.x;mouse.y=v.y;});
-cv.addEventListener('mousedown',e=>{if(e.button===0){mouse.down=true;const v=toView(e.clientX,e.clientY);mouse.x=v.x;mouse.y=v.y;}});
-addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false;});
+cv.addEventListener('mousedown',e=>{
+  const v=toView(e.clientX,e.clientY);mouse.x=v.x;mouse.y=v.y;
+  if(e.button===0)mouse.down=true;
+  /* right starts the wind-up. keyed off button 2 and nothing else: ctrl is the
+     crouch key, and on a Mac ctrl+click arrives as a contextmenu with button 0,
+     so a player crouching and firing would otherwise throw grenades. */
+  if(e.button===2&&phase==='fight'&&P&&P.alive&&P.nades>0&&P.ncd<=0){
+    e.preventDefault();mouse.r=true;P.chg=0;
+  }
+});
+addEventListener('mouseup',e=>{
+  if(e.button===0)mouse.down=false;
+  if(e.button===2&&mouse.r){mouse.r=false;throwNade();}
+});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
+/* the release can land outside the canvas, and the browser answers that with
+   its own menu over the page. only while a run is going, so the password box
+   keeps its menu. */
+document.addEventListener('contextmenu',e=>{if(phase==='fight'||phase==='drop')e.preventDefault();});
+addEventListener('blur',()=>{mouse.r=false;if(P)P.chg=0;});
 
-const touch={mv:null,am:null};
+const touch={mv:null,am:null,nd:null};
+let touched=false;
+/* one button, bottom centre, where neither thumb rests: the sticks are born
+   under the outer corners and both hands can still reach the middle */
+const nadeBtn=()=>({x:VW*0.5,y:VH-58,r:32});
 function stickOf(id){
   if(touch.mv&&touch.mv.id===id)return touch.mv;
   if(touch.am&&touch.am.id===id)return touch.am;
@@ -1045,8 +1240,16 @@ function stickOf(id){
 }
 cv.addEventListener('touchstart',e=>{
   e.preventDefault();
+  touched=true;
   for(const tc of e.changedTouches){
     const v=toView(tc.clientX,tc.clientY);
+    const nb=nadeBtn();
+    /* claimed before the sticks, or the thumb that meant to throw ends up
+       aiming instead */
+    if(!touch.nd&&Math.hypot(v.x-nb.x,v.y-nb.y)<nb.r+10&&
+       phase==='fight'&&P&&P.alive&&P.nades>0&&P.ncd<=0){
+      touch.nd={id:tc.identifier};mouse.r=true;P.chg=0;continue;
+    }
     const st={id:tc.identifier,x0:v.x,y0:v.y,x:v.x,y:v.y};
     if(v.x<VW/2){if(!touch.mv)touch.mv=st;}else{if(!touch.am)touch.am=st;}
   }
@@ -1060,7 +1263,8 @@ cv.addEventListener('touchmove',e=>{
 },{passive:false});
 const endT=e=>{for(const tc of e.changedTouches){
   if(touch.mv&&touch.mv.id===tc.identifier)touch.mv=null;
-  if(touch.am&&touch.am.id===tc.identifier)touch.am=null;}};
+  if(touch.am&&touch.am.id===tc.identifier)touch.am=null;
+  if(touch.nd&&touch.nd.id===tc.identifier){touch.nd=null;mouse.r=false;throwNade();}}};
 cv.addEventListener('touchend',endT);cv.addEventListener('touchcancel',endT);
 
 /* ---------------- helpers ---------------- */
@@ -1110,6 +1314,53 @@ function shoot(u,side,spread,dmg,sc){
                vz:120+Math.random()*60,z:9,life:0.9});
   sparks.push({x:m.x,y:m.y,vx:Math.cos(a)*90,vy:Math.sin(a)*90,life:0.06,col:'#ffdca0',r:3});
 }
+/* Where a throw of this strength would land, stopped at the first wall so the
+   marker never promises through a house. */
+/* A building blocks a throw, but the building you are standing against does
+   not — its footprint reaches up-screen by part of its height so that the roof
+   reads as solid, and that band is ground a man can walk on. Sampling from
+   d-0 meant every grenade thrown from under an eave landed on the thrower.  */
+function boxAt(o,x,y){return x>o.x&&x<o.x+o.w&&y>o.y-o.ht*0.4&&y<o.y+o.d;}
+function nadeTarget(ang,chg){
+  const rng=NADE_MIN+(NADE_MAX-NADE_MIN)*clamp(chg/NADE_CHG,0,1);
+  const cx=Math.cos(ang), cy=Math.sin(ang);
+  for(let d=28;d<rng;d+=16){
+    const x=P.x+cx*d, y=P.y+cy*d;
+    for(let j=0;j<BLOCK.length;j++){
+      const o=BLOCK[j];
+      if(boxAt(o,P.x,P.y))continue;      /* he is under it; it is not in the way */
+      if(boxAt(o,x,y)){
+        const r=Math.max(56,d-16);
+        return {x:P.x+cx*r,y:P.y+cy*r,r};
+      }
+    }
+  }
+  return {x:P.x+cx*rng,y:P.y+cy*rng,r:rng};
+}
+/* a blast goes round a corner in life; on a flat top-down it merely looks like
+   it killed through a wall */
+function losClear(x0,y0,x1,y1){
+  for(let j=0;j<BLOCK.length;j++){
+    const o=BLOCK[j];
+    /* whatever either end is standing in is not cover between them */
+    if(boxAt(o,x0,y0)||boxAt(o,x1,y1))continue;
+    for(let i=1;i<6;i++){
+      if(boxAt(o,x0+(x1-x0)*i/6,y0+(y1-y0)*i/6))return false;
+    }
+  }
+  return true;
+}
+function throwNade(){
+  if(!P||!P.alive||phase!=='fight'||P.nades<=0||P.ncd>0){if(P)P.chg=0;return;}
+  const tp=nadeTarget(P.ang,P.chg);
+  P.nades--;P.ncd=NADE_CD;
+  const flight=0.34+tp.r/NADE_MAX*0.5;
+  nades.push({x0:P.x,y0:P.y,x:P.x,y:P.y,tx:tp.x,ty:tp.y,z:0,
+              H:26+tp.r*0.10,t:0,T:flight,land:false,f:NADE_FUSE,spin:0,by:P});
+  P.chg=0;
+  if(P.nades===0)radio(I18N[lang].rNoNade);
+  paintHud(true);
+}
 function spark(x,y,col,n,spd){
   for(let i=0;i<n;i++){
     const a=Math.random()*6.2832, v=spd*(0.4+Math.random()*0.8);
@@ -1132,6 +1383,79 @@ function die(u,killer){
     if(cleared>=TARGET){phase='won';endAt=t;overT=1.5;}
     else if(TARGET-cleared===1)radio(I18N[lang].rLast);
   }
+}
+
+/* ---------------- the tank ----------------
+   One of them, and it is the reason standing still stops working. It does not
+   shoot you: it shoots a circle on the ground, and then a second and three
+   quarters later the circle goes off. Everything inside dies — you, your
+   squad, and any of the Tribe who happened to be standing there, because a
+   shell does not check. That is the whole mechanic: it is never a surprise,
+   only a decision you had time to make. */
+function spawnTank(){
+  tank={x:KEEP.x-40,y:KEEP.y+205,ang:1.9,turret:1.9,hp:TANK_HP,
+        cd:2.4,aim:null,tread:0,alive:true};
+  radio(I18N[lang].rTank);
+}
+function stepTank(dt){
+  if(!tank||!tank.alive)return;
+  const tx=P.alive?P.x:tank.x, ty=P.alive?P.y:tank.y;
+  const dx=tx-tank.x, dy=ty-tank.y, d=Math.hypot(dx,dy)||1;
+  /* the turret finds you first; the hull follows it round slowly, which is
+     what makes a tank feel like a tank and not a man with a big gun */
+  const want=Math.atan2(dy,dx);
+  let da=((want-tank.turret+Math.PI*3)%(Math.PI*2))-Math.PI;
+  tank.turret+=clamp(da,-1.6*dt,1.6*dt);
+  let dh=((want-tank.ang+Math.PI*3)%(Math.PI*2))-Math.PI;
+  tank.ang+=clamp(dh,-0.9*dt,0.9*dt);
+  if(d>TANK_STAND){
+    const f=Math.cos(tank.ang), g2=Math.sin(tank.ang);
+    moveBody(tank,f*TANK_SPD*dt,g2*TANK_SPD*dt,26);
+    tank.tread+=TANK_SPD*dt;
+  }
+  if(tank.aim){
+    tank.aim.t+=dt;
+    if(tank.aim.t>=TANK_TELE){
+      const a=tank.aim;tank.aim=null;
+      /* it goes off */
+      spark(a.x,a.y,'#ffd08a',34,420);spark(a.x,a.y,'#7a6a58',20,200);
+      blasts.push({x:a.x,y:a.y,t:0,R:TANK_R,col:'#ff8a5a'});
+      shake=1.25;
+      if(dctx){
+        dctx.fillStyle='rgba(22,18,14,.42)';
+        dctx.beginPath();dctx.ellipse(a.x,a.y,TANK_R*0.62,TANK_R*0.34,0,0,6.2832);dctx.fill();
+      }
+      const all=foes.concat(allies,[P]);
+      for(let k=0;k<all.length;k++){
+        const u=all[k];
+        if(!u.alive)continue;
+        if(Math.hypot(u.x-a.x,u.y-a.y)>TANK_R)continue;
+        /* inside the circle is not damage, it is the end of you */
+        u.hp=0;bloodAt(u.x,u.y,9);
+        if(u===P)lastHit=t;
+        die(u,null);
+      }
+    }
+  }else if(P.alive&&phase==='fight'){
+    tank.cd-=dt;
+    if(tank.cd<=0){
+      tank.cd=TANK_CD;
+      /* it aims where you are, not where you will be — the circle is a promise
+         it keeps, and moving off it is always enough */
+      tank.aim={x:P.x,y:P.y,t:0};
+    }
+  }
+}
+function hurtTank(dmg,by){
+  if(!tank||!tank.alive)return;
+  tank.hp-=dmg;
+  if(tank.hp>0)return;
+  tank.alive=false;tank.aim=null;
+  spark(tank.x,tank.y,'#fcd14f',40,460);spark(tank.x,tank.y,'#3a332c',26,180);
+  blasts.push({x:tank.x,y:tank.y,t:0,R:TANK_R*0.9,col:'#fcd14f'});
+  shake=1.4;
+  feed(by?by.name:'—',I18N[lang].tankName,by===P);
+  radio(I18N[lang].rTankDown);
 }
 
 /* ---------------- the loop ---------------- */
@@ -1213,7 +1537,9 @@ function step(dt){
       P.mag--;shots++;
       if(P.mag===0)startReload();
     }
-    if(t-lastHit>3.2&&P.hp<P_HP)P.hp=Math.min(P_HP,P.hp+8*dt);
+    /* back to a floor and no further. everything above that line has to be
+       eaten, which is what the bowls are for */
+    if(t-lastHit>4.5&&P.hp<P_REGEN)P.hp=Math.min(P_REGEN,P.hp+5*dt);
   }
 
   /* ---- the garrison ---- */
@@ -1226,13 +1552,15 @@ function step(dt){
       const f=mkUnit(s[0]+rr2(-40,40),s[1]+rr2(-30,30),'red',E_HP,
                      ui.foeNames[spawned%ui.foeNames.length]);
       foes.push(f);spawned++;
-      spawnT=1.7+rnd()*1.1;
+      spawnT=1.05+rnd()*0.8;
       if(spawned===4)radio(ui.rMore);
+      if(spawned===5&&!tank)spawnTank();
     }
     const mine=allies.filter(a=>a.alive).concat(P.alive?[P]:[]);
     const theirs=foes.filter(f=>f.alive);
     foes.forEach(e=>{if(e.alive)brain(e,dt,mine,true);});
     allies.forEach(a=>{if(a.alive)brain(a,dt,theirs,false);});
+    stepTank(dt);
   }
 
   /* ---- rounds in the air ---- */
@@ -1247,6 +1575,13 @@ function step(dt){
         if(nx>o.x&&nx<o.x+o.w&&ny>o.y-(o.tall?o.ht*0.4:2)&&ny<o.y+o.d){
           spark(nx,ny,'#d8cfae',4,150);scuffAt(nx,ny);gone=true;break;
         }
+      }
+    }
+    if(!gone&&b.side==='blue'&&tank&&tank.alive){
+      if(Math.abs(nx-tank.x)<30&&Math.abs(ny-tank.y)<26){
+        spark(nx,ny,'#d8cfae',5,180);gone=true;
+        if(b.by===P)hits++;
+        hurtTank(b.dmg,b.by);
       }
     }
     if(!gone){
@@ -1270,6 +1605,63 @@ function step(dt){
   }
   if(P.hp<=0&&P.alive&&phase==='fight')die(P,null);   /* anything that drains him without a bullet */
 
+  /* ---- grenades in the air, and then on the ground ---- */
+  if(P.alive&&mouse.r&&phase==='fight')P.chg=Math.min(NADE_CHG,P.chg+dt);
+  if(P.ncd>0)P.ncd-=dt;
+  for(let i=nades.length-1;i>=0;i--){
+    const n=nades[i];
+    if(!n.land){
+      n.t+=dt;n.spin+=dt*11;
+      const u=Math.min(1,n.t/n.T);
+      n.x=n.x0+(n.tx-n.x0)*u;n.y=n.y0+(n.ty-n.y0)*u;
+      n.z=4*n.H*u*(1-u);
+      if(u>=1){n.land=true;n.z=0;scuffAt(n.x,n.y);}
+      continue;
+    }
+    n.f-=dt;
+    if(n.f>0)continue;
+    nades.splice(i,1);
+    spark(n.x,n.y,'#fcd14f',26,360);spark(n.x,n.y,'#ef9530',18,250);
+    blasts.push({x:n.x,y:n.y,t:0,R:NADE_R,col:'#fcd14f'});
+    shake=Math.max(shake,0.75);
+    if(dctx){
+      dctx.fillStyle='rgba(26,22,17,.32)';
+      dctx.beginPath();dctx.ellipse(n.x,n.y,28,16,0,0,6.2832);dctx.fill();
+    }
+    if(tank&&tank.alive&&Math.hypot(tank.x-n.x,tank.y-n.y)<NADE_R+14)hurtTank(NADE_TANK,n.by);
+    const all=foes.concat(allies,[P]);
+    for(let k=0;k<all.length;k++){
+      const u=all[k];if(!u.alive)continue;
+      const d=Math.hypot(u.x-n.x,u.y-n.y);
+      if(d>NADE_R)continue;
+      if(!losClear(n.x,n.y,u.x,u.y))continue;
+      let dmg=NADE_DMG*Math.max(0.25,1-d/NADE_R);
+      const friend=(u.team==='blue');
+      if(friend)dmg*=NADE_FF;                 /* your own frag still counts */
+      u.hp-=dmg;u.hurt=0.18;
+      if(u===P)lastHit=t;
+      bloodAt(u.x,u.y,2);
+      /* dying on your own grenade is not a kill you get credited with */
+      if(u.hp<=0)die(u,friend?null:n.by);
+    }
+  }
+
+  /* ---- the bowls ---- */
+  for(let i=0;i<pickups.length;i++){
+    const q=pickups[i];
+    if(q.pop>0)q.pop-=dt;
+    if(!q.on){q.t-=dt;if(q.t<=0)q.on=true;continue;}
+    if(phase!=='fight'||!P.alive)continue;
+    /* a full man walking over one would only waste it */
+    if(P.hp>=P_HP)continue;
+    if(Math.hypot(P.x-q.x,P.y-q.y)>BOWL_R)continue;
+    P.hp=P_HP;lastHit=-9;
+    q.on=false;q.t=BOWL_RESP;q.pop=0.42;
+    spark(q.x,q.y,'#fcd14f',18,150);spark(q.x,q.y,'#ef9530',10,110);
+    radio(I18N[lang].rNood);
+    paintHud(true);
+  }
+
   /* ---- dust, brass, the fallen ---- */
   for(let i=sparks.length-1;i>=0;i--){
     const s=sparks[i];s.life-=dt;
@@ -1283,7 +1675,9 @@ function step(dt){
     if(s.z<0){s.z=0;s.vz*=-0.3;s.vx*=0.5;s.vy*=0.5;}
   }
   bodies.forEach(b=>b.t+=dt);
-  if(bodies.length>14)bodies.splice(0,bodies.length-14);
+  if(bodies.length>16)bodies.splice(0,bodies.length-16);
+  for(let i=blasts.length-1;i>=0;i--){blasts[i].t+=dt;if(blasts[i].t>0.55)blasts.splice(i,1);}
+  if(shake>0)shake=Math.max(0,shake-dt*2.6);
 
   /* ---- the camera leans the way you are looking ---- */
   const tx=P.x+(aim.x-P.x)*0.20-VW/2;
@@ -1308,6 +1702,49 @@ function brain(e,dt,enemies,isFoe){
   if(e.hurt>0)e.hurt-=dt;
   if(!tgt){e.cr+=(0-e.cr)*Math.min(1,dt*6);gaitOf(e,dt,0,E_SPEED);return;}
   e.ang=Math.atan2(tgt.y-e.y,tgt.x-e.x);
+
+  /* The Tribe does not take cover any more — it comes at you. Allies still
+     work the sandbags, so the two sides read differently at a glance: green
+     holds, red closes. A charge that ran dead straight would arrive as one
+     line, so each man carries a weave of his own and leans off the axis. */
+  if(isFoe){
+    const ux=(tgt.x-e.x)/bd, uy=(tgt.y-e.y)/bd;
+    e.wv=(e.wv||0)+dt*(1.1+e.strafe*0.35);
+    const sway=Math.sin(e.wv)*0.42;
+    const spd0=E_SPEED*(bd>520?1.22:1);        /* a run in, a walk once it is a fight */
+    let vx=(ux*Math.cos(sway)-uy*Math.sin(sway))*spd0;
+    let vy=(ux*Math.sin(sway)+uy*Math.cos(sway))*spd0;
+    /* they charge, but they stop and fight rather than walking onto the
+       muzzle: four men at arm's length is an execution, not a firefight */
+    if(bd<250){const k=1-bd/250;vx-=ux*spd0*(0.6+1.4*k);vy-=uy*spd0*(0.6+1.4*k);}
+    for(let i=0;i<foes.length;i++){
+      const o=foes[i];if(o===e||!o.alive)continue;
+      const ox=e.x-o.x, oy=e.y-o.y, od=Math.hypot(ox,oy);
+      if(od<34&&od>0.5){vx+=ox/od*80;vy+=oy/od*80;}
+    }
+    const mv0=Math.hypot(vx,vy);
+    moveBody(e,vx*dt,vy*dt,10);
+    gaitOf(e,dt,mv0,E_SPEED);
+    e.run+=(((bd>520)?1:0)-e.run)*Math.min(1,dt*5);
+    e.cr+=(((bd<E_SHOOT*0.8)?1:0)-e.cr)*Math.min(1,dt*6);
+    /* A man running at you cannot shoot straight, and one who has stopped and
+       gone to a knee can. That difference is the whole window the player gets:
+       the charge is loud and mostly misses, and the moment they settle is the
+       moment to move or to throw something. Four rifles that were accurate the
+       entire way in emptied a full bar in four seconds with nothing to be done
+       about it. */
+    const set=mv0<E_SPEED*0.4;
+    if(bd<E_SHOOT&&e.run<0.5){
+      e.cd-=dt;
+      if(e.cd<=0){
+        if(e.burst<=0)e.burst=set?3:2;
+        shoot(e,'red',set?0.085-0.025*e.cr:0.235,E_DMG,SC);
+        e.burst--;
+        e.cd=e.burst>0?0.15:(set?1.25+rnd()*0.9:1.9+rnd()*1.1);
+      }
+    }
+    return;
+  }
 
   /* Pick a piece of cover and then actually go and use it. Re-picking on a
      timer while still walking to the last one left everyone permanently in
@@ -1408,7 +1845,9 @@ function draw(now){
   g.setTransform(dpr*scale,0,0,dpr*scale,0,0);
   g.fillStyle='#12131a';g.fillRect(0,0,VW,VH);
   g.save();
-  g.translate(-cam.x,-cam.y);
+  /* a shell landing is felt, not just seen */
+  const shk=shake>0?shake*8:0;
+  g.translate(-cam.x+(Math.random()*2-1)*shk,-cam.y+(Math.random()*2-1)*shk);
 
   const sx=Math.max(0,Math.floor(cam.x)), sy=Math.max(0,Math.floor(cam.y));
   const sw=Math.min(WW-sx,Math.ceil(VW)+2), sh=Math.min(WH-sy,Math.ceil(VH)+2);
@@ -1424,6 +1863,10 @@ function draw(now){
     L.push({y:p.y+p.d,k:'p',p});
   }
   for(let i=0;i<bodies.length;i++)L.push({y:bodies[i].y-0.5,k:'b',b:bodies[i]});
+  for(let i=0;i<pickups.length;i++)
+    if(pickups[i].on||pickups[i].pop>0)L.push({y:pickups[i].y,k:'n',n:pickups[i]});
+  for(let i=0;i<nades.length;i++)L.push({y:nades[i].y,k:'g',g:nades[i]});
+  if(tank)L.push({y:tank.y,k:'t'});
   foes.forEach(u=>{if(u.alive)L.push({y:u.y,k:'u',u});});
   allies.forEach(u=>{if(u.alive)L.push({y:u.y,k:'u',u});});
   if(P&&P.alive)L.push({y:P.y,k:'u',u:P,me:true});
@@ -1467,6 +1910,13 @@ function draw(now){
       continue;
     }
     if(it.k==='b'){drawDown(g,it.b);continue;}
+    if(it.k==='n'){drawBowl(g,it.n.x,it.n.y,tt,it.n.ph,it.n.pop);continue;}
+    if(it.k==='g'){
+      drawNade(g,it.g.x,it.g.y,it.g.z||0,it.g.H,it.g.spin,it.g.land?it.g.f:0);continue;
+    }
+    if(it.k==='t'){
+      drawTank(g,tank.x,tank.y,tank.ang,tank.turret,tank.tread,KIT.red,!tank.alive);continue;
+    }
     const u=it.u;
     if(phase==='drop'&&u.alt>0){
       /* on the way down: a shadow that tightens, and a canopy overhead */
@@ -1487,6 +1937,54 @@ function draw(now){
       g.save();g.globalAlpha=Math.min(0.5,u.hurt*4);g.fillStyle='#fff';
       g.beginPath();g.arc(u.x,u.y,10*SC,0,6.2832);g.fill();g.restore();
     }
+  }
+
+  /* Where the shell is going. It closes in on itself as the fuse runs down,
+     so "how long have I got" is the size of the ring and nothing has to be
+     read. It is drawn under the men, on the ground, because that is where it
+     is. */
+  if(tank&&tank.alive&&tank.aim){
+    const a=tank.aim, u=clamp(a.t/TANK_TELE,0,1);
+    g.fillStyle='rgba(255,60,50,'+(0.10+0.16*u).toFixed(2)+')';
+    g.beginPath();g.ellipse(a.x,a.y,TANK_R,TANK_R*0.52,0,0,6.2832);g.fill();
+    g.strokeStyle='rgba(255,80,66,'+(0.55+0.4*u).toFixed(2)+')';
+    g.lineWidth=2+2.5*u;
+    g.beginPath();g.ellipse(a.x,a.y,TANK_R,TANK_R*0.52,0,0,6.2832);g.stroke();
+    const r2=TANK_R*(1-u);
+    g.strokeStyle='rgba(255,120,90,.9)';g.lineWidth=2;
+    g.beginPath();g.ellipse(a.x,a.y,r2,r2*0.52,0,0,6.2832);g.stroke();
+    if(u>0.72&&Math.sin(a.t*38)>0){
+      g.fillStyle='rgba(255,90,70,.22)';
+      g.beginPath();g.ellipse(a.x,a.y,TANK_R,TANK_R*0.52,0,0,6.2832);g.fill();
+    }
+  }
+  /* a grenade already down says how far it reaches */
+  for(let i=0;i<nades.length;i++){
+    const n=nades[i];if(!n.land)continue;
+    const w=1-n.f/NADE_FUSE;
+    g.strokeStyle='rgba(239,149,48,'+(0.20+0.45*w).toFixed(2)+')';g.lineWidth=1.4;
+    g.setLineDash([5,7]);g.lineDashOffset=-tt*26;
+    g.beginPath();g.ellipse(n.x,n.y,NADE_R,NADE_R*0.52,0,0,6.2832);g.stroke();
+    g.setLineDash([]);
+  }
+  /* and where this one would land, while the arm is still back */
+  if(phase==='fight'&&P&&P.alive&&mouse.r&&P.nades>0){
+    const tp=nadeTarget(P.ang,P.chg), k=clamp(P.chg/NADE_CHG,0,1);
+    g.strokeStyle='rgba(252,209,79,.30)';g.lineWidth=1.2;g.setLineDash([4,6]);
+    g.beginPath();g.moveTo(P.x,P.y);g.lineTo(tp.x,tp.y);g.stroke();g.setLineDash([]);
+    g.strokeStyle='rgba(252,209,79,'+(0.45+0.5*k).toFixed(2)+')';g.lineWidth=2;
+    g.beginPath();g.ellipse(tp.x,tp.y,NADE_R,NADE_R*0.52,0,0,6.2832);g.stroke();
+    g.fillStyle='rgba(252,209,79,.14)';
+    g.beginPath();g.ellipse(tp.x,tp.y,NADE_R,NADE_R*0.52,0,0,6.2832);g.fill();
+  }
+  for(let i=0;i<blasts.length;i++){
+    const b=blasts[i], u=b.t/0.55, R=(b.R||NADE_R)*(0.25+0.95*u);
+    g.globalAlpha=(1-u)*0.5;g.fillStyle=b.col||'#fcd14f';
+    g.beginPath();g.ellipse(b.x,b.y,R*0.55,R*0.30,0,0,6.2832);g.fill();
+    g.globalAlpha=(1-u)*0.85;
+    g.strokeStyle=b.col||'#ef9530';g.lineWidth=3.4*(1-u)+0.8;
+    g.beginPath();g.ellipse(b.x,b.y,R,R*0.52,0,0,6.2832);g.stroke();
+    g.globalAlpha=1;
   }
 
   /* rounds, brass, dust */
@@ -1547,6 +2045,21 @@ function draw(now){
       g.beginPath();g.arc(x,y,sp+12,-1.5708,-1.5708+6.2832*(1-P.reload/RELOAD));g.stroke();
     }
   }
+  if(touched&&phase==='fight'&&P){
+    const nb=nadeBtn(), k=clamp(P.chg/NADE_CHG,0,1), got=P.nades>0;
+    g.strokeStyle=got?'rgba(252,209,79,.5)':'rgba(250,250,250,.16)';g.lineWidth=1.6;
+    g.beginPath();g.arc(nb.x,nb.y,nb.r,0,6.2832);g.stroke();
+    g.fillStyle=got?'rgba(252,209,79,.10)':'rgba(250,250,250,.04)';
+    g.beginPath();g.arc(nb.x,nb.y,nb.r,0,6.2832);g.fill();
+    if(mouse.r){
+      g.strokeStyle='rgba(239,149,48,.95)';g.lineWidth=3.4;
+      g.beginPath();g.arc(nb.x,nb.y,nb.r,-1.5708,-1.5708+6.2832*k);g.stroke();
+    }
+    g.fillStyle=got?'rgba(252,209,79,.9)':'rgba(250,250,250,.25)';
+    g.font='700 13px "Work Sans",sans-serif';g.textAlign='center';g.textBaseline='middle';
+    g.fillText(I18N[lang].tapNade,nb.x,nb.y+1);
+    g.textAlign='left';g.textBaseline='alphabetic';
+  }
   [touch.mv,touch.am].forEach(st=>{
     if(!st)return;
     g.strokeStyle='rgba(250,250,250,.32)';g.lineWidth=1.5;
@@ -1571,6 +2084,12 @@ function paintHud(force){
     for(let i=0;i<TARGET;i++)pips.appendChild(document.createElement('i'));
   }
   for(let i=0;i<pips.children.length;i++)pips.children[i].className=i<cleared?'k':'';
+  const np=$('#nadePips');
+  if(force||np.children.length!==NADES){
+    np.innerHTML='';
+    for(let i=0;i<NADES;i++)np.appendChild(document.createElement('i'));
+  }
+  for(let i=0;i<np.children.length;i++)np.children[i].className=i<P.nades?'n':'';
   const ab=$('#ammoBox');
   ab.classList.toggle('rl',P.reload>0);
   $('#ammo').innerHTML=(P.reload>0?'…':P.mag)+' <em>/ ∞</em>';
