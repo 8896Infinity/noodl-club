@@ -225,6 +225,19 @@ footer a:hover{color:var(--cyan)}
 const $=s=>document.querySelector(s);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const TOKEN='hjrg', MS=1e11;
+/* The first two and a half months of the tape, thinned and baked in, so the
+   page opens already playing instead of waiting on odin.fun. u is the BTC/USD
+   rate the dollars were baked at (the refresh rescales to today's), s the
+   supply, a/e the first and last millisecond, d pairs of [minutes-since-prev,
+   dollars]. Rebake by re-running the snippet in tools/README.md when the tape
+   grows past what one page-walk can bridge. */
+const SEED={"u":77442.42,"s":21000000,"a":1781064044000,"e":1787554544000,"d":[0,1952,1073,1984,1,1952,45,1935,338,2114,101,1935,154,1935,902,1968,82,2000,111,2033,95,6944,46,6066,34,8863,120,7822,139,9351,7,9449,65,14539,95,11514,103,7448,84,8066,108,6879,94,6554,91,6538,114,7465,35,6310,56,6521,178,6440,196,7481,40,7286,35,7985,216,8001,310,6847,15,5838,513,5871,109,5448,1122,5464,755,5237,294,5155,7,5172,583,5204,1906,4586,214,4147,164,4033,690,3887,2,3659,1839,3594,147,3610,49,3789,147,3838,66,4066,188,4082,296,4066,2062,4245,137,4424,730,4407,909,4358,50,4212,1799,4212,40,4066,389,4082,349,4115,129,4293,5,4635,274,4391,7,4407,621,4521,485,4586,53,5611,42,5253,127,5042,984,4944,62,4586,5371,4098,9,3789,259,3919,1229,3854,137,3692,2275,3806,462,3789,2651,3757,1925,3822,1086,3806,227,3562,4137,3594,1683,4115,127,4147,49,5822,173,5432,37,5659,37,5659,65,8213,126,7009,2,6798,116,6635,75,5594,66,5773,4,6082,353,5838,24,6765,154,7026,64,5676,46,6440,51,5757,90,6131,132,9351,7,11091,29,15921,141,14572,79,16312,114,17353,199,16978,38,15824,30,16003,61,16816,137,15580,63,15043,35,15125,144,13856,12,13823,142,19369,12,18719,48,21077,124,21077,130,49325,24,33323,104,62433,36,58091,145,63523,66,62254,78,90340,59,121549,100,67784,26,60124,64,84860,90,74484,107,126086,38,82437,123,131811,78,129436,54,100293,82,103611,78,138820,41,131876,152,217533,25,189967,80,228900,69,211044,88,232495,93,221940,106,236511,91,275103,29,222574,88,216622,93,252807,102,259149,45,210458,24,222086,132,273526,97,274030,75,234690,0,241943,152,196407,15,201969,101,245798,89,238122,68,225079,107,232787,41,225079,115,211678,54,230250,90,231454,44,229079,102,199058,47,239927,114,239276,32,208116,66,222395,48,217077,140,221501,84,231551,43,225436,33,226006,137,237487,98,223891,53,221176,16,192146,167,223387,81,201562,38,211483,134,176469,76,194472,46,156026,102,160726,31,194553,81,184291,126,170321,15,172029,106,150204,71,177656,68,150220,87,161279,74,157962,55,158059,114,158238,39,144984,130,163833,51,161946,2,152725,143,129469,136,159767,119,169167,29,155246,57,139032,66,149293,152,151749,16,138706,28,143797,77,132266,102,138040,97,143748,41,142707,128,149879,58,145098,37,139568,105,132331,112,135616,29,135307,39,103692,116,125452,120,106961,85,100960,48,114637,105,111694,62,132657,37,126574,46,101464,105,112198,85,119630,71,118183,155,117337,92,114637,65,115093,140,114995,52,100732,103,109596,30,108652,99,104912,132,106880,1,107758,123,108929,2,104554,188,105725,42,107514,145,106701,43,106782,197,101188,197,102977,3,91040,51,95203,53,81624,114,90308,5,90828,188,91137,47,95203,91,91121,75,70630,49,77623,136,95593,66,105953,64,86779,39,89153,50,99204,286,103432,100,107693,16,107774,94,138170,77,122411,35,148952,112,123793,39,99887,188,113775,57,137340,25,122346,27,165817,167,132039,46,148968,173,132754,18,151505,23,142756,128,135990,47,137909,8,134039,247,132835,20,101627,22,107498,99,131453,74,126899,107,121321,47,122639,114,129371,45,129811,85,122639,84,124704,107,114735,93,119793,14,110783,55,118557,118,112295,81,111547,84,90893,35,95837,110,118882,79,109173,2,124411,192,95382,23,113775,105,111417,59,109433,74,111466,1,111547,129,107254,52,111352,99,109449,71,114084,90,117532,261,117825,2,120037,159,120492,15,119858,68,122183,37,119061,67,119516,61,124249,170,120297,48,121858,36,119419,136,113418,6,114523,3,117174,164,117711,6,119223,203,123744,26,117776,62,121191,274,123517,17,129648,79,131421,53,121744,50,121338,88,125663,164,125094,43,126281,40,127713,51,142089,89,135665,70,139650,122,137600,117,141211,67,141195,216,140219,128,140316,3,141113,44,140430,35,140528,138,140528,110,140967,128,140999,102,141048,91,139942,27,130315,398,119272,34,124834,18,124915,20,127306,138,126997,68,125436,165,125046,72,123533,132,120492,7,120004,284,119890,3,119988,245,120378,89,120459,858,117825,11,116947,124,117337,51,116036,169,116719,11,117825,13,119662,111,126688,44,126412,27,126981,143,123810,80,127225,103,126867,32,125241,286,124623,132,127013,19,132039,137,130900,34,132364,88,129290,142,125550,41,127924,99,129518,49,130721,38,128282,93,127371,24,127973,175,128168,221,116345,13,124265,51,124915,32,126347,267,127501,63,130250,131,125582,5,128249,137,129176,22,131892,206,134429,19,127127,96,124964,77,131827,17,131534,208,146415,56,139113,53,138007,117,146073,18,145260,68,136251,163,136592,68,140853,16,142089,39,147700,194,144252,14,143927,122,143374,66,149163,61,151847,20,168549,95,163231,72,161621,167,166109,85,163328,123,154302,143,155392,13,155213,49,154189,86,164402,78,165752,110,188682,51,182161,75,206100,124,203059,30,184844,33,192878,19,186747,252,188146,13,177689,124,179185,3,182161,84,183592,10,186763,122,186649,106,197578,42,190439,50,207206,149,201660,19,190829,87,197415,151,213581,18,213857,37,216541,108,224802,60,180469,138,213158,35,210377,80,209710,477,209678,128,185153,9,188780,144,207352,31,208100,20,205905,251,231421,5,207775,54,244789,103,221761,13,229632,136,256141,10,259719,63,257182,190,256580,51,254872,74,248042,56,255946,85,256970,2,258922,113,258222,61,282227,107,271818,117,279218,93,279218,50,319208,24,293920,51,270810,129,245798,74,278519,184,263768,9,273428,123,271103,0,273379,87,268793,42,271168,76,271298,124,275868,41,276160,122,265037,57,273070,80,262402,69,255718,78,271688,97,271688,86,261589,16,283837,101,271672,51,277022,1,265427,447,272062,6,269802,78,267769,70,270810,39,272192,65,275640,72,276193,128,285934,138,288195,7,279315,54,281348,128,291692,56,308784,22,276372,111,289301,88,301254,48,292244,87,258125,54,247993,118,267362,38,268387,42,226591,136,248757,128,264646,11,262532,9,288943,167,260841,98,278096,29,277982,97,266338,156,246237,23,275266,105,287089,78,212198,0,210117,122,284080,53,284780,286,282324,54,282796,48,283072,184,282487,19,281918,17,280047,64,277104,214,280747,18,275103,23,304734,131,263443,49,272290,83,264207,78,265053,50,255084,116,232901,68,260662,155,253750,103,252709,5,239862,92,247180,110,257979,37,249245,85,251490,80,251441,52,217451,194,238365,29,250498,14,254449,117,243651,96,243358,30,228543,103,246773,110,239975,22,238089,67,235389,178,239195,29,250172,50,239341,98,255165,42,253962,62,245472,176,253880,12,245586,46,251994,51,256352,126,257312,101,265232,56,271883,100,254140,78,246969,68,251652,73,251799,40,251587,88,249571,353,248156,56,244610,57,246529,52,254092,85,256336,128,260044,38,259832,251,260808,11,246855,53,254336,74,222460,128,244383,174,242431,20,241472,108,223306,95,239699,94,240008,50,213451,30,226103,59,233763,283,219679,4,230608,136,226315,47,217207,91,221940,29,226136,106,225355,32,191723,166,198668,108,207173,54,184926,100,209970,12,210361,43,207320,133,209645,106,215760,49,219858,103,183055,22,190065,104,215418,73,216801,53,208799,83,212979,61,187365,99,192293,95,203010,82,205710,98,184730,25,185283,84,191528,85,188324,19,199351,135,177737,68,205335,82,202327,45,165817,155,178355,56,202864,88,196765,86,186324,24,193821,89,172680,67,177737,43,207043,109,201790,2,213158,186,209564,44,210962,160,210410,20,206328,182,208409,14,187088,16,202522,79,286894,86,272404,136,258629,8,259784,75,248871,120,237048,9,233080,137,241618,27,253913,93,250758,28,265931,142,261475,49,259475,216,258466,65,257670,94,231307,133,245944,7,228299,58,238821,127,243472,21,244822,114,241390,35,244822,83,240252,163,238951,15,242578,43,242399,65,237585,93,236707,62,233714,339,232007,50,228835,43,228266,15,224266,115,224851,82,212296,85,213597,102,206637,53,209141,102,226900,98,225550,77,230267,18,233600,57,207189,104,225973,24,232023,292,226152,53,231714,104,213109,8,177949,126,207856,77,222623,77,220948,115,219370,89,216963,66,222151,179,224363,1,229063,10,232608,130,215581,70,221842,63,225111,203,223696,88,207417,120,204831,28,209873,94,216541,50,191057,92,205872,127,205758,32,205856,99,220899,37,224379,17,224737,340,225046,13,217094,127,215874,72,223208,103,225550,164,227388,61,225518,35,227746,125,204539,29,213678,76,223013,147,217338,75,219826,135,219387,7,218346,62,219875,87,219972,48,220070,21,201416,539,205189,243,205840,62,209108,71,207710,96,228656,50,234235,34,221598,171,222981,12,220932,71,219566,137,219744,189,219566,347,216508,186,214735,19,210328,66,213012,108,213223,71,213337,59,208328,76,212524,36,200701,94,205840,150,226949,236,224737,142,225306,228,225388,1,219793,105,221371,119,226331,33,238268,66,233340]};
+function decodeSeed(){
+  const out=[];let t=SEED.a;
+  for(let i=0;i<SEED.d.length;i+=2){t+=SEED.d[i]*60000;out.push({t,mc:SEED.d[i+1]});}
+  if(t!==SEED.e||out.length<400)throw new Error('seed corrupt');
+  return out;
+}
 const ODIN=['https://api.odin.fun/v2','/api/odin'];
 
 /* ================= what was said on the way =================
@@ -253,7 +266,8 @@ const SAYS=[
   {d:'2026-06-29',zh:'人心散了',                       en:'Nobody believes in it any more'},
   {d:'2026-07-01',zh:'奥丁没流量了',                   en:'Odin has no traffic left'},
   {d:'2026-07-04',zh:'平台开发太慢了',                 en:'They ship far too slowly'},
-  {d:'2026-07-07',zh:'我的谷歌验证无法解绑',           en:'I cannot unbind my Google authenticator'},
+  {d:'2026-07-07',zh:'谷歌验证太麻烦了，老外一点也不懂中国市场',
+                  en:'Google 2FA is such a hassle — these foreigners do not get the Chinese market at all'},
   {d:'2026-07-10',zh:'NOODL 我也有很多，涨了就会卖，确保它不会发射',
                   en:'I hold plenty of NOODL too. I will sell into any pump, so it never launches'},
   {d:'2026-07-12',zh:'永远不可能迁移 v1',              en:'The v1 migration will never happen'},
@@ -277,7 +291,7 @@ const SAYS=[
   {d:'2026-07-23',fast:1,zh:'说实话，10 万市值也高了，再过两天就归零了',
                   en:'Honestly, even a hundred thousand is too much. Two more days and it is zero'},
   {d:'2026-07-24',fast:1,zh:'还好我早跑了',                   en:'Just as well I got out early'},
-  {d:'2026-07-25',fast:1,zh:'早卖早超生',                     en:'Sell early, suffer less'},
+  {d:'2026-07-25',fast:1,zh:'速回 BSC，没耐心在这里耗着了',    en:'Straight back to BSC. No patience to sit here grinding'},
 
   /* ---- the flat stretch, where the complaints contradict each other.
          these come quickly, one on top of the last: that is the joke ---- */
@@ -305,8 +319,13 @@ const SAYS=[
                   en:'You dumped it in the middle of the night. Do not think I missed it'},
   {d:'2026-08-20',zh:'Bob 这个人太固执了，不会做营销，技术更新也慢',
                   en:'Bob is too stubborn. He cannot market, and he ships slowly'},
-  /* the road ends on the line it was launched with, one bowl later */
+  /* the line it was launched with, one bowl later */
   {d:'2026-08-22',zh:'面条太贵了',                     en:'The noodle is too expensive'},
+  {d:'2026-08-23',zh:'平台没流量，都快熄火了',         en:'The platform has no traffic. It is about to stall out'},
+  /* postdated: the tape has not reached this day yet, so the schedule holds it
+     back the same way it holds back an unreached price — it says itself on
+     the first load after the road grows past the 26th */
+  {d:'2026-08-26',zh:'面条也别硬撑了',                 en:'The noodle should stop forcing it too'},
 
   /* ---- still waiting, above every price it has ever printed ---- */
   {mc:350e3, zh:'面条的价格有巨大的泡沫',              en:'The noodle is a giant bubble'},
@@ -540,7 +559,9 @@ function buildSchedule(){
   for(let i=0;i<SAYS.length;i++){
     const s=SAYS[i];
     let p=null;
-    if(s.d)p=pOfDate(s.d);
+    /* a day the road has not reached is a line not said yet — without this,
+       the clamp in pOfDate would say every postdated line today, at the end */
+    if(s.d){const ms=Date.parse(s.d+'T00:00:00Z');p=(ms>T1)?null:pOfDate(s.d);}
     else if(s.dr){
       const a=pOfDate(s.dr[0]), b=pOfDate(s.dr[1]);
       if(a!=null&&b!=null)p=a+(b-a)*(s.k==null?0.5:s.k);
@@ -1054,30 +1075,10 @@ function say(h,p,retry){
   $('#stateP').classList.toggle('dots',!retry);
   $('#btnRetry').hidden=!retry;
 }
-async function boot(){
-  const ui=I18N[lang];
-  say(ui.loadH,ui.loadP,false);
-  fit();
-  let data=null;
-  try{
-    data=await pullSeries();
-    try{localStorage.setItem('noodl_road',JSON.stringify({at:Date.now(),rows:thin(data.rows,700),n:data.n,supply:data.supply}));}catch(e){}
-  }catch(e){
-    /* last good tape rather than invented numbers */
-    try{
-      const c=JSON.parse(localStorage.getItem('noodl_road')||'null');
-      if(c&&c.rows&&c.rows.length>8)data={rows:c.rows,n:c.n||c.rows.length,supply:c.supply,cached:true};
-    }catch(e2){}
-    if(!data){
-      say(ui.errH,ui.errP,true);
-      window.__roadErr=String(e&&e.message||e);
-      return;
-    }
-  }
-  series=thin(data.rows,700);
-  meta=data;
-  SUPPLY=Number(data.supply)||SUPPLY;
-  $('#state').hidden=true;
+/* everything a new tape needs rebuilt, in one place, so the seed, the legacy
+   fetch and the mid-play splice cannot drift apart */
+function applySeries(rows){
+  series=thin(rows,700);
   T0=series[0].t;T1=series[series.length-1].t;
   ATH=series.reduce((m,r)=>Math.max(m,r.mc),0);
   peak=ATH;
@@ -1094,7 +1095,72 @@ async function boot(){
   }
   SCHED=buildSchedule();
   paint();
+}
+async function boot(){
+  const ui=I18N[lang];
+  fit();
+  /* the baked tape first: the road is rolling before any request is made */
+  try{
+    SUPPLY=SEED.s;
+    applySeries(decodeSeed());
+    $('#state').hidden=true;
+    start();
+    refresh();
+    return;
+  }catch(e){window.__roadErr='seed: '+String(e&&e.message||e);}
+  /* only a corrupt seed lands here: the old full fetch, with its old card */
+  say(ui.loadH,ui.loadP,false);
+  let data=null;
+  try{
+    data=await pullSeries();
+  }catch(e){
+    say(ui.errH,ui.errP,true);
+    window.__roadErr=String(e&&e.message||e);
+    return;
+  }
+  SUPPLY=Number(data.supply)||SUPPLY;
+  applySeries(data.rows);
+  $('#state').hidden=true;
   start();
+  armLive();
+}
+/* What the network is for now: only the stretch the seed has not seen. Walk
+   the newest pages until one reaches back past the seed's last day, rescale
+   the baked dollars to today's BTC rate so the seam is not a step, splice,
+   rebuild. All of it lands while the replay is still down in June. */
+async function refresh(){
+  try{
+    const [tok,cur]=await Promise.all([api('/token/'+TOKEN),api('/currency/btc')]);
+    const supply=Number(tok.total_supply)/MS, usd=Number(cur.amount)||0;
+    if(!(supply>0&&usd>0))throw new Error('bad payload');
+    let raw=[];
+    for(let pg=1;pg<=8;pg++){
+      const d=await api('/token/'+TOKEN+'/trades?limit=1000&page='+pg);
+      const part=d.data||[];
+      raw=raw.concat(part);
+      if(!part.length||raw.length>=(d.count||0))break;
+      let oldest=Infinity;
+      for(const r of part){const ms=Date.parse(r.time);if(Number.isFinite(ms)&&ms<oldest)oldest=ms;}
+      if(oldest<=SEED.e)break;             /* this page reaches the seed */
+    }
+    const tail=raw.filter(r=>Number(r.price)>0&&r.time)
+      .map(r=>({t:Date.parse(r.time),mc:Number(r.price)/MS*supply*usd}))
+      .filter(r=>Number.isFinite(r.t)&&Number.isFinite(r.mc)&&r.t>SEED.e)
+      .sort((a,b)=>a.t-b.t);
+    const k=usd/SEED.u;
+    const rows=decodeSeed().map(r=>({t:r.t,mc:r.mc*k})).concat(tail);
+    const liveMc=Number(tok.marketcap)/MS*usd;
+    if(Number.isFinite(liveMc)&&liveMc>0)rows.push({t:Date.now(),mc:liveMc});
+    SUPPLY=supply;
+    applySeries(rows);
+    if(done)seek(1,true);
+  }catch(e){
+    /* stale is fine: the seed keeps playing, and the next visit tries again */
+    window.__roadErr='refresh: '+String(e&&e.message||e);
+  }
+  armLive();
+}
+function armLive(){
   /* once it has caught up, keep the head on the live number */
   clearInterval(liveTimer);
   liveTimer=setInterval(async()=>{
@@ -1117,6 +1183,7 @@ async function boot(){
   },20000);
 }
 $('#btnRetry').addEventListener('click',boot);
+window.__roadRefresh=refresh;
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){if(soundOn)quiet();return;}
   if(!soundOn||!AC)return;
