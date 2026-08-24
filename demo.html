@@ -127,6 +127,31 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
 .hud .pow b{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--cyan)}
 .hud .pow .bar{display:block;width:64px;height:5px;border-radius:3px;background:#1b2630;overflow:hidden}
 .hud .pow .bar u{display:block;height:100%;width:0;background:var(--cyan);border-radius:3px}
+.hud .gearline{position:absolute;left:14px;top:118px;display:flex;align-items:center;gap:8px;padding:5px 10px 6px}
+.hud .gearline b{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--dim)}
+.hud .gearline span{font-size:11px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.hud .gearline span i{font-style:normal;color:#ffd34d;font-weight:700}
+.hud .swap{
+  position:absolute;left:50%;bottom:58px;transform:translateX(-50%);
+  padding:8px 14px;font-size:12.5px;color:var(--text);pointer-events:auto;cursor:pointer;
+  border-color:rgba(255,211,77,.5);background:rgba(24,24,29,.92);white-space:nowrap;
+}
+.hud .swap[hidden]{display:none}
+/* fullscreen: only offered to a coarse pointer, because a desktop already
+   has all the screen it wants */
+.hud .fs{
+  position:absolute;right:14px;top:58px;display:none;pointer-events:auto;cursor:pointer;
+  font:700 15px/1 'Work Sans',sans-serif;color:var(--text-2);padding:7px 11px 8px;
+  background:rgba(24,24,29,.85);border:1px solid var(--line);border-radius:6px;
+}
+.hud .fs.on{color:var(--noodle-y);border-color:rgba(252,209,79,.45)}
+@media (pointer:coarse){.hud .fs{display:block}}
+/* the pinned fallback for platforms with no real fullscreen (iOS) */
+.arena.fsfake{
+  position:fixed;inset:0;z-index:60;max-height:none;aspect-ratio:auto;
+  width:100vw;height:100vh;border-radius:0;border:none;
+}
+body.fslock{overflow:hidden}
 .hud .radio{position:absolute;left:14px;bottom:12px;max-width:52%;font-size:12px;line-height:1.6;color:var(--text-2)}
 .hud .radio div{opacity:0;animation:rd 5.2s ease-out forwards}
 .hud .radio div b{color:var(--noodle-y);font-weight:700;margin-right:6px}
@@ -163,6 +188,24 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
   border-radius:4px;padding:4px 7px;white-space:nowrap;
 }
 .card .row{display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.card .lb{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;text-align:left}
+.card .lb[hidden]{display:none}
+.card .lb p{font-size:12px;color:var(--text-2);margin-bottom:8px}
+.card .lb h4{font-size:11px;letter-spacing:.14em;font-weight:700;color:var(--dim);margin-bottom:8px}
+.card .lbrow{display:flex;gap:8px}
+.card .lbrow input{
+  flex:1;min-width:0;font:600 13px/1 'Work Sans',monospace;letter-spacing:.04em;
+  color:var(--text);background:#0f1015;border:1px solid var(--line);border-radius:6px;padding:10px 11px;outline:none;
+}
+.card .lbrow input:focus{border-color:var(--cyan)}
+.card .lb ol{list-style:none;max-height:180px;overflow-y:auto}
+.card .lb ol li{
+  font-size:12.5px;color:var(--text-2);padding:5px 2px;border-bottom:1px solid rgba(39,39,42,.6);
+  font-variant-numeric:tabular-nums;display:flex;justify-content:space-between;gap:10px;
+}
+.card .lb ol li b{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%}
+.card .lb ol li i{font-style:normal;color:#ffd34d;font-weight:700}
+.card .lbnote{font-size:10.5px;color:var(--dim);margin-top:8px;margin-bottom:0}
 .card .stats{display:flex;gap:18px;justify-content:center;margin-top:12px}
 .card .stats div{text-align:center}
 .card .stats b{display:block;font-size:20px;font-weight:800}
@@ -249,6 +292,9 @@ footer a:hover{color:var(--cyan)}
       <div class="feed" id="feed"></div>
       <div class="nades plate" id="nadeBox"><b data-i="hudNade">FRAGS</b><span class="pips" id="nadePips"></span></div>
       <div class="pow plate" id="powBox" hidden><b data-i="hudPow">CHARGED</b><i class="bar"><u id="powBar"></u></i></div>
+      <div class="gearline plate" id="gearBox"><b data-i="hudGear">GEAR</b><span id="gearTxt"></span></div>
+      <div class="swap plate" id="swap" hidden></div>
+      <button class="fs plate" id="fsBtn" type="button" aria-pressed="false">\u26f6</button>
       <div class="stance plate" id="stanceBox">STANDING</div>
       <div class="ammo plate" id="ammoBox"><span id="ammo">30 <em>/ ∞</em></span></div>
       <div class="radio" id="radio"></div>
@@ -284,7 +330,20 @@ footer a:hover{color:var(--cyan)}
           <div><b id="stTime">0s</b><span data-i="stTime">TIME</span></div>
           <div><b id="stAcc">0%</b><span data-i="stAcc">ACCURACY</span></div>
         </div>
+        <div class="lb" id="lbSubmit" hidden>
+          <p data-i="lbPrompt"></p>
+          <div class="lbrow">
+            <input id="lbId" maxlength="40" spellcheck="false" placeholder="odin ID">
+            <button class="btn" id="lbGo" type="button" data-i="lbGo">Submit</button>
+          </div>
+        </div>
+        <div class="lb" id="lbPanel" hidden>
+          <h4 data-i="lbTitle">LEADERBOARD</h4>
+          <ol id="lbList"></ol>
+          <p class="lbnote" data-i="lbNote"></p>
+        </div>
         <div class="row">
+          <button class="btn ghost" id="btnLb" type="button" data-i="btnLb" hidden>Leaderboard</button>
           <button class="btn" id="btnAgain" type="button" data-i="btnAgain">Again</button>
           <a class="btn ghost" href="battle.html" data-i="btnBack">Back to the battle</a>
         </div>
@@ -313,7 +372,7 @@ zh:{
   title:'空降长安',hint:'测试版 · 桌面端键鼠，手机双摇杆',
   hudHp:'生命',hudObj:'已肃清',
   briefSub:'任务',briefH:'空降到看空部落的长安据点',
-  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 十六个人，外加两辆重坦克。坦克带机枪，非常难缠：中间那座大仓库它开不进去也打不到里面，三个门只有人走得通。地上的面碗和机枪，你和队友都能捡；买盘越活跃，跟你跳下去的 NOODLER 越多。',
+  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 十六个人，外加两辆重坦克，而这只是开场：打到一半，仓库里会爬出别的东西。地上的面碗和机枪，你和队友都能捡；买盘越活跃，跟你跳下去的 NOODLER 越多。这一仗没有胜利，只看你能带走多少人。',
   kMove:'移动',kMouse:'鼠标',kAim:'瞄准',kClick:'左键',kFire:'射击',
   kRun:'冲刺',kCtrl:'CTRL / C',kCrouch:'蹲下 —— 更稳，也更难被打中',kReload:'换弹',
   kRight:'右键（按住）',kNade:'扔手雷 —— 按得越久扔得越远',
@@ -325,6 +384,16 @@ zh:{
   svDown:n=>'<b>'+n+'</b> 阵亡',svKill:(a,b)=>'<b>'+a+'</b> 击毙 <b>'+b+'</b>',
   svBowl:n=>'<b>'+n+'</b> 吃了碗面，回满',svMG:n=>'<b>'+n+'</b> 捡起机枪',
   svTankIn:n=>'<b>'+n+'</b> 的坦克压上来了',svTankOut:(a,b)=>'<b>'+a+'</b> 击毁了 <b>'+b+'</b> 的坦克',
+  svBossIn:n=>'<b>'+n+'</b> 从仓库里爬了出来',svBossKill:n=>'<b>'+n+'</b> 干掉了头目',
+  svSup:n=>'超级兵 <b>'+n+'</b> 参战',
+  svGear:n=>'<b>你</b> 换上了 '+n,
+  hudGear:'装备',gearL:['头','甲','枪','手'],
+  gearName:{gun3:'三倍火力机枪',armor3:'三级护甲',helm3:'三级头盔',glove3:'三级手套'},
+  gearFx:{gun3:'火力 ×3，永久',armor3:'枪伤减半',helm3:'枪伤再减两成',glove3:'换弹更快，手雷更远'},
+  swapHint:(n,f)=>n+'（'+f+'）— 按 B 换上',
+  lbPrompt:'超过 100 杀！留下你的 Odin 用户 ID，上击杀排行榜：',lbGo:'提交',
+  lbTitle:'击杀排行榜',lbNote:'排行榜暂存本机浏览器',btnLb:'击杀排行榜',
+  lbKills:k=>k+' 杀',rank1:'下士',rank2:'中士',
   tankOf:n=>n+'（坦克）',
   btnStart:'跳伞',btnAgain:'再来一次',btnBack:'返回战场',
   stKills:'你的击毙',stTime:'用时',stAcc:'命中率',
@@ -335,6 +404,13 @@ zh:{
   rNood:'热汤下肚 —— 满血',rNoNade:'手雷用完了',
   rPow:'捡到机枪 —— 双排火力',rPowOut:'机枪打空了',
   rTank:'坦克出来了 —— 别站在红圈里',rTank2:'第二辆坦克从西南上来了',rTankDown:'坦克报废',
+  rBoss:'仓库里爬出来个东西…… lgixi...zae 到场了',
+  rWave:'空袭警报 —— 别站在红圈里！',
+  rWhWarn:'仓库装了炸药 —— 快离开那片区域！',
+  rWhBoom:'仓库没了',
+  rBossDown:'lgixi...zae 倒下了 —— 他的部下不会善罢甘休',
+  rReinf:'增援到了 —— 最近一小时买入的兄弟',
+  rFs:'横屏了 —— 点右上角 \u26f6 全屏，操作更顺手',
   rMore:'又一队上来了',rLast:'最后一个',rAlly:'队友已着陆',
   fdKill:(a,b)=>a+' 击毙 '+b, youName:'你',
   allyNames:['刀削','拉条子','臊子'],
@@ -347,7 +423,7 @@ en:{
   title:'Drop on Chang’an',hint:'test build · mouse and keys on desktop, twin sticks on a phone',
   hudHp:'HP',hudObj:'CLEARED',
   briefSub:'MISSION',briefH:'Drop behind the Tribe’s lines',
-  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — sixteen of them, and two heavy tanks. The tanks carry machine guns and they are very hard to live in front of: the big warehouse in the middle is the one place they cannot drive into or shoot inside, and only a man fits through its three doors. The bowls and the machine guns down there can be taken by you or your squad — and the busier the buy side of the tape, the more NOODLERs drop with you.',
+  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — sixteen of them and two heavy tanks, and that is only the opening: halfway through, something else crawls out of the warehouse. The bowls and machine guns can be taken by you or your squad, and the busier the buy side, the more NOODLERs drop with you. There is no winning this one — only how many you take with you.',
   kMove:'move',kMouse:'MOUSE',kAim:'aim',kClick:'LEFT CLICK',kFire:'fire',
   kRun:'sprint',kCtrl:'CTRL / C',kCrouch:'crouch — steadier, and harder to hit',kReload:'reload',
   kRight:'RIGHT CLICK (HOLD)',kNade:'throw a grenade — the longer you hold, the further it goes',
@@ -359,6 +435,16 @@ en:{
   svDown:n=>'<b>'+n+'</b> is down',svKill:(a,b)=>'<b>'+a+'</b> killed <b>'+b+'</b>',
   svBowl:n=>'<b>'+n+'</b> ate a bowl, back to full',svMG:n=>'<b>'+n+'</b> took the MG',
   svTankIn:n=>'<b>'+n+'</b>\u2019s tank is rolling',svTankOut:(a,b)=>'<b>'+a+'</b> wrecked <b>'+b+'</b>\u2019s tank',
+  svBossIn:n=>'<b>'+n+'</b> crawled out of the warehouse',svBossKill:n=>'<b>'+n+'</b> took the boss down',
+  svSup:n=>'super <b>'+n+'</b> joined',
+  svGear:n=>'<b>You</b> equipped the '+n,
+  hudGear:'GEAR',gearL:['H','A','G','V'],
+  gearName:{gun3:'triple MG',armor3:'level-3 armour',helm3:'level-3 helmet',glove3:'level-3 gloves'},
+  gearFx:{gun3:'3\u00d7 firepower, permanent',armor3:'rifle damage halved',helm3:'a further fifth off',glove3:'faster reload, longer throw'},
+  swapHint:(n,f)=>n+' ('+f+') \u2014 press B to equip',
+  lbPrompt:'Over 100 kills! Leave your Odin user ID for the board:',lbGo:'Submit',
+  lbTitle:'KILL LEADERBOARD',lbNote:'The board lives in this browser only',btnLb:'Leaderboard',
+  lbKills:k=>k+' kills',rank1:'Corporal',rank2:'Sergeant',
   tankOf:n=>n+' (tank)',
   btnStart:'Jump',btnAgain:'Again',btnBack:'Back to the battle',
   stKills:'YOUR KILLS',stTime:'TIME',stAcc:'ACCURACY',
@@ -369,6 +455,13 @@ en:{
   rNood:'hot bowl down — back to full',rNoNade:'out of grenades',
   rPow:'machine gun — twin columns',rPowOut:'the machine gun is out',
   rTank:'tank is out — do not stand in the red',rTank2:'a second tank, coming up from the south-west',rTankDown:'tank is wrecked',
+  rBoss:'something crawled out of the warehouse... lgixi...zae is on the field',
+  rWave:'air raid — out of the red circles!',
+  rWhWarn:'the warehouse is rigged — clear the area!',
+  rWhBoom:'the warehouse is gone',
+  rBossDown:'lgixi...zae is down — his men will not let it rest',
+  rReinf:'reinforcements — the hour\u2019s buyers',
+  rFs:'sideways — tap \u26f6 top-right for fullscreen',
   rMore:'another squad coming',rLast:'last one',rAlly:'squad on the ground',
   fdKill:(a,b)=>a+' killed '+b, youName:'You',
   allyNames:['Daoxiao','Latiaozi','Saozi'],
@@ -440,7 +533,12 @@ const KIT={
      than the coat or it disappears into it. */
   red :{coat:'#a8382f',coatL:'#d06254',coatD:'#571610',helm:'#872520',helmL:'#c65a50',
         helmD:'#3d0e0c',rim:'#f0a396',
-        pack:'#6e1f19',boot:'#310f0d',skin:'#c08a5e',mark:'#ff7a6a'}
+        pack:'#6e1f19',boot:'#310f0d',skin:'#c08a5e',mark:'#ff7a6a'},
+  /* the supers: crimson gone almost black, steel helmets, gold trim — they
+     have to read as a different species at a glance */
+  sup :{coat:'#6e1712',coatL:'#94312a',coatD:'#3c0b08',helm:'#2c2c33',helmL:'#4c4c58',
+        helmD:'#141419',rim:'#e0b25a',
+        pack:'#4a100c',boot:'#1e0c09',skin:'#c08a5e',mark:'#ffd34d'}
 };
 const GUN={d:'#212329',m:'#31343c',l:'#4a4e58'};
 
@@ -739,6 +837,43 @@ function bowlSpiral(c,K,R,turn,w,col){
   }
   c.stroke();
 }
+/* a piece of gear on the ground: a gold ring so it reads as loot from across
+   the compound, and a small honest icon of what it is */
+function drawGearDrop(c,x,y,tt,ph,kind){
+  const pu=0.5+0.5*Math.sin(tt*3+ph), bob=Math.sin(tt*1.9+ph)*1.2;
+  c.save();
+  c.globalAlpha=0.18+0.15*pu;c.fillStyle='#ffd34d';
+  c.beginPath();c.ellipse(x,y+1,19,9.5,0,0,6.2832);c.fill();
+  c.globalAlpha=0.6+0.3*pu;c.strokeStyle='#ffd34d';c.lineWidth=1.4;
+  c.beginPath();c.ellipse(x,y+1,19,9.5,0,0,6.2832);c.stroke();
+  c.globalAlpha=1;
+  c.fillStyle='rgba(10,10,14,.3)';
+  c.beginPath();c.ellipse(x+SUN.x*6,y+SUN.y*4,12,5.6,0,0,6.2832);c.fill();
+  c.translate(x,y-3+bob);
+  if(kind==='gun3'){
+    c.rotate(-0.42);
+    c.fillStyle='#8a6a20';rr(c,-12,-3,16,5.6,2);c.fill();
+    c.fillStyle='#ffd34d';rr(c,-12,-3,16,2.2,1.1);c.fill();
+    c.fillStyle='#6e5418';rr(c,3,-2,11,3.8,1.4);c.fill();
+    c.fillStyle='#4c3a10';rr(c,-5,2.2,7,5.6,1.3);c.fill();
+  }else if(kind==='armor3'){
+    c.fillStyle='#3f4650';poly(c,[-8,-6, 8,-6, 10,6, -10,6]);c.fill();
+    c.fillStyle='#5a6472';poly(c,[-8,-6, 8,-6, 7,-1, -7,-1]);c.fill();
+    c.strokeStyle='#ffd34d';c.lineWidth=1.3;
+    c.beginPath();c.moveTo(-5,-6);c.lineTo(-4,6);c.moveTo(5,-6);c.lineTo(4,6);c.stroke();
+  }else if(kind==='helm3'){
+    c.fillStyle='#2c2c33';c.beginPath();c.arc(0,0,7.5,3.14,6.2832);c.fill();
+    c.fillStyle='#2c2c33';c.fillRect(-7.5,-1,15,3.6);
+    c.fillStyle='#4c4c58';c.beginPath();c.ellipse(-2.4,-3,3.4,2.2,-0.4,0,6.2832);c.fill();
+    c.strokeStyle='#ffd34d';c.lineWidth=1.2;c.beginPath();c.moveTo(-7.5,2.6);c.lineTo(7.5,2.6);c.stroke();
+  }else{
+    c.fillStyle='#4a3d22';rr(c,-9,-4,7.5,9,2.4);c.fill();
+    c.fillStyle='#4a3d22';rr(c,1.5,-4,7.5,9,2.4);c.fill();
+    c.fillStyle='#ffd34d';rr(c,-9,-4.6,7.5,2,1);c.fill();
+    c.fillStyle='#ffd34d';rr(c,1.5,-4.6,7.5,2,1);c.fill();
+  }
+  c.restore();
+}
 /* the gun on the ground */
 function drawMG(c,x,y,tt,ph,pop){
   if(pop>0){
@@ -988,13 +1123,14 @@ const WH_X=1010, WH_Y=740, WH_W=430, WH_D=300, WT=30, D=62;
 /* is a point inside the warehouse floor? the tank asks before it promises a
    shell somewhere, and the ground bake asks before it lays planks */
 function inShed(x,y){
+  if(WH_DEAD)return false;
   return x>WH_X+WT*0.5&&x<WH_X+WH_W-WT*0.5&&y>WH_Y+WT*0.5&&y<WH_Y+WH_D-WT*0.5;
 }
 /* Armour is kept out by being told to stay out. The only way through the walls
    is a door, and a door is inside the footprint, so refusing the footprint is
    the whole of it — and it holds however wide the doors get. */
 function tankBlocked(x,y){
-  if(x>WH_X-6&&x<WH_X+WH_W+6&&y>WH_Y-6&&y<WH_Y+WH_D+6)return true;
+  if(!WH_DEAD&&x>WH_X-6&&x<WH_X+WH_W+6&&y>WH_Y-6&&y<WH_Y+WH_D+6)return true;
   return blocked(x,y,26);
 }
 function moveTank(tk,dx,dy){
@@ -1460,6 +1596,12 @@ const MGP_T=15, MGP_MAX=30, MGP_DMG=2, MGP_ROF=0.062, MGP_SPACING=5.2;
 let phase='brief', t=0, last=0, raf=0;
 let P, foes, allies, bullets, sparks, bodies, shells;
 let tanks=[], nades=[], blasts=[], pickups=[], shake=0;
+/* the escalation: air strikes on the ground, the boss and his heirs, the
+   warehouse's fuse, the endless clock, and what reinforcements remain */
+let strikes=[], gearDrops=[];
+let boss=null, bossSeen=false, bossClock=0, bossWave=0, bossDead=false;
+let whFuse=-1, WH_DEAD=false;
+let endless=false, endC=0, supQueue=0, supT=0, tankT=45, reinfT=18, reinfUsed=0;
 /* smoke hangs about, debris falls, light does not last */
 let smokes=[], debris=[], glows=[];
 let cam={x:0,y:0}, aim={x:0,y:0};
@@ -1471,7 +1613,8 @@ let lastHit=-9;
    Two pools of names off the tape, and a counter each so the same trader does
    not turn up twice in one fight. Empty pools mean the fetch has not landed
    (or never will), and every caller falls back to the written names.        */
-const TAPE={buy:[],sell:[],bi:0,si:0,got:false};
+const TAPE={buy:[],sell:[],recent:[],bi:0,si:0,got:false};
+const BOSS_NAME='lgixi...zae';
 /* A handle is a string somebody else chose and this puts it on screen next to
    a kill. Keep letters, digits and CJK; drop anything that is trying to be a
    link or a payload; fall back to the principal, which is at least always a
@@ -1514,6 +1657,7 @@ async function pullTape(){
   }
   if(!d||!d.data)return;
   const seen={buy:{},sell:{}};
+  const hourAgo=Date.now()-3600e3;
   for(const t of d.data){
     if(!t.user)continue;
     const side=t.buy?'buy':'sell';     /* the tape says so itself */
@@ -1521,6 +1665,8 @@ async function pullTape(){
     if(!nm||seen[side][nm])continue;
     seen[side][nm]=1;
     TAPE[side].push(nm);
+    /* whoever bought within the hour is on call as reinforcement */
+    if(t.buy&&Date.parse(t.time)>hourAgo&&TAPE.recent.length<6)TAPE.recent.push(nm);
   }
   if(!TAPE.buy.length&&!TAPE.sell.length)return;
   /* both sides need somebody, even on a one-sided tape */
@@ -1537,16 +1683,23 @@ async function pullTape(){
 }
 function mkUnit(x,y,team,hp,name){
   return {x,y,hp,team,name,ang:0,gait:0,fire:-9,burst:0,cd:1,cr:0,run:0,spd:0,
-          hurt:0,cover:null,think:0,strafe:rnd()<0.5?1:-1,alive:true,alt:0,drift:0,pow:0};
+          hurt:0,cover:null,think:0,strafe:rnd()<0.5?1:-1,alive:true,alt:0,drift:0,pow:0,
+          sup:false,boss:false,spX:1,dmX:1,scX:1,stk:0,det:1,detT:0};
 }
 function reset(){
   const ui=I18N[lang];
   P=mkUnit(LZ.x,LZ.y,'blue',P_HP,ui.youName);
   P.mag=MAG;P.reload=0;P.alt=DROP_ALT;
   P.nades=NADES;P.chg=0;P.ncd=0;P.pow=0;
+  P.gear={helm:1,armor:1,gun:1,glove:1};P.rlMax=RELOAD;
   foes=[];allies=[];bullets=[];sparks=[];bodies=[];shells=[];
   nades=[];blasts=[];shake=0;smokes=[];debris=[];glows=[];
-  tanks=[];
+  tanks=[];strikes=[];gearDrops=[];
+  boss=null;bossSeen=false;bossClock=0;bossWave=0;bossDead=false;
+  whFuse=-1;WH_DEAD=false;endless=false;endC=0;supQueue=0;supT=0;
+  tankT=45;reinfT=18;reinfUsed=0;
+  SCENE.forEach(p=>{delete p.dead;});
+  for(let i=SCENE.length-1;i>=0;i--)if(SCENE[i].rub)SCENE.splice(i,1);
   pickups=BOWLS.map((b,i)=>{const q=freeSpot(b[0],b[1]);
     return {x:q.x,y:q.y,kind:b[2]||'hp',on:true,t:0,pop:0,ph:i*1.7};});
   cleared=0;myKills=0;spawned=0;spawnT=1.2;shots=0;hits=0;lastHit=-9;
@@ -1589,6 +1742,7 @@ addEventListener('keydown',e=>{
   if(phase==='fight'||phase==='drop'){
     if(/^(Space|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|KeyW|KeyA|KeyS|KeyD|ControlLeft|ControlRight)$/.test(e.code))e.preventDefault();
     if(e.code==='KeyR')startReload();
+    if(e.code==='KeyB'&&nearGear)equipGear(nearGear);
   }
 });
 addEventListener('keyup',e=>{keys[e.code]=false;});
@@ -1659,10 +1813,145 @@ function inRect(x,y,r,o){return x+r>o.x&&x-r<o.x+o.w&&y+r>o.y&&y-r<o.y+o.d;}
 function blocked(x,y,r){
   for(let i=0;i<SOLID.length;i++){
     const o=SOLID[i];
+    if(o.dead)continue;
     if(o.cr!=null){const dx=x-o.cx,dy=y-o.cy;if(dx*dx+dy*dy<(r+o.cr)*(r+o.cr))return true;}
     else if(inRect(x,y,r,o))return true;
   }
   return false;
+}
+/* moveBody plus a memory: when the wall is winning — intended travel
+   producing under a third of itself — probe both perpendiculars, take the
+   freer one, and hold it long enough to actually round the corner. */
+/* ---------------- the flow field ----------------
+   A coarse grid over the world, a walkable mask baked from the same blocked()
+   the men obey, and a breadth-first flood out from wherever the player is.
+   A man with no line of sight walks downhill on it; a man with one charges
+   straight, same as ever. */
+const FCS=30, FW=Math.ceil(WW/FCS), FH=Math.ceil(WH/FCS);
+let FWALK=null, FLOW=null, flowT=0;
+function bakeWalk(){
+  FWALK=new Uint8Array(FW*FH);
+  for(let gy=0;gy<FH;gy++)for(let gx=0;gx<FW;gx++)
+    FWALK[gy*FW+gx]=blocked(gx*FCS+FCS/2,gy*FCS+FCS/2,11)?0:1;
+}
+function bakeFlow(sx,sy){
+  if(!FWALK)bakeWalk();
+  if(!FLOW)FLOW=new Int16Array(FW*FH);
+  FLOW.fill(32000);
+  let gx=clamp((sx/FCS)|0,0,FW-1),gy=clamp((sy/FCS)|0,0,FH-1);
+  /* the player can be standing in a doorway cell the mask calls solid; take
+     the nearest walkable cell rather than flooding nothing */
+  if(!FWALK[gy*FW+gx]){
+    outer:for(let rr3=1;rr3<4;rr3++)for(let dy=-rr3;dy<=rr3;dy++)for(let dx=-rr3;dx<=rr3;dx++){
+      const nx=gx+dx,ny=gy+dy;
+      if(nx<0||ny<0||nx>=FW||ny>=FH)continue;
+      if(FWALK[ny*FW+nx]){gx=nx;gy=ny;break outer;}
+    }
+  }
+  const q=[gy*FW+gx];FLOW[gy*FW+gx]=0;
+  for(let h=0;h<q.length;h++){
+    const c=q[h],cx=c%FW,cy=(c/FW)|0,d=FLOW[c]+1;
+    if(cx>0&&FWALK[c-1]&&FLOW[c-1]>d){FLOW[c-1]=d;q.push(c-1);}
+    if(cx<FW-1&&FWALK[c+1]&&FLOW[c+1]>d){FLOW[c+1]=d;q.push(c+1);}
+    if(cy>0&&FWALK[c-FW]&&FLOW[c-FW]>d){FLOW[c-FW]=d;q.push(c-FW);}
+    if(cy<FH-1&&FWALK[c+FW]&&FLOW[c+FW]>d){FLOW[c+FW]=d;q.push(c+FW);}
+  }
+}
+function flowDir(x,y){
+  if(!FLOW)return null;
+  const gx=clamp((x/FCS)|0,0,FW-1),gy=clamp((y/FCS)|0,0,FH-1);
+  let best=FLOW[gy*FW+gx],bx=0,by=0;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    if(!dx&&!dy)continue;
+    const nx=gx+dx,ny=gy+dy;
+    if(nx<0||ny<0||nx>=FW||ny>=FH)continue;
+    /* no diagonal squeezes between two solid cells */
+    if(dx&&dy&&(!FWALK[gy*FW+nx]||!FWALK[ny*FW+gx]))continue;
+    const v=FLOW[ny*FW+nx];
+    if(v<best){best=v;bx=dx;by=dy;}
+  }
+  if(!bx&&!by)return null;
+  const L=Math.hypot(bx,by);
+  return {x:bx/L,y:by/L};
+}
+/* which solid box is standing where this man wants to be */
+function blockerAt(x,y,r){
+  for(let i=0;i<SOLID.length;i++){
+    const o=SOLID[i];
+    if(o.dead||o.cr!=null)continue;
+    if(inRect(x,y,r,o))return o;
+  }
+  return null;
+}
+function steer(e,vx,vy,dt,r,tx,ty){
+  /* a man physically inside a box (a bad spawn, a collapsing wall) cannot be
+     moved by moveBody at all: eject him along the shortest axis first */
+  const inb=blockerAt(e.x,e.y,2);
+  if(inb){
+    const dl=e.x-inb.x, dr=inb.x+inb.w-e.x, du=e.y-inb.y, dd=inb.y+inb.d-e.y;
+    const m=Math.min(dl,dr,du,dd);
+    if(m===dl)e.x=inb.x-r-4;else if(m===dr)e.x=inb.x+inb.w+r+4;
+    else if(m===du)e.y=inb.y-r-4;else e.y=inb.y+inb.d+r+4;
+    e.x=clamp(e.x,20,WW-20);e.y=clamp(e.y,20,WH-20);
+    return;
+  }
+  const sp=Math.hypot(vx,vy);
+  if(sp<1){e.stk=0;return;}
+  let mx=vx,my=vy;
+  if(e.wp){
+    e.wpT-=dt;
+    const dx=e.wp.x-e.x,dy=e.wp.y-e.y,dd=Math.hypot(dx,dy);
+    if(dd<15||e.wpT<=0){
+      e.wp=null;                        /* corner rounded (or given up on) */
+    }else{mx=dx/dd*sp;my=dy/dd*sp;}
+  }
+  const ox=e.x,oy=e.y;
+  moveBody(e,mx*dt,my*dt,r);
+  const got=Math.hypot(e.x-ox,e.y-oy);
+  if(got<sp*dt*0.3){
+    e.stk=(e.stk||0)+dt;
+    if(e.stk>0.28){
+      e.stk=0;
+      const gx=(tx!=null?tx:e.x+vx), gy=(ty!=null?ty:e.y+vy);
+      /* whose box is it? probe along the way he was trying to go */
+      const nx=mx/(Math.hypot(mx,my)||1), ny=my/(Math.hypot(mx,my)||1);
+      const o=blockerAt(e.x+nx*20,e.y+ny*20,r)||blockerAt(e.x+nx*34,e.y+ny*34,r);
+      if(o){
+        const M=30;
+        const cs=[[o.x-M,o.y-M],[o.x+o.w+M,o.y-M],[o.x+o.w+M,o.y+o.d+M],[o.x-M,o.y+o.d+M]];
+        if(e.wpO===o&&e.wp){
+          /* the chosen corner jammed too: relay to the next one around */
+          e.wpI=(e.wpI+e.wpD+4)%4;
+          const c=cs[e.wpI];
+          e.wp={x:clamp(c[0],30,WW-30),y:clamp(c[1],30,WH-30)};e.wpT=2.2;
+        }else{
+          /* first knock on this box: the cheapest free corner, and remember
+             which way round that choice implies */
+          let bi=-1,best=1e18;
+          for(let i2=0;i2<4;i2++){
+            const c=cs[i2];
+            if(blocked(c[0],c[1],r))continue;
+            const cost=Math.hypot(c[0]-e.x,c[1]-e.y)+Math.hypot(gx-c[0],gy-c[1]);
+            if(cost<best){best=cost;bi=i2;}
+          }
+          if(bi<0)bi=(rnd()*4)|0;
+          const c=cs[bi];
+          e.wpO=o;e.wpI=bi;
+          const nxt=cs[(bi+1)%4], prv=cs[(bi+3)%4];
+          e.wpD=Math.hypot(gx-nxt[0],gy-nxt[1])<=Math.hypot(gx-prv[0],gy-prv[1])?1:-1;
+          e.wp={x:clamp(c[0],30,WW-30),y:clamp(c[1],30,WH-30)};e.wpT=2.2;
+        }
+      }else if(e.wp){e.wp=null;}
+      else{
+        /* stuck on nothing nameable (a tree, a crowd): a short random shove */
+        const a2=Math.atan2(vy,vx)+(rnd()<0.5?1:-1)*(1.2+rnd()*0.6);
+        e.wp={x:clamp(e.x+Math.cos(a2)*70,30,WW-30),y:clamp(e.y+Math.sin(a2)*70,30,WH-30)};
+        e.wpT=0.8;e.wpO=null;
+      }
+    }
+  }else e.stk=Math.max(0,(e.stk||0)-dt*2);
+  /* line of sight ends the errand early: the corner has served its purpose */
+  if(e.wp&&tx!=null&&losClear(e.x,e.y,tx,ty))e.wp=null;
 }
 function moveBody(e,dx,dy,r){
   const nx=clamp(e.x+dx,r+16,WW-r-16), ny=clamp(e.y+dy,r+16,WH-r-16);
@@ -1694,9 +1983,24 @@ function feed(who,whom,mine){
   while(box.children.length>4)box.removeChild(box.firstChild);
   setTimeout(()=>{if(d.parentNode)d.parentNode.removeChild(d);},6100);
 }
+let nearGear=null;
+function equipGear(gd){
+  if(!gd||!gd.on||!P||!P.alive)return;
+  gd.on=false;
+  if(gd.kind==='gun3')P.gear.gun=3;
+  else if(gd.kind==='armor3')P.gear.armor=3;
+  else if(gd.kind==='helm3')P.gear.helm=3;
+  else if(gd.kind==='glove3')P.gear.glove=3;
+  spark(gd.x,gd.y,'#ffd34d',20,170);glow(gd.x,gd.y,50,'255,211,77',0.3);
+  radio(I18N[lang].gearName[gd.kind]+' — '+I18N[lang].gearFx[gd.kind]);
+  ticker('blue',I18N[lang].svGear(I18N[lang].gearName[gd.kind]));
+  nearGear=null;const sw=$('#swap');if(sw)sw.hidden=true;
+  paintHud(true);
+}
 function startReload(){
   if(!P||!P.alive||P.reload>0||P.mag===MAG||phase!=='fight')return;
-  P.reload=RELOAD;radio(I18N[lang].rReload);
+  P.rlMax=RELOAD*(P.gear.glove>=3?0.55:1);
+  P.reload=P.rlMax;radio(I18N[lang].rReload);
 }
 function muzzleOf(u,sc){
   const s=sc*(1-0.13*(u.cr||0));
@@ -1728,9 +2032,9 @@ function shootFrom(u,side,spread,dmg,sc,ox,oy){
    not — its footprint reaches up-screen by part of its height so that the roof
    reads as solid, and that band is ground a man can walk on. Sampling from
    d-0 meant every grenade thrown from under an eave landed on the thrower.  */
-function boxAt(o,x,y){return x>o.x&&x<o.x+o.w&&y>o.y-o.ht*0.4&&y<o.y+o.d;}
+function boxAt(o,x,y){return !o.dead&&x>o.x&&x<o.x+o.w&&y>o.y-o.ht*0.4&&y<o.y+o.d;}
 function nadeTarget(ang,chg){
-  const rng=NADE_MIN+(NADE_MAX-NADE_MIN)*clamp(chg/NADE_CHG,0,1);
+  const rng=(NADE_MIN+(NADE_MAX-NADE_MIN)*clamp(chg/NADE_CHG,0,1))*((P.gear&&P.gear.glove>=3)?1.25:1);
   const cx=Math.cos(ang), cy=Math.sin(ang);
   for(let d=28;d<rng;d+=16){
     const x=P.x+cx*d, y=P.y+cy*d;
@@ -1841,11 +2145,96 @@ function die(u,killer){
   if(u.team==='red'){
     cleared++;
     if(killer===P)myKills++;
-    if(cleared>=TARGET){phase='won';endAt=t;overT=1.5;}
-    else if(TARGET-cleared===1)radio(I18N[lang].rLast);
+    if(u.boss){
+      bossDead=true;boss=null;
+      gearDrops.push({x:u.x-28,y:u.y+6,kind:'gun3',on:true,ph:0});
+      gearDrops.push({x:u.x+28,y:u.y-6,kind:'armor3',on:true,ph:1.7});
+      supQueue+=10;supT=3;
+      radio(I18N[lang].rBossDown);
+      ticker('red',I18N[lang].svDown(esc(BOSS_NAME)));
+      if(killer)ticker('blue',I18N[lang].svBossKill(esc(killer===P?I18N[lang].youName:killer.name)));
+    }else if(u.sup){
+      /* the heirs travel lighter, but sometimes carry something worth having */
+      const r0=Math.random();
+      if(r0<0.10)gearDrops.push({x:u.x,y:u.y,kind:'helm3',on:true,ph:Math.random()*3});
+      else if(r0<0.18)gearDrops.push({x:u.x,y:u.y,kind:'glove3',on:true,ph:Math.random()*3});
+    }
+    if(!bossSeen&&cleared>=(TARGET>>1))summonBoss();
+    if(!endless){
+      if(cleared>=TARGET){phase='won';endAt=t;overT=1.5;}
+      else if(TARGET-cleared===1)radio(I18N[lang].rLast);
+    }
   }
 }
 
+function mkSuper(x,y,isBoss){
+  const nm=isBoss?BOSS_NAME:traderName('red',I18N[lang].foeNames[(spawned+3)%I18N[lang].foeNames.length]);
+  const u=mkUnit(x,y,'red',E_HP*5,nm);
+  u.sup=true;u.boss=!!isBoss;u.spX=2;u.dmX=3;u.scX=isBoss?1.35:1.18;
+  return u;
+}
+/* one wave of air: big red promises on the ground near living green men,
+   then, after the fuse, no more ground worth standing on there */
+function callWave(n){
+  const marks=allies.filter(a=>a.alive).concat(P.alive?[P]:[]);
+  for(let i=0;i<n;i++){
+    const m=marks.length?marks[(Math.random()*marks.length)|0]:{x:LZ.x,y:LZ.y};
+    strikes.push({x:clamp(m.x+(Math.random()*2-1)*220,80,WW-80),
+                  y:clamp(m.y+(Math.random()*2-1)*180,80,WH-80),
+                  f:2.2+Math.random()*0.5,R:112});
+  }
+  radio(I18N[lang].rWave);
+}
+function summonBoss(){
+  bossSeen=true;endless=true;bossClock=0;bossWave=0;whFuse=-1;
+  boss=mkSuper(WH_X+WH_W/2,WH_Y+WH_D/2,true);
+  foes.push(boss);
+  spark(boss.x,boss.y,'#ffd34d',30,320);spark(boss.x,boss.y,'#7a2a20',22,220);
+  blasts.push({x:boss.x,y:boss.y,t:0,R:70,col:'#ffd34d'});
+  for(let i=0;i<8;i++)smokes.push({x:boss.x+rr2(-30,30),y:boss.y+rr2(-20,20),
+    vx:rr2(-12,12),vy:rr2(-26,-8),r:6,grow:16,t:0,life:1.4,col:'70,54,40',rot:rr2(0,3)});
+  shake=1.3;
+  radio(I18N[lang].rBoss);
+  ticker('red',I18N[lang].svBossIn(esc(BOSS_NAME)));
+  feed(BOSS_NAME,'—',false);
+  paintHud(true);
+}
+/* the warehouse goes. its walls stop existing for every purpose at once, the
+   floor scorches, and — as promised — everyone in green anywhere near it. */
+function blowWarehouse(){
+  WH_DEAD=true;whFuse=-2;
+  SCENE.forEach(p=>{if(p.k==='shed')p.dead=true;});
+  bakeWalk();flowT=0;                 /* the ruins are ground now */
+  const cx=WH_X+WH_W/2, cy=WH_Y+WH_D/2;
+  for(let i=0;i<5;i++)
+    blasts.push({x:WH_X+WH_W*(0.15+0.7*Math.random()),y:WH_Y+WH_D*(0.15+0.7*Math.random()),
+                 t:-i*0.09,R:130,col:i%2?'#ff8a5a':'#fcd14f'});
+  spark(cx,cy,'#ffd08a',60,520);spark(cx,cy,'#5a4a3a',40,300);
+  for(let i=0;i<16;i++)smokes.push({x:WH_X+Math.random()*WH_W,y:WH_Y+Math.random()*WH_D,
+    vx:rr2(-16,16),vy:rr2(-30,-10),r:9,grow:22,t:0,life:2.2,col:'56,46,38',rot:rr2(0,3)});
+  shake=2.2;
+  if(dctx){
+    dctx.fillStyle='rgba(20,16,12,.55)';
+    for(let i=0;i<22;i++){
+      dctx.beginPath();
+      dctx.ellipse(WH_X+Math.random()*WH_W,WH_Y+Math.random()*WH_D,
+                   18+Math.random()*36,10+Math.random()*20,Math.random()*3,0,6.2832);
+      dctx.fill();
+    }
+  }
+  SCENE.push({k:'wreck',x:WH_X+60,y:WH_Y+70,w:92,d:50,ht:34,rub:true});
+  SCENE.push({k:'wreck',x:WH_X+WH_W-150,y:WH_Y+WH_D-120,w:92,d:50,ht:34,rub:true});
+  const M=90;
+  allies.concat([P]).forEach(u=>{
+    if(!u.alive)return;
+    if(u.x>WH_X-M&&u.x<WH_X+WH_W+M&&u.y>WH_Y-M&&u.y<WH_Y+WH_D+M){
+      u.hp=0;bloodAt(u.x,u.y,9);
+      if(u===P)lastHit=t;
+      die(u,boss&&boss.alive?boss:null);
+    }
+  });
+  radio(I18N[lang].rWhBoom);
+}
 /* ---------------- the tanks ----------------
    Two of them, and they are the reason standing still stops working. Neither
    shoots at you: each shoots a circle onto the ground, and a second and three
@@ -2031,15 +2420,16 @@ function step(dt){
     else if(firing&&P.run<0.5&&P.mag>0&&
              t-P.fire>=(P.pow>0?MGP_ROF:P_ROF)){
       const sp=0.016+0.05*(1-P.cr)+0.03*Math.min(1,P.spd/P_WALK);
+      const bD=P.gear.gun>=3?3:1;      /* the three-times gun is permanent */
       if(P.pow>0){
         /* two columns, side by side, off the same barrel line — the spread is
            per round so they do not travel as a rigid pair */
         const n0=P.ang+Math.PI/2;
         for(const k of [-1,1])
-          shootFrom(P,'blue',sp*0.8,MGP_DMG,SC,Math.cos(n0)*MGP_SPACING*k,Math.sin(n0)*MGP_SPACING*k);
+          shootFrom(P,'blue',sp*0.8,Math.max(MGP_DMG,bD),SC,Math.cos(n0)*MGP_SPACING*k,Math.sin(n0)*MGP_SPACING*k);
         P.mag--;shots+=2;
       }else{
-        shoot(P,'blue',sp,1,SC);
+        shoot(P,'blue',sp,bD,SC);
         P.mag--;shots++;
       }
       if(P.mag===0)startReload();
@@ -2054,23 +2444,100 @@ function step(dt){
     if(t-lastHit>4.5&&P.hp<P_REGEN)P.hp=Math.min(P_REGEN,P.hp+5*dt);
   }
 
+  /* ---- the boss clock, the air, and the fuse ---- */
+  if(phase==='fight'&&bossSeen){
+    bossClock+=dt;endC+=dt;
+    /* three opening waves, the warehouse warning, the blast, then a wave on a
+       drumbeat for as long as anything super is alive */
+    if(bossWave===0&&bossClock>0.6){bossWave=1;callWave(5);}
+    if(bossWave===1&&bossClock>3.6){bossWave=2;callWave(5);}
+    if(bossWave===2&&bossClock>6.6){bossWave=3;callWave(4);}
+    if(whFuse===-1&&bossClock>8.5){whFuse=3.0;radio(I18N[lang].rWhWarn);}
+    if(whFuse>0){whFuse-=dt;if(whFuse<=0)blowWarehouse();}
+    if(bossClock>14&&bossWave>=3&&(boss&&boss.alive||foes.some(f=>f.alive&&f.sup))){
+      bossWave=3.5;/* falls through to the drum */
+    }
+    if(bossWave>=3&&bossClock>14){
+      if((bossClock%12)<dt*1.5&&(boss&&boss.alive||foes.some(f=>f.alive&&f.sup)))callWave(4);
+    }
+    /* the strikes themselves */
+    for(let i=strikes.length-1;i>=0;i--){
+      const st=strikes[i];st.f-=dt;
+      if(st.f>0)continue;
+      strikes.splice(i,1);
+      spark(st.x,st.y,'#ffd08a',44,480);spark(st.x,st.y,'#6a5a48',26,240);
+      blasts.push({x:st.x,y:st.y,t:0,R:st.R,col:'#ff8a5a'});
+      glow(st.x,st.y,st.R*1.2,'255,150,80',0.35);
+      shake=Math.max(shake,1.5);
+      if(dctx){dctx.fillStyle='rgba(22,18,14,.42)';
+        dctx.beginPath();dctx.ellipse(st.x,st.y,st.R*0.6,st.R*0.34,0,0,6.2832);dctx.fill();}
+      const all=foes.concat(allies,[P]);
+      for(let k=0;k<all.length;k++){
+        const u=all[k];
+        if(!u.alive||u.sup)continue;              /* the callers are not the called-on */
+        if(Math.hypot(u.x-st.x,u.y-st.y)>st.R)continue;
+        u.hp=0;bloodAt(u.x,u.y,9);
+        if(u===P)lastHit=t;
+        die(u,boss&&boss.alive?boss:null);
+      }
+    }
+    /* reinforcements: whoever bought within the hour, a few of them, walking
+       in off the western edge — limited, as promised */
+    reinfT-=dt;
+    if(reinfT<=0&&reinfUsed<4&&TAPE.recent.length>reinfUsed&&allies.filter(a2=>a2.alive).length<7){
+      const nm=TAPE.recent[reinfUsed];reinfUsed++;
+      const rp=freeSpot(60,LZ.y+rr2(-160,160));
+      const a2=mkUnit(rp.x,rp.y,'blue',A_HP,nm);
+      allies.push(a2);
+      ticker('blue',I18N[lang].svJoin(esc(nm)));
+      radio(I18N[lang].rReinf);
+      reinfT=26+rnd()*12;
+    }else if(reinfT<=0)reinfT=12;
+    /* and armour keeps coming */
+    tankT-=dt;
+    if(tankT<=0&&tanks.filter(tk=>tk.alive).length<3){
+      spawnTank(tanks.length%2);
+      tankT=42+rnd()*16;
+    }
+  }
+
+  /* ---- the flow field follows the player ---- */
+  if(phase==='fight'&&P.alive){
+    flowT-=dt;
+    if(flowT<=0){bakeFlow(P.x,P.y);flowT=0.35;}
+  }
+
   /* ---- the garrison ---- */
   if(phase==='fight'){
     spawnT-=dt;
-    if(spawnT<=0&&spawned<TARGET&&foes.filter(f=>f.alive).length<MAX_ALIVE){
+    const cap=endless?Math.min(12,5+Math.floor(endC/22)):MAX_ALIVE;
+    if(spawnT<=0&&foes.filter(f=>f.alive).length<cap&&(endless||spawned<TARGET)){
       /* they come out of the gate and off the walls, which is where they were */
       const gates=[[KEEP.x,KEEP.y+150],[KEEP.x-160,KEEP.y+190],[2130,700],[1700,260],[1250,250]];
       const s=gates[spawned%gates.length];
-      const f=mkUnit(s[0]+rr2(-40,40),s[1]+rr2(-30,30),'red',E_HP,
-                     traderName('red',ui.foeNames[spawned%ui.foeNames.length]));
+      const sp0=freeSpot(s[0]+rr2(-40,40),s[1]+rr2(-30,30));
+      let f;
+      if(supQueue>0&&supT<=0){
+        f=mkSuper(sp0.x,sp0.y,false);
+        supQueue--;supT=5.5;
+        ticker('red',I18N[lang].svSup(esc(f.name)));
+      }else if(endless&&bossDead&&rnd()<Math.min(0.30,0.06+endC/300)){
+        f=mkSuper(sp0.x,sp0.y,false);
+        ticker('red',I18N[lang].svSup(esc(f.name)));
+      }else{
+        f=mkUnit(sp0.x,sp0.y,'red',E_HP,
+                 traderName('red',ui.foeNames[spawned%ui.foeNames.length]));
+        ticker('red',ui.svJoin(esc(f.name)));
+      }
       foes.push(f);spawned++;
-      ticker('red',ui.svJoin(esc(f.name)));
-      spawnT=0.85+rnd()*0.7;
+      supT-=0;
+      spawnT=endless?Math.max(0.45,0.85-endC/300)+rnd()*0.5:0.85+rnd()*0.7;
       if(spawned===4)radio(ui.rMore);
       /* one at five men down, the other at nine */
       if(spawned===4&&tanks.length===0)spawnTank(0);
       if(spawned===8&&tanks.length===1)spawnTank(1);
     }
+    if(supT>0)supT-=dt;
     const mine=allies.filter(a=>a.alive).concat(P.alive?[P]:[]);
     const theirs=foes.filter(f=>f.alive);
     foes.forEach(e=>{if(e.alive)brain(e,dt,mine,true);});
@@ -2095,6 +2562,7 @@ function step(dt){
     if(!gone){
       for(let k=0;k<BLOCK.length;k++){
         const o=BLOCK[k];
+        if(o.dead)continue;
         if(nx>o.x&&nx<o.x+o.w&&ny>o.y-(o.tall?o.ht*0.4:2)&&ny<o.y+o.d){
           /* chips off the wall, a puff of what it was made of, and a mark */
           spark(nx,ny,'#e8dfbe',5,190);
@@ -2125,7 +2593,9 @@ function step(dt){
         if(!u.alive)continue;
         const rad=11*(1-0.35*(u.cr||0));   /* a kneeling man is a smaller thing to hit */
         if(Math.abs(nx-u.x)<rad&&Math.abs(ny-u.y)<rad*0.95){
-          u.hp-=b.dmg;u.hurt=0.13;
+          let dTake=b.dmg;
+          if(u===P)dTake*=(P.gear.armor>=3?0.5:1)*(P.gear.helm>=3?0.8:1);
+          u.hp-=dTake;u.hurt=0.13;
           spark(nx,ny,'#ff9a9a',5,170);bloodAt(nx,ny,1);
           /* it went through him: the spray carries on the way the round was */
           for(let q=0;q<3;q++)
@@ -2180,6 +2650,22 @@ function step(dt){
       /* dying on your own grenade is not a kill you get credited with */
       if(u.hp<=0)die(u,friend?null:n.by);
     }
+  }
+
+  /* ---- the gear on the ground ---- */
+  nearGear=null;
+  if(phase==='fight'&&P.alive){
+    for(const gd of gearDrops){
+      if(!gd.on)continue;
+      if(Math.hypot(P.x-gd.x,P.y-gd.y)<=28){nearGear=gd;break;}
+    }
+  }
+  const sw=$('#swap');
+  if(sw){
+    if(nearGear){
+      sw.hidden=false;
+      sw.textContent=I18N[lang].swapHint(I18N[lang].gearName[nearGear.kind],I18N[lang].gearFx[nearGear.kind]);
+    }else sw.hidden=true;
   }
 
   /* ---- the bowls ---- */
@@ -2318,25 +2804,32 @@ function brain(e,dt,enemies,isFoe){
      holds, red closes. A charge that ran dead straight would arrive as one
      line, so each man carries a weave of his own and leans off the axis. */
   if(isFoe){
-    const ux=(tgt.x-e.x)/bd, uy=(tgt.y-e.y)/bd;
+    let ux=(tgt.x-e.x)/bd, uy=(tgt.y-e.y)/bd;
+    const canSee=losClear(e.x,e.y,tgt.x,tgt.y);
+    if(!canSee){                       /* the targets here are always blue */
+      const fd=flowDir(e.x,e.y);
+      if(fd){ux=fd.x;uy=fd.y;}
+    }
     e.wv=(e.wv||0)+dt*(1.1+e.strafe*0.35);
     const sway=Math.sin(e.wv)*0.42;
-    const spd0=E_SPEED*(bd>520?1.22:1);        /* a run in, a walk once it is a fight */
+    const spd0=E_SPEED*(e.spX||1)*(bd>520?1.22:1); /* a run in, a walk once it is a fight */
     let vx=(ux*Math.cos(sway)-uy*Math.sin(sway))*spd0;
     let vy=(ux*Math.sin(sway)+uy*Math.cos(sway))*spd0;
     /* they charge, but they stop and fight rather than walking onto the
        muzzle: four men at arm's length is an execution, not a firefight */
-    if(bd<250){const k=1-bd/250;vx-=ux*spd0*(0.6+1.4*k);vy-=uy*spd0*(0.6+1.4*k);}
+    /* the brake at rifle range is for a fight he can actually have: braking
+       against a wall is what used to park him there */
+    if(bd<250&&canSee){const k=1-bd/250;vx-=ux*spd0*(0.6+1.4*k);vy-=uy*spd0*(0.6+1.4*k);}
     for(let i=0;i<foes.length;i++){
       const o=foes[i];if(o===e||!o.alive)continue;
       const ox=e.x-o.x, oy=e.y-o.y, od=Math.hypot(ox,oy);
       if(od<34&&od>0.5){vx+=ox/od*80;vy+=oy/od*80;}
     }
     const mv0=Math.hypot(vx,vy);
-    moveBody(e,vx*dt,vy*dt,10);
+    steer(e,vx,vy,dt,10,tgt.x,tgt.y);
     gaitOf(e,dt,mv0,E_SPEED);
     e.run+=(((bd>520)?1:0)-e.run)*Math.min(1,dt*5);
-    e.cr+=(((bd<E_SHOOT*0.8)?1:0)-e.cr)*Math.min(1,dt*6);
+    e.cr+=(((bd<E_SHOOT*0.8&&canSee)?1:0)-e.cr)*Math.min(1,dt*6);
     /* A man running at you cannot shoot straight, and one who has stopped and
        gone to a knee can. That difference is the whole window the player gets:
        the charge is loud and mostly misses, and the moment they settle is the
@@ -2344,11 +2837,11 @@ function brain(e,dt,enemies,isFoe){
        entire way in emptied a full bar in four seconds with nothing to be done
        about it. */
     const set=mv0<E_SPEED*0.4;
-    if(bd<E_SHOOT&&e.run<0.5){
+    if(bd<E_SHOOT&&e.run<0.5&&canSee){
       e.cd-=dt;
       if(e.cd<=0){
         if(e.burst<=0)e.burst=set?3:2;
-        shoot(e,'red',set?0.085-0.025*e.cr:0.235,E_DMG,SC);
+        shoot(e,'red',set?0.085-0.025*e.cr:0.235,E_DMG*(e.dmX||1),SC*(e.scX||1));
         e.burst--;
         e.cd=e.burst>0?0.15:(set?1.25+rnd()*0.9:1.9+rnd()*1.1);
       }
@@ -2415,12 +2908,12 @@ function brain(e,dt,enemies,isFoe){
   }
 
   const mv=Math.hypot(vx,vy);
-  moveBody(e,vx*dt,vy*dt,10);
+  steer(e,vx,vy,dt,10,tgt.x,tgt.y);
   gaitOf(e,dt,mv,spd);
   e.run+=(((mv>spd*0.9&&bd>460&&!near)?1:0)-e.run)*Math.min(1,dt*5);   /* a sprint is for crossing ground, not for a firefight */
   e.cr+=(((near&&bd<E_SHOOT)?1:0)-e.cr)*Math.min(1,dt*6);
 
-  if(bd<E_SHOOT&&e.run<0.5){
+  if(bd<E_SHOOT&&e.run<0.5&&losClear(e.x,e.y,tgt.x,tgt.y)){
     e.cd-=dt;
     if(e.cd<=0){
       if(e.burst<=0)e.burst=isFoe?3:4;
@@ -2469,12 +2962,15 @@ function draw(now){
   const vx0=cam.x-200,vx1=cam.x+VW+200,vy0=cam.y-300,vy1=cam.y+VH+200;
   for(let i=0;i<SCENE.length;i++){
     const p=SCENE[i];
+    if(p.dead)continue;
     if(p.x+p.w<vx0||p.x>vx1||p.y+p.d<vy0||p.y>vy1)continue;
     L.push({y:p.y+p.d,k:'p',p});
   }
   for(let i=0;i<bodies.length;i++)L.push({y:bodies[i].y-0.5,k:'b',b:bodies[i]});
   for(let i=0;i<pickups.length;i++)
     if(pickups[i].on||pickups[i].pop>0)L.push({y:pickups[i].y,k:'n',n:pickups[i]});
+  for(let i=0;i<gearDrops.length;i++)
+    if(gearDrops[i].on)L.push({y:gearDrops[i].y,k:'e',e:gearDrops[i]});
   for(let i=0;i<nades.length;i++)L.push({y:nades[i].y,k:'g',g:nades[i]});
   for(let i=0;i<tanks.length;i++)L.push({y:tanks[i].y,k:'t',tk:tanks[i]});
   foes.forEach(u=>{if(u.alive)L.push({y:u.y,k:'u',u});});
@@ -2521,6 +3017,7 @@ function draw(now){
     }
     if(it.k==='b'){drawDown(g,it.b);continue;}
     if(it.k==='n'){drawBowl(g,it.n.x,it.n.y,tt,it.n.ph,it.n.pop,it.n.kind);continue;}
+    if(it.k==='e'){drawGearDrop(g,it.e.x,it.e.y,tt,it.e.ph,it.e.kind);continue;}
     if(it.k==='g'){
       drawNade(g,it.g.x,it.g.y,it.g.z||0,it.g.H,it.g.spin,it.g.land?it.g.f:0);continue;
     }
@@ -2553,8 +3050,8 @@ function draw(now){
       continue;
     }
     drawMark(g,u.x,u.y,KIT[u.team],!!it.me,tt,SC);
-    drawTrooper(g,u.x,u.y,u.ang,KIT[u.team],
-      {s:SC,cr:u.cr,run:u.run,gait:u.gait,fire:t-u.fire<0.11?1-(t-u.fire)/0.11:0});
+    drawTrooper(g,u.x,u.y,u.ang,KIT[u.sup?'sup':u.team],
+      {s:SC*(u.scX||1),cr:u.cr,run:u.run,gait:u.gait,fire:t-u.fire<0.11?1-(t-u.fire)/0.11:0});
     if(u.hurt>0){
       g.save();g.globalAlpha=Math.min(0.5,u.hurt*4);g.fillStyle='#fff';
       g.beginPath();g.arc(u.x,u.y,10*SC,0,6.2832);g.fill();g.restore();
@@ -2579,6 +3076,30 @@ function draw(now){
       g.beginPath();g.ellipse(q.x,q.y,r,r*0.56,0,0,6.2832);g.fill();
     }
     g.restore();
+  }
+  /* the air's promises: bigger, redder, and everywhere */
+  for(let i=0;i<strikes.length;i++){
+    const st=strikes[i], u2=clamp(1-st.f/2.7,0,1);
+    g.fillStyle='rgba(255,50,40,'+(0.10+0.15*u2).toFixed(2)+')';
+    g.beginPath();g.ellipse(st.x,st.y,st.R,st.R*0.52,0,0,6.2832);g.fill();
+    g.strokeStyle='rgba(255,70,55,'+(0.5+0.45*u2).toFixed(2)+')';
+    g.lineWidth=2.5+2.5*u2;
+    g.beginPath();g.ellipse(st.x,st.y,st.R,st.R*0.52,0,0,6.2832);g.stroke();
+    const r2=st.R*clamp(st.f/2.7,0,1);
+    g.strokeStyle='rgba(255,120,90,.9)';g.lineWidth=2;
+    g.beginPath();g.ellipse(st.x,st.y,r2,r2*0.52,0,0,6.2832);g.stroke();
+    if(u2>0.7&&Math.sin(st.f*30)>0){
+      g.fillStyle='rgba(255,80,60,.20)';
+      g.beginPath();g.ellipse(st.x,st.y,st.R,st.R*0.52,0,0,6.2832);g.fill();
+    }
+  }
+  /* the warehouse's last three seconds */
+  if(whFuse>0){
+    const pulse=0.5+0.5*Math.sin(whFuse*14);
+    g.fillStyle='rgba(255,45,35,'+(0.14+0.14*pulse).toFixed(2)+')';
+    g.fillRect(WH_X-40,WH_Y-40,WH_W+80,WH_D+80);
+    g.strokeStyle='rgba(255,70,55,.8)';g.lineWidth=3;
+    g.strokeRect(WH_X-40,WH_Y-40,WH_W+80,WH_D+80);
   }
   for(let ti=0;ti<tanks.length;ti++){
     const tank=tanks[ti];
@@ -2618,6 +3139,7 @@ function draw(now){
   }
   for(let i=0;i<blasts.length;i++){
     const b=blasts[i], u=b.t/0.55, R0=b.R||NADE_R;
+    if(u<0)continue;                   /* staggered: not yet born, not yet drawn */
     /* the shockwave outruns everything and is thin by the time it is wide */
     const sw=R0*(0.30+1.35*u);
     g.globalAlpha=(1-u)*(1-u)*0.75;
@@ -2714,7 +3236,7 @@ function draw(now){
     }
     if(P&&P.reload>0){
       g.strokeStyle='rgba(252,209,79,.9)';g.lineWidth=2.2;
-      g.beginPath();g.arc(x,y,sp+12,-1.5708,-1.5708+6.2832*(1-P.reload/RELOAD));g.stroke();
+      g.beginPath();g.arc(x,y,sp+12,-1.5708,-1.5708+6.2832*(1-P.reload/(P.rlMax||RELOAD)));g.stroke();
     }
   }
   if(touched&&phase==='fight'&&P){
@@ -2749,7 +3271,8 @@ function paintHud(force){
   const hp=$('#hpBox');
   hp.style.setProperty('--hp',Math.round(P.hp/P_HP*100)+'%');
   hp.classList.toggle('low',P.hp<35);
-  $('#kills').innerHTML=cleared+' <em>/ '+TARGET+'</em>';
+  $('#kills').innerHTML=cleared+' <em>/ '+(endless?'\u221e':TARGET)+'</em>';
+  $('#pips').style.display=endless?'none':'';
   const pips=$('#pips');
   if(force||pips.children.length!==TARGET){
     pips.innerHTML='';
@@ -2762,6 +3285,12 @@ function paintHud(force){
     for(let i=0;i<NADES;i++)np.appendChild(document.createElement('i'));
   }
   for(let i=0;i<np.children.length;i++)np.children[i].className=i<P.nades?'n':'';
+  const gt=$('#gearTxt');
+  if(gt&&P.gear){
+    const L2=I18N[lang].gearL;
+    gt.innerHTML=[['helm',L2[0]],['armor',L2[1]],['gun',L2[2]],['glove',L2[3]]]
+      .map(v=>P.gear[v[0]]>=3?'<i>'+v[1]+'3</i>':v[1]+'1').join(' ');
+  }
   const ln=$('#tkLn'),rn=$('#tkRn');
   if(ln){
     ln.textContent=I18N[lang].tkOn(allies.filter(a=>a.alive).length+(P.alive?1:0));
@@ -2781,6 +3310,27 @@ function paintHud(force){
 }
 window.__paintHud=paintHud;
 
+/* The ledger lives in this browser. It appears the first time somebody
+   writes on it; past two hundred kills a run ranks corporal, past a thousand,
+   sergeant. */
+function lbLoad(){try{const a=JSON.parse(localStorage.getItem('noodl_lb')||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function lbSave(a){try{localStorage.setItem('noodl_lb',JSON.stringify(a.slice(0,50)));}catch(e){}}
+function lbRank(k){return k>1000?I18N[lang].rank2:k>200?I18N[lang].rank1:'';}
+function lbRender(){
+  const a=lbLoad().slice().sort((x,y)=>y.k-x.k).slice(0,15);
+  const ol=$('#lbList');ol.innerHTML='';
+  a.forEach((e2,i)=>{
+    const li=document.createElement('li');
+    const r=lbRank(e2.k);
+    const nm=document.createElement('b');nm.textContent=(i+1)+'. '+e2.id;
+    const rt=document.createElement('span');
+    rt.innerHTML=esc(I18N[lang].lbKills(e2.k))+(r?' · <i>'+esc(r)+'</i>':'')+' · '+Math.round(e2.t)+'s';
+    li.appendChild(nm);li.appendChild(rt);
+    ol.appendChild(li);
+  });
+  $('#lbPanel').hidden=false;
+  $('#btnLb').hidden=true;
+}
 function showOver(){
   const ui=I18N[lang], won=phase==='won', c=$('#overCard');
   c.className='card '+(won?'won':'dead');
@@ -2790,9 +3340,25 @@ function showOver(){
   $('#stKills').textContent=myKills;
   $('#stTime').textContent=Math.max(0,Math.round(endAt-startAt))+'s';
   $('#stAcc').textContent=(shots?Math.round(hits/shots*100):0)+'%';
+  const lb=lbLoad();
+  $('#lbPanel').hidden=true;
+  $('#btnLb').hidden=lb.length===0;             /* it exists once somebody wrote on it */
+  $('#lbSubmit').hidden=!(myKills>100);
   $('#over').hidden=false;
-  $('#btnAgain').focus();
+  if(myKills>100)setTimeout(()=>{try{$('#lbId').focus();}catch(e){}},80);
+  else $('#btnAgain').focus();
 }
+$('#btnLb').addEventListener('click',lbRender);
+$('#lbGo').addEventListener('click',()=>{
+  let id=handle($('#lbId').value,'');
+  if(!id)id=String($('#lbId').value||'').replace(/\s+/g,' ').trim().slice(0,20);
+  if(id.length<2)return;
+  const a=lbLoad();
+  a.push({id,k:myKills,t:Math.max(0,endAt-startAt),at:Date.now()});
+  lbSave(a);
+  $('#lbSubmit').hidden=true;
+  lbRender();
+});
 function begin(){
   reset();
   phase='drop';t=0;arena.classList.add('drop');
@@ -2800,6 +3366,40 @@ function begin(){
   radio(I18N[lang].rDrop);
   start();
 }
+/* Fullscreen where the platform allows it, a fixed-position takeover where it
+   does not, and either way the canvas refits. */
+let fsOn=false;
+function fsSync(){
+  const b=$('#fsBtn');
+  fsOn=!!document.fullscreenElement||arena.classList.contains('fsfake');
+  if(b){b.classList.toggle('on',fsOn);b.setAttribute('aria-pressed',fsOn?'true':'false');
+        b.textContent=fsOn?'\u2715':'\u26f6';}
+  setTimeout(fit,60);
+}
+$('#fsBtn').addEventListener('click',()=>{
+  if(!fsOn){
+    const rq=arena.requestFullscreen||arena.webkitRequestFullscreen;
+    if(rq){try{rq.call(arena).catch(()=>{arena.classList.add('fsfake');document.body.classList.add('fslock');fsSync();});}
+      catch(e){arena.classList.add('fsfake');document.body.classList.add('fslock');fsSync();}}
+    else{arena.classList.add('fsfake');document.body.classList.add('fslock');}
+  }else{
+    if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();
+    arena.classList.remove('fsfake');document.body.classList.remove('fslock');
+  }
+  fsSync();
+});
+document.addEventListener('fullscreenchange',fsSync);
+addEventListener('resize',()=>{clearTimeout(fsSync._t);fsSync._t=setTimeout(fit,120);});
+/* turning the phone sideways earns one nudge toward the button */
+let fsNudged=false;
+try{
+  matchMedia('(orientation: landscape)').addEventListener('change',ev=>{
+    if(ev.matches&&!fsOn&&!fsNudged&&matchMedia('(pointer: coarse)').matches){
+      fsNudged=true;radio(I18N[lang].rFs);
+    }
+  });
+}catch(e){}
+$('#swap').addEventListener('click',()=>{if(nearGear)equipGear(nearGear);});
 $('#btnStart').addEventListener('click',begin);
 $('#btnAgain').addEventListener('click',begin);
 
