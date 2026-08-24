@@ -172,6 +172,31 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16p
 footer{position:relative;z-index:1;text-align:center;padding:22px 20px 34px;font-size:12px;color:var(--dim);line-height:1.8}
 footer a{color:var(--text-2);text-decoration:none}
 footer a:hover{color:var(--cyan)}
+/* The wings: each faction's own traffic, out in the dark either side of the
+   field. Fixed to the viewport, capped in rows, and simply absent on any
+   screen too narrow to have wings. */
+.ticker{position:fixed;top:150px;width:206px;z-index:5;pointer-events:none;font-size:12px}
+.ticker.L{left:18px}.ticker.R{right:18px}
+.ticker h3{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--dim);
+  padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:baseline}
+.ticker.L h3 b{color:#22d18c}
+.ticker.R h3 b{color:#ff4d4d}
+.ticker h3 i{font-style:normal;font-weight:600;font-size:10.5px;letter-spacing:.02em;
+  color:var(--dim);font-variant-numeric:tabular-nums}
+.ticker .tk{padding:5px 9px 6px;margin-bottom:5px;background:rgba(24,24,29,.85);
+  border:1px solid var(--line);border-left-width:2px;border-radius:6px;color:var(--text-2);
+  line-height:1.5;animation:tkin .28s ease-out;word-break:break-word}
+.ticker.L .tk{border-left-color:rgba(34,209,140,.55)}
+.ticker.R .tk{border-left-color:rgba(255,77,77,.5)}
+.ticker .tk b{color:var(--text);font-weight:600}
+.ticker .tk:nth-of-type(n+6){opacity:.55}
+.ticker .tk:nth-of-type(n+9){opacity:.28}
+@keyframes tkin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (max-width:1279px){.ticker{display:none}}
+/* between having wings and having room for them: the field steps aside just
+   enough that a wing never sits on top of it */
+@media (min-width:1280px) and (max-width:1659px){main{max-width:calc(100vw - 470px)}}
 @media (max-width:640px){
   main{padding:14px 10px 8px}
   .arena{aspect-ratio:4/3;border-radius:10px}
@@ -212,13 +237,15 @@ footer a:hover{color:var(--cyan)}
     <span class="hint" data-i="hint"></span>
   </div>
 
+  <aside class="ticker L" id="tkL" aria-hidden="true"><h3><b data-i="tkL">BULL ALLIANCE</b><i id="tkLn"></i></h3></aside>
+  <aside class="ticker R" id="tkR" aria-hidden="true"><h3><b data-i="tkR">BEAR TRIBE</b><i id="tkRn"></i></h3></aside>
   <div class="arena" id="arena">
     <canvas id="game"></canvas>
     <div class="hud" id="hud" aria-live="off">
       <div class="vig"></div>
       <div class="hurt" id="hurt"></div>
       <div class="hp plate" id="hpBox"><b data-i="hudHp">HP</b><i></i></div>
-      <div class="obj plate"><b data-i="hudObj">CLEARED</b><span id="kills">0 <em>/ 12</em></span><span class="pips" id="pips"></span></div>
+      <div class="obj plate"><b data-i="hudObj">CLEARED</b><span id="kills">0 <em>/ 16</em></span><span class="pips" id="pips"></span></div>
       <div class="feed" id="feed"></div>
       <div class="nades plate" id="nadeBox"><b data-i="hudNade">FRAGS</b><span class="pips" id="nadePips"></span></div>
       <div class="pow plate" id="powBox" hidden><b data-i="hudPow">CHARGED</b><i class="bar"><u id="powBar"></u></i></div>
@@ -286,13 +313,18 @@ zh:{
   title:'空降长安',hint:'测试版 · 桌面端键鼠，手机双摇杆',
   hudHp:'生命',hudObj:'已肃清',
   briefSub:'任务',briefH:'空降到看空部落的长安据点',
-  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 十二个人，外加两辆坦克。坦克带机枪，很难缠：中间那座大仓库它开不进去也打不到里面，三个门只有人走得通。地上散着面碗回血，还有机枪可以捡。',
+  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 十六个人，外加两辆重坦克。坦克带机枪，非常难缠：中间那座大仓库它开不进去也打不到里面，三个门只有人走得通。地上的面碗和机枪，你和队友都能捡；买盘越活跃，跟你跳下去的 NOODLER 越多。',
   kMove:'移动',kMouse:'鼠标',kAim:'瞄准',kClick:'左键',kFire:'射击',
   kRun:'冲刺',kCtrl:'CTRL / C',kCrouch:'蹲下 —— 更稳，也更难被打中',kReload:'换弹',
   kRight:'右键（按住）',kNade:'扔手雷 —— 按得越久扔得越远',
   kNood:'面碗',kNoodD:'走过去就吃 —— 回满血',
   kNova:'机枪',kNovaD:'捡起来打双排子弹，火力翻倍，能撑一阵',
   hudNade:'手雷',tapNade:'雷',hudPow:'机枪',tankName:'部落坦克',
+  tkL:'看涨联盟',tkR:'看空部落',tkOn:n=>n+' 在场',
+  svDrop:n=>'<b>'+n+'</b> 空降入场',svJoin:n=>'<b>'+n+'</b> 参战',
+  svDown:n=>'<b>'+n+'</b> 阵亡',svKill:(a,b)=>'<b>'+a+'</b> 击毙 <b>'+b+'</b>',
+  svBowl:n=>'<b>'+n+'</b> 吃了碗面，回满',svMG:n=>'<b>'+n+'</b> 捡起机枪',
+  svTankIn:n=>'<b>'+n+'</b> 的坦克压上来了',svTankOut:(a,b)=>'<b>'+a+'</b> 击毁了 <b>'+b+'</b> 的坦克',
   tankOf:n=>n+'（坦克）',
   btnStart:'跳伞',btnAgain:'再来一次',btnBack:'返回战场',
   stKills:'你的击毙',stTime:'用时',stAcc:'命中率',
@@ -315,13 +347,18 @@ en:{
   title:'Drop on Chang’an',hint:'test build · mouse and keys on desktop, twin sticks on a phone',
   hudHp:'HP',hudObj:'CLEARED',
   briefSub:'MISSION',briefH:'Drop behind the Tribe’s lines',
-  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — twelve of them, and two tanks. The tanks carry machine guns and they are hard to live in front of: the big warehouse in the middle is the one place they cannot drive into or shoot inside, and only a man fits through its three doors. There are bowls of noodles down there to put you back to full, and machine guns to pick up.',
+  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — sixteen of them, and two heavy tanks. The tanks carry machine guns and they are very hard to live in front of: the big warehouse in the middle is the one place they cannot drive into or shoot inside, and only a man fits through its three doors. The bowls and the machine guns down there can be taken by you or your squad — and the busier the buy side of the tape, the more NOODLERs drop with you.',
   kMove:'move',kMouse:'MOUSE',kAim:'aim',kClick:'LEFT CLICK',kFire:'fire',
   kRun:'sprint',kCtrl:'CTRL / C',kCrouch:'crouch — steadier, and harder to hit',kReload:'reload',
   kRight:'RIGHT CLICK (HOLD)',kNade:'throw a grenade — the longer you hold, the further it goes',
   kNood:'NOODLES',kNoodD:'walk over one — back to full health',
   kNova:'MACHINE GUN',kNovaD:'pick it up and fire two columns at once, for a while',
   hudNade:'FRAGS',tapNade:'FRAG',hudPow:'MG',tankName:'Tribe tank',
+  tkL:'BULL ALLIANCE',tkR:'BEAR TRIBE',tkOn:n=>n+' up',
+  svDrop:n=>'<b>'+n+'</b> dropped in',svJoin:n=>'<b>'+n+'</b> joined',
+  svDown:n=>'<b>'+n+'</b> is down',svKill:(a,b)=>'<b>'+a+'</b> killed <b>'+b+'</b>',
+  svBowl:n=>'<b>'+n+'</b> ate a bowl, back to full',svMG:n=>'<b>'+n+'</b> took the MG',
+  svTankIn:n=>'<b>'+n+'</b>\u2019s tank is rolling',svTankOut:(a,b)=>'<b>'+a+'</b> wrecked <b>'+b+'</b>\u2019s tank',
   tankOf:n=>n+' (tank)',
   btnStart:'Jump',btnAgain:'Again',btnBack:'Back to the battle',
   stKills:'YOUR KILLS',stTime:'TIME',stAcc:'ACCURACY',
@@ -1392,9 +1429,9 @@ function scuffAt(x,y){
 }
 
 /* ---------------- tuning ---------------- */
-const TARGET=12, MAX_ALIVE=4;  /* still a slice, but a busy one              */
+const TARGET=16, MAX_ALIVE=5;  /* a bigger slice, and a busier one           */
 const P_WALK=150, P_RUN=232, P_CROUCH=82;
-const E_SPEED=106, E_HP=5, E_DMG=6, E_SHOOT=470;
+const E_SPEED=106, E_HP=6, E_DMG=6, E_SHOOT=470;
 const A_SPEED=118, A_HP=24;    /* halved: the squad is a distraction, not a solution */
 const P_HP=100, P_ROF=0.11, MAG=25, RELOAD=1.5, BULLET_V=1500;
 /* The bar comes back to a floor and stops there. Above that line the only
@@ -1405,9 +1442,11 @@ const DROP_T=4.6, DROP_ALT=460;
 const SC=1.72;
 
 /* the tanks. two of them, and they are the reason you cannot stand still */
-const TANK_HP=46, TANK_SPD=52, TANK_CD=4.6, TANK_TELE=1.75, TANK_R=62, TANK_STAND=430;
+/* Sixty is three full grenades exactly: the tank costs your whole belt minus
+   one, which is the difference between a chore and a decision. */
+const TANK_HP=60, TANK_SPD=58, TANK_CD=3.8, TANK_TELE=1.75, TANK_R=68, TANK_STAND=430;
 /* the coaxial: what makes it dangerous every second rather than every five */
-const MG_RANGE=560, MG_DMG=4, MG_BURST=7, MG_ROF=0.085, MG_CD=1.9, MG_SPREAD=0.075;
+const MG_RANGE=620, MG_DMG=5, MG_BURST=7, MG_ROF=0.085, MG_CD=1.7, MG_SPREAD=0.075;
 /* grenades: how long a hold is worth, and what it does when it lands */
 const NADES=4, NADE_CHG=1.15, NADE_MIN=130, NADE_MAX=540, NADE_FUSE=0.85;
 const NADE_R=104, NADE_DMG=26, NADE_FF=0.45, NADE_TANK=20, NADE_CD=0.55;
@@ -1498,7 +1537,7 @@ async function pullTape(){
 }
 function mkUnit(x,y,team,hp,name){
   return {x,y,hp,team,name,ang:0,gait:0,fire:-9,burst:0,cd:1,cr:0,run:0,spd:0,
-          hurt:0,cover:null,think:0,strafe:rnd()<0.5?1:-1,alive:true,alt:0,drift:0};
+          hurt:0,cover:null,think:0,strafe:rnd()<0.5?1:-1,alive:true,alt:0,drift:0,pow:0};
 }
 function reset(){
   const ui=I18N[lang];
@@ -1511,11 +1550,19 @@ function reset(){
   pickups=BOWLS.map((b,i)=>{const q=freeSpot(b[0],b[1]);
     return {x:q.x,y:q.y,kind:b[2]||'hp',on:true,t:0,pop:0,ph:i*1.7};});
   cleared=0;myKills=0;spawned=0;spawnT=1.2;shots=0;hits=0;lastHit=-9;
-  /* two NOODLERs come down with you */
-  [[-90,60],[95,42]].forEach((o,i)=>{
-    const a=mkUnit(LZ.x+o[0],LZ.y+o[1],'blue',A_HP,traderName('blue',ui.allyNames[i]));
-    a.alt=DROP_ALT+40+i*30;a.drift=i*2;allies.push(a);
-  });
+  /* The squad answers the tape: two men always, and one more for every dozen
+     distinct buyers in the last two hundred trades, capped at six. A busy
+     book drops a bigger stick. */
+  const nAll=Math.min(6,2+Math.floor((TAPE.buy.length||0)/12));
+  for(let i=0;i<nAll;i++){
+    const th=Math.PI*2*i/nAll+0.7;
+    const a=mkUnit(LZ.x+Math.cos(th)*(85+((i*37)%45)),LZ.y+Math.sin(th)*(66+((i*29)%34)),
+                   'blue',A_HP,traderName('blue',ui.allyNames[i%ui.allyNames.length]));
+    a.alt=DROP_ALT+40+i*26;a.drift=i*2;allies.push(a);
+  }
+  ['#tkL','#tkR'].forEach(sel=>{const b=$(sel);if(b)while(b.children.length>1)b.removeChild(b.lastChild);});
+  ticker('blue',ui.svDrop(esc(ui.youName)));
+  allies.forEach(a=>ticker('blue',ui.svDrop(esc(a.name))));
   cam.x=clamp(P.x-VW/2,0,WW-VW);cam.y=clamp(P.y-VH/2,0,WH-VH);
   aim.x=P.x+240;aim.y=P.y-60;
   $('#radio').innerHTML='';$('#feed').innerHTML='';
@@ -1628,6 +1675,16 @@ function radio(txt){
   d.innerHTML='<b>&gt;</b>'+esc(txt);box.appendChild(d);
   while(box.children.length>3)box.removeChild(box.firstChild);
   setTimeout(()=>{if(d.parentNode)d.parentNode.removeChild(d);},5300);
+}
+/* one line into a wing. names are escaped by the caller; the sv templates
+   only add the bolding */
+function ticker(team,html){
+  const box=$(team==='blue'?'#tkL':'#tkR');
+  if(!box)return;
+  const d=document.createElement('div');
+  d.className='tk';d.innerHTML=html;
+  box.querySelector('h3').after(d);
+  while(box.children.length>11)box.removeChild(box.lastChild);
 }
 function feed(who,whom,mine){
   const box=$('#feed'), d=document.createElement('div');
@@ -1771,6 +1828,11 @@ function die(u,killer){
   bodies.push({x:u.x,y:u.y,ang:u.ang,kit:KIT[u.team],t:0,spin:(Math.random()*2-1)*0.6});
   bloodAt(u.x,u.y,7);
   feed(killer?killer.name:'—',u.name,killer===P);
+  ticker(u.team==='blue'?'blue':'red',I18N[lang].svDown(esc(u===P?I18N[lang].youName:u.name)));
+  if(killer&&killer.name)
+    ticker(killer.team==='blue'?'blue':'red',
+           I18N[lang].svKill(esc(killer===P?I18N[lang].youName:killer.name),
+                             esc(u===P?I18N[lang].youName:u.name)));
   /* The round that kills you calls in here, and it has already cleared your
      alive flag by the time the step loop gets to look — so the end of the run
      is declared here, where the death actually happens, and not afterwards on
@@ -1802,6 +1864,7 @@ function spawnTank(n){
               cd:d.cd,aim:null,tread:0,alive:true,
               name:nm||I18N[lang].tankName,named:!!nm});
   radio(I18N[lang][tanks.length>1?'rTank2':'rTank']);
+  ticker('red',I18N[lang].svTankIn(esc(nm||I18N[lang].tankName)));
 }
 function stepTanks(dt){for(let i=0;i<tanks.length;i++)stepTank(tanks[i],dt);}
 function stepTank(tank,dt){
@@ -1886,6 +1949,8 @@ function hurtTank(tank,dmg,by){
   chunks(tank.x,tank.y,14,300,'#2f2a24');
   shake=1.4;
   feed(by?by.name:'—',tank.name?I18N[lang].tankOf(tank.name):I18N[lang].tankName,by===P);
+  if(by&&by.name)ticker('blue',I18N[lang].svTankOut(esc(by===P?I18N[lang].youName:by.name),esc(tank.name)));
+  else ticker('red',I18N[lang].svDown(esc(tank.name)));
   radio(I18N[lang].rTankDown);
 }
 
@@ -1999,11 +2064,12 @@ function step(dt){
       const f=mkUnit(s[0]+rr2(-40,40),s[1]+rr2(-30,30),'red',E_HP,
                      traderName('red',ui.foeNames[spawned%ui.foeNames.length]));
       foes.push(f);spawned++;
-      spawnT=1.05+rnd()*0.8;
+      ticker('red',ui.svJoin(esc(f.name)));
+      spawnT=0.85+rnd()*0.7;
       if(spawned===4)radio(ui.rMore);
       /* one at five men down, the other at nine */
-      if(spawned===5&&tanks.length===0)spawnTank(0);
-      if(spawned===9&&tanks.length===1)spawnTank(1);
+      if(spawned===4&&tanks.length===0)spawnTank(0);
+      if(spawned===8&&tanks.length===1)spawnTank(1);
     }
     const mine=allies.filter(a=>a.alive).concat(P.alive?[P]:[]);
     const theirs=foes.filter(f=>f.alive);
@@ -2126,27 +2192,35 @@ function step(dt){
         q.on=true;
         /* a bowl that comes back under your feet is a bowl you never have to
            leave: standing on the cyan one would have been a permanent gun */
-        q.lock=!!(P&&P.alive&&Math.hypot(P.x-q.x,P.y-q.y)<=BOWL_R);
+        q.lock=(phase==='fight')&&[P].concat(allies).some(u=>u.alive&&Math.hypot(u.x-q.x,u.y-q.y)<=BOWL_R);
       }
       continue;
     }
-    if(phase!=='fight'||!P.alive)continue;
-    if(q.lock){if(Math.hypot(P.x-q.x,P.y-q.y)>BOWL_R*1.4)q.lock=false;continue;}
-    if(Math.hypot(P.x-q.x,P.y-q.y)>BOWL_R)continue;
-    /* You always get the flash, full bar or not. Walking over a bowl and
-       having nothing happen reads as a bug, and a bowl that is only sometimes
-       a bowl is not worth learning the position of. */
+    if(phase!=='fight')continue;
+    if(q.lock){
+      if(![P].concat(allies).some(u=>u.alive&&Math.hypot(u.x-q.x,u.y-q.y)<=BOWL_R*1.4))q.lock=false;
+      continue;
+    }
+    /* The player first, then the squad: whoever is standing on it takes it.
+       You always get the flash, full bar or not — walking over a bowl and
+       having nothing happen reads as a bug. */
+    let who=null;
+    if(P.alive&&Math.hypot(P.x-q.x,P.y-q.y)<=BOWL_R)who=P;
+    else for(const a2 of allies){if(a2.alive&&Math.hypot(a2.x-q.x,a2.y-q.y)<=BOWL_R){who=a2;break;}}
+    if(!who)continue;
+    const whoN=esc(who===P?I18N[lang].youName:who.name);
     if(q.kind==='ap'){
-      P.pow=Math.min(MGP_MAX,P.pow+MGP_T);
-      P.mag=MAG;P.reload=0;
+      who.pow=Math.min(MGP_MAX,(who.pow||0)+MGP_T);
+      if(who===P){P.mag=MAG;P.reload=0;radio(I18N[lang].rPow);}
       spark(q.x,q.y,'#00ffff',22,180);spark(q.x,q.y,'#b8ffff',12,120);
       glow(q.x,q.y,60,'0,255,255',0.3);
-      radio(I18N[lang].rPow);
+      ticker('blue',I18N[lang].svMG(whoN));
     }else{
-      P.hp=P_HP;lastHit=-9;
+      who.hp=who===P?P_HP:A_HP;
+      if(who===P){lastHit=-9;radio(I18N[lang].rNood);}
       spark(q.x,q.y,'#fcd14f',18,150);spark(q.x,q.y,'#ef9530',10,110);
       blasts.push({x:q.x,y:q.y,t:0,R:30,col:'#fcd14f'});
-      radio(I18N[lang].rNood);
+      ticker('blue',I18N[lang].svBowl(whoN));
     }
     q.on=false;q.t=BOWL_RESP;q.pop=0.42;
     paintHud(true);
@@ -2220,6 +2294,22 @@ function brain(e,dt,enemies,isFoe){
     if(d<bd){bd=d;tgt=o;}
   }
   if(e.hurt>0)e.hurt-=dt;
+  if(!isFoe&&e.pow>0)e.pow-=dt;
+  /* a hurt NOODLER who knows where the noodles are goes and gets them */
+  if(!isFoe&&e.hp<A_HP*0.45){
+    let b=null,bdd=340;
+    for(const q of pickups){
+      if(!q.on||q.kind!=='hp')continue;
+      const d=Math.hypot(q.x-e.x,q.y-e.y);
+      if(d<bdd){bdd=d;b=q;}
+    }
+    if(b){
+      const d=Math.max(1,bdd),vx=(b.x-e.x)/d*A_SPEED,vy=(b.y-e.y)/d*A_SPEED;
+      moveBody(e,vx*dt,vy*dt,10);gaitOf(e,dt,A_SPEED,E_SPEED);
+      e.ang=Math.atan2(vy,vx);
+      return;
+    }
+  }
   if(!tgt){e.cr+=(0-e.cr)*Math.min(1,dt*6);gaitOf(e,dt,0,E_SPEED);return;}
   e.ang=Math.atan2(tgt.y-e.y,tgt.x-e.x);
 
@@ -2334,7 +2424,7 @@ function brain(e,dt,enemies,isFoe){
     e.cd-=dt;
     if(e.cd<=0){
       if(e.burst<=0)e.burst=isFoe?3:4;
-      shoot(e,isFoe?'red':'blue',(isFoe?0.115:0.085)-0.03*e.cr,isFoe?E_DMG:1,SC);
+      shoot(e,isFoe?'red':'blue',(isFoe?0.115:0.085)-0.03*e.cr,isFoe?E_DMG:((e.pow||0)>0?MGP_DMG:1),SC);
       e.burst--;
       e.cd=e.burst>0?0.14:(isFoe?1.15+rnd()*0.95:0.85+rnd()*0.7);
     }
@@ -2672,6 +2762,11 @@ function paintHud(force){
     for(let i=0;i<NADES;i++)np.appendChild(document.createElement('i'));
   }
   for(let i=0;i<np.children.length;i++)np.children[i].className=i<P.nades?'n':'';
+  const ln=$('#tkLn'),rn=$('#tkRn');
+  if(ln){
+    ln.textContent=I18N[lang].tkOn(allies.filter(a=>a.alive).length+(P.alive?1:0));
+    rn.textContent=I18N[lang].tkOn(foes.filter(f=>f.alive).length+tanks.filter(tk=>tk.alive).length);
+  }
   const pb=$('#powBox');
   pb.hidden=!(P.pow>0);
   if(P.pow>0)$('#powBar').style.width=Math.min(100,P.pow/MGP_MAX*100).toFixed(1)+'%';
