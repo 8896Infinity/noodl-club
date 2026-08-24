@@ -369,18 +369,39 @@ $('#langBtn').addEventListener('click',()=>{
    is thrown the same way by the same vector, and that single agreement is most
    of what turns a flat top-down into somewhere that exists.                  */
 const SUN={x:0.44,y:0.70};
+/* Where the light comes FROM. The shadow falls along +SUN, so the light is the
+   other way; everything that wants a lit side asks this and then subtracts the
+   man's own facing, which is the whole trick to a sprite that turns. */
+const SUNA=Math.atan2(-SUN.y,-SUN.x);
+/* Domes are the one place a hard facet will not do, so they get a gradient —
+   cached per kit and per sixteenth of a turn, because building one of these
+   for every helmet on every frame is a lot of garbage for no visible gain. */
+const GCACHE={};
+function dome(c,key,cx,cy,r,la,lit,mid,dark){
+  const q=Math.round(la*8/Math.PI)&15, k=key+q;
+  let gr=GCACHE[k];
+  if(!gr){
+    const a=q*Math.PI/8;
+    gr=c.createRadialGradient(cx+Math.cos(a)*r*0.42,cy+Math.sin(a)*r*0.42,r*0.06,cx,cy,r*1.18);
+    gr.addColorStop(0,lit);gr.addColorStop(0.42,mid);gr.addColorStop(1,dark);
+    GCACHE[k]=gr;
+  }
+  return gr;
+}
 
 /* Kit. Both sides wear field colours rather than team colours, the way real
    ones do; who is who is read off the marker at their feet. */
 const KIT={
   blue:{coat:'#59683f',coatL:'#78885b',coatD:'#39442a',helm:'#4d5b36',helmL:'#728254',
+        helmD:'#2c3520',rim:'#9db184',
         pack:'#414c2f',boot:'#2b3220',skin:'#c39068',mark:'#22d18c'},
   /* The Tribe used to wear desert brown, which is honest and unreadable: on
      tan ground at this size a brown man is a smudge. They wear red now. Not
      the marker's #ff4d4d — that sits on top of them and has to stay brighter
      than the coat or it disappears into it. */
-  red :{coat:'#a8382f',coatL:'#c8564a',coatD:'#6d201b',helm:'#932c25',helmL:'#bb4d44',
-        pack:'#7c261f',boot:'#3a1512',skin:'#c08a5e',mark:'#ff7a6a'}
+  red :{coat:'#a8382f',coatL:'#d06254',coatD:'#571610',helm:'#872520',helmL:'#c65a50',
+        helmD:'#3d0e0c',rim:'#f0a396',
+        pack:'#6e1f19',boot:'#310f0d',skin:'#c08a5e',mark:'#ff7a6a'}
 };
 const GUN={d:'#212329',m:'#31343c',l:'#4a4e58'};
 
@@ -408,21 +429,34 @@ function poly(c,pts){
    in front, legs working underneath. He turns by rotating, because this is a
    true plan view and rotation is the honest transform for it — the opposite of
    the side-on sprites in battle.html, which must be mirrored and never turned.
-   Everything is flat-shaded: the light lives in the drop shadow and in one
-   highlight on the helmet drawn square to the world, so a man spinning on the
-   spot does not carry the sun around with him.                               */
+
+   The shape is square to the man and the LIGHT IS SQUARE TO THE WORLD. Every
+   part below asks for the sun in his local frame (SUNA minus his facing) and
+   puts its lit cap, its shaded crescent and its rim along that — so turning on
+   the spot walks the highlight round him instead of carrying it along, which
+   is the only reason any of this reads as solid rather than as cut paper.   */
 function drawTrooper(c,x,y,ang,kit,st){
   const cr=st.cr||0, run=st.run||0, s=(st.s||1)*(1-0.2*cr);
   const gait=st.gait||0, amp=(0.8+0.9*run)*(1-0.72*cr);
   const sw=Math.sin(gait);
+  /* the sun, in his frame */
+  const la=SUNA-ang, lx=Math.cos(la), ly=Math.sin(la);
 
-  /* the shadow, thrown by the sun and not by his facing */
+  /* Two shadows. The far one is soft and offset, which puts him above the
+     ground; the near one is tight and dark under his boots, which puts him
+     back on it. Without the second he floats. */
   c.save();
-  c.translate(x+SUN.x*7*s, y+SUN.y*5*s);
+  c.translate(x+SUN.x*9*s, y+SUN.y*6.5*s);
   c.rotate(ang);c.scale(s,s*0.92);
-  c.fillStyle='rgba(10,10,14,.34)';
-  c.beginPath();c.ellipse(-1,0,11.5,7.2,0,0,6.2832);c.fill();
-  c.beginPath();c.ellipse(9,1,5.6,3.2,0,0,6.2832);c.fill();
+  c.fillStyle='rgba(10,10,14,.22)';
+  c.beginPath();c.ellipse(-1,0,13.5,8.6,0,0,6.2832);c.fill();
+  c.beginPath();c.ellipse(9,1,6.6,3.9,0,0,6.2832);c.fill();
+  c.restore();
+  c.save();
+  c.translate(x+SUN.x*3*s, y+SUN.y*2*s);
+  c.rotate(ang);c.scale(s,s*0.92);
+  c.fillStyle='rgba(8,8,11,.30)';
+  c.beginPath();c.ellipse(-1,0,9.5,6.0,0,0,6.2832);c.fill();
   c.restore();
 
   c.save();
@@ -432,8 +466,8 @@ function drawTrooper(c,x,y,ang,kit,st){
      hidden under his own torso and he reads as a man on castors. Feet land
      behind the pack, so at any moment one of them is clear of the outline. */
   const hip=-3.6, foot=-14+5*cr, k1=sw*6.6*amp;
-  cap(c,hip,-3.6,foot+k1,-5.4,4.6,kit.coatD);
-  cap(c,hip, 3.6,foot-k1, 5.4,4.6,kit.coatD);
+  cap(c,hip,-3.6,foot+k1,-5.0,4.0,kit.coatD);
+  cap(c,hip, 3.6,foot-k1, 5.0,4.0,kit.coatD);
   c.fillStyle=kit.boot;
   c.beginPath();c.ellipse(foot-1.6+k1,-5.5,2.4,1.9,0,0,6.2832);c.fill();
   c.beginPath();c.ellipse(foot-1.6-k1, 5.5,2.4,1.9,0,0,6.2832);c.fill();
@@ -441,14 +475,43 @@ function drawTrooper(c,x,y,ang,kit,st){
   /* the pack rides high and narrow, or it sits on his legs and he has none */
   c.fillStyle=kit.pack;
   rr(c,-9.4,-4.3,6.4,8.6,2.4);c.fill();
+  /* its lit face, clipped to itself so the highlight cannot leak off the box */
+  c.save();rr(c,-9.4,-4.3,6.4,8.6,2.4);c.clip();
+  c.fillStyle=kit.coatL;c.globalAlpha=0.55;
+  c.beginPath();c.ellipse(-6.2+lx*3.6,lx*0+ly*4.6,4.4,4.0,0,0,6.2832);c.fill();
+  c.globalAlpha=0.38;c.fillStyle='#05070a';
+  c.beginPath();c.ellipse(-6.2-lx*3.6,-ly*4.6,4.4,4.0,0,0,6.2832);c.fill();
+  c.restore();
   c.strokeStyle='rgba(8,9,12,.35)';c.lineWidth=0.9;rr(c,-9.4,-4.3,6.4,8.6,2.4);c.stroke();
+
+  /* The torso: a solid, not a disc. Lit cap toward the sun, shade crescent
+     away from it, and a rim along the lit edge. */
   c.fillStyle=kit.coat;
   c.beginPath();c.ellipse(-0.6,0,7.8,6.8,0,0,6.2832);c.fill();
-  c.strokeStyle='rgba(8,9,12,.42)';c.lineWidth=1;c.stroke();
-  /* shoulders, so there is a front and a back to him */
+  c.save();
+  c.beginPath();c.ellipse(-0.6,0,7.8,6.8,0,0,6.2832);c.clip();
   c.fillStyle=kit.coatL;
-  c.beginPath();c.ellipse(1.8,-5.4,3.1,2.4,-0.3,0,6.2832);c.fill();
-  c.beginPath();c.ellipse(1.8, 5.4,3.1,2.4, 0.3,0,6.2832);c.fill();
+  c.beginPath();c.ellipse(-0.6+lx*3.2,ly*2.8,5.0,4.3,0,0,6.2832);c.fill();
+  c.globalAlpha=0.62;c.fillStyle=kit.coatD;
+  c.beginPath();c.ellipse(-0.6-lx*5.4,-ly*4.7,6.8,6.0,0,0,6.2832);c.fill();
+  c.globalAlpha=1;
+  /* The rim only belongs on the arc that turns into the light, so it is
+     offset far enough that its far half falls outside the clip and never
+     gets drawn — a rim all the way round is an outline, not a rim. */
+  c.strokeStyle=kit.rim;c.lineWidth=1.3;c.globalAlpha=0.55;
+  c.beginPath();c.ellipse(-0.6+lx*2.9,ly*2.5,7.5,6.5,0,0,6.2832);c.stroke();
+  c.globalAlpha=1;
+  c.restore();
+  c.strokeStyle='rgba(8,9,12,.42)';c.lineWidth=1;
+  c.beginPath();c.ellipse(-0.6,0,7.8,6.8,0,0,6.2832);c.stroke();
+
+  /* shoulders, so there is a front and a back to him — the one the sun is on
+     catches it, the other one does not */
+  const shA=1.8, shL=(-1*ly>0)?kit.coatL:kit.coat, shR=(ly>0)?kit.coatL:kit.coat;
+  c.fillStyle=shL;
+  c.beginPath();c.ellipse(shA,-5.4,3.1,2.4,-0.3,0,6.2832);c.fill();
+  c.fillStyle=shR;
+  c.beginPath();c.ellipse(shA, 5.4,3.1,2.4, 0.3,0,6.2832);c.fill();
   /* webbing, so he reads as kit and not as a blob */
   c.strokeStyle=kit.coatD;c.lineWidth=1.5;
   c.beginPath();c.moveTo(-4.2,-4.8);c.lineTo(2,4.4);c.stroke();
@@ -468,25 +531,44 @@ function drawTrooper(c,x,y,ang,kit,st){
   c.fillStyle=GUN.m;rr(c,7.4,0.9,2.7,3.8,0.9);c.fill();       /* mag    */
   c.fillStyle=GUN.l;rr(c,10.5,-1.6,3.2,0.9,0.4);c.fill();     /* rail   */
   if(st.fire>0.35){
-    c.fillStyle='rgba(255,228,150,'+(st.fire*0.9).toFixed(2)+')';
-    poly(c,[19,0.5, 26+st.fire*4,-2.6, 24,0.5, 26+st.fire*4,3.6]);c.fill();
+    /* Four parts, because a flash is not a shape: a soft bloom, a hot core, a
+       star of spikes, and two side lobes where the gas leaves the muzzle. */
+    const f=st.fire, L=19.5;
+    c.globalAlpha=f*0.34;c.fillStyle='#ffcf7a';
+    c.beginPath();c.ellipse(L+5,0.4,10+f*5,7+f*3,0,0,6.2832);c.fill();
+    c.globalAlpha=f*0.95;c.fillStyle='#ffe9b0';
+    poly(c,[L,0.4, L+7,-4.6, L+16+f*7,-1.1, L+21+f*9,0.4, L+16+f*7,1.9, L+7,5.4]);c.fill();
+    c.fillStyle='#fffbe8';
+    c.beginPath();c.ellipse(L+2.4,0.4,4.4+f*1.6,2.9+f*1.1,0,0,6.2832);c.fill();
+    c.globalAlpha=f*0.6;c.fillStyle='#ffd98a';
+    poly(c,[L+1,0.4, L+9,-8.5, L+11,-1.2]);c.fill();
+    poly(c,[L+1,0.4, L+9, 9.3, L+11, 2.0]);c.fill();
+    c.globalAlpha=1;
   }
   c.restore();
 
-  /* helmet last, so it sits on top of the shoulders */
+  /* the helmet last, so it sits on top of the shoulders. this one is a dome
+     and a dome wants a gradient — a facet on a sphere reads as a dent. */
   c.fillStyle=kit.skin;
   c.beginPath();c.ellipse(4.4,0.2,1.5,2.0,0,0,6.2832);c.fill();
-  c.fillStyle=kit.helm;
-  c.beginPath();c.arc(0.7,0,4.6,0,6.2832);c.fill();
-  c.strokeStyle='rgba(8,9,12,.45)';c.lineWidth=1;c.stroke();
-  c.restore();
-
-  /* the sun catches every helmet from the same side, so this one highlight is
-     square to the world instead of to the man */
+  /* the shadow the helmet drops onto his own shoulders */
+  c.fillStyle='rgba(6,7,10,.34)';
+  c.beginPath();c.arc(0.7-lx*1.8,-ly*1.8,4.4,0,6.2832);c.fill();
+  /* A shade smaller than it was: a domed helmet at the old radius won the
+     whole sprite and he read as a ball carrying a rifle. */
+  const HR=4.15;
+  c.fillStyle=dome(c,kit.helm,0.7,0,HR,la,kit.helmL,kit.helm,kit.helmD);
+  c.beginPath();c.arc(0.7,0,HR,0,6.2832);c.fill();
   c.save();
-  c.translate(x,y);c.scale(s,s);
-  c.fillStyle=kit.helmL;
-  c.beginPath();c.ellipse(-1.2,-1.5,2.7,2.1,0,0,6.2832);c.fill();
+  c.beginPath();c.arc(0.7,0,HR,0,6.2832);c.clip();
+  c.strokeStyle=kit.rim;c.lineWidth=1.2;c.globalAlpha=0.55;
+  c.beginPath();c.arc(0.7+lx*1.6,ly*1.6,4.0,0,6.2832);c.stroke();
+  c.globalAlpha=1;
+  c.fillStyle='rgba(255,255,255,.22)';
+  c.beginPath();c.ellipse(0.7+lx*1.9,ly*1.9,1.1,0.8,la,0,6.2832);c.fill();
+  c.restore();
+  c.strokeStyle='rgba(8,9,12,.5)';c.lineWidth=1;
+  c.beginPath();c.arc(0.7,0,HR,0,6.2832);c.stroke();
   c.restore();
 }
 
@@ -1183,6 +1265,8 @@ const POW_T=13, POW_MAX=26, POW_DMG=3;
 let phase='brief', t=0, last=0, raf=0;
 let P, foes, allies, bullets, sparks, bodies, shells;
 let tanks=[], nades=[], blasts=[], pickups=[], shake=0;
+/* smoke hangs about, debris falls, light does not last */
+let smokes=[], debris=[], glows=[];
 let cam={x:0,y:0}, aim={x:0,y:0};
 let mouse={x:VW/2,y:350,down:false,r:false}, keys={};
 let cleared=0, myKills=0, spawned=0, spawnT=0, shots=0, hits=0, startAt=0, endAt=0, overT=0;
@@ -1198,7 +1282,7 @@ function reset(){
   P.mag=MAG;P.reload=0;P.alt=DROP_ALT;
   P.nades=NADES;P.chg=0;P.ncd=0;P.pow=0;
   foes=[];allies=[];bullets=[];sparks=[];bodies=[];shells=[];
-  nades=[];blasts=[];shake=0;
+  nades=[];blasts=[];shake=0;smokes=[];debris=[];glows=[];
   tanks=[];
   pickups=BOWLS.map((b,i)=>{const q=freeSpot(b[0],b[1]);
     return {x:q.x,y:q.y,kind:b[2]||'hp',on:true,t:0,pop:0,ph:i*1.7};});
@@ -1345,6 +1429,15 @@ function shoot(u,side,spread,dmg,sc){
   shells.push({x:m.x,y:m.y,vx:-Math.cos(a)*40+Math.sin(a)*70,vy:-Math.sin(a)*40-Math.cos(a)*70,
                vz:120+Math.random()*60,z:9,life:0.9});
   sparks.push({x:m.x,y:m.y,vx:Math.cos(a)*90,vy:Math.sin(a)*90,life:0.06,col:'#ffdca0',r:3});
+  /* the flash lights the ground it is standing on, and leaves a wisp */
+  glow(m.x+Math.cos(a)*10,m.y+Math.sin(a)*10,dmg>1?34:24,dmg>1?'0,255,255':'255,214,140',0.075);
+  for(let i=0;i<2;i++)
+    sparks.push({x:m.x,y:m.y,vx:Math.cos(a+(Math.random()-0.5)*0.9)*(220+Math.random()*260),
+                 vy:Math.sin(a+(Math.random()-0.5)*0.9)*(220+Math.random()*260),
+                 life:0.09+Math.random()*0.07,col:dmg>1?'#b8ffff':'#ffd98a',r:1.5});
+  if(Math.random()<0.5)
+    smokes.push({x:m.x+Math.cos(a)*13,y:m.y+Math.sin(a)*13,vx:Math.cos(a)*34,vy:Math.sin(a)*34-8,
+      r:2.4,grow:16,t:0,life:0.42,col:'150,146,136',rot:0});
 }
 /* Where a throw of this strength would land, stopped at the first wall so the
    marker never promises through a house. */
@@ -1397,6 +1490,54 @@ function spark(x,y,col,n,spd){
   for(let i=0;i<n;i++){
     const a=Math.random()*6.2832, v=spd*(0.4+Math.random()*0.8);
     sparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*0.7,life:0.18+Math.random()*0.22,col,r:1.6});
+  }
+}
+/* Smoke is what makes a fight look lived-in a second after it happened, and
+   it is cheap: a few discs that grow, drift and give up. */
+function smoke(x,y,n,r0,grow,life,col,spd){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.2832, v=(spd||0)*(0.2+Math.random()*0.9);
+    smokes.push({x:x+Math.cos(a)*r0*0.4,y:y+Math.sin(a)*r0*0.3,
+      vx:Math.cos(a)*v-6,vy:Math.sin(a)*v*0.6-9,
+      r:r0*(0.6+Math.random()*0.7),grow,t:0,life:life*(0.7+Math.random()*0.6),
+      col:col||'70,66,58',rot:Math.random()*6.2832});
+  }
+}
+/* Chunks. They go up, they come down, and where they land is a mark. */
+function chunks(x,y,n,spd,col){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.2832, v=spd*(0.35+Math.random());
+    debris.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*0.65,vz:70+Math.random()*180,z:2,
+      w:1.6+Math.random()*3.4,h:1.2+Math.random()*2.6,rot:Math.random()*6.2832,
+      spin:(Math.random()*2-1)*14,life:0.9+Math.random()*0.8,col:col||'#4a4238'});
+  }
+}
+/* A light on the ground, which is the part that tells you it was bright. */
+function glow(x,y,r,col,life){glows.push({x,y,r,col,t:0,life:life||0.22});}
+
+/* One bang, on four clocks. R is how far it actually reaches, which is what
+   the shockwave is sized from — an explosion that draws bigger than it kills
+   is a lie the player pays for. */
+function boom(x,y,R,hot,warm){
+  /* Light, not a spotlight. At two and a half times the blast radius it
+     washed a quarter of the field pale and read as a hole in the lighting. */
+  glow(x,y,R*1.45,hot,0.15);
+  blasts.push({x,y,t:0,R,col:warm,hot:hot});
+  spark(x,y,hot,Math.round(R*0.55),R*7);
+  spark(x,y,warm,Math.round(R*0.35),R*4.4);
+  /* Smoke wants to be read through. Thirty puffs growing to three times the
+     blast radius stacked into one opaque hole in the ground — a bang you
+     cannot see the fight through is worse than no bang. */
+  smoke(x,y,Math.round(R*0.11),R*0.15,R*0.34,1.15,'122,112,96',R*0.75);
+  chunks(x,y,Math.round(R*0.22),R*3.2);
+  if(dctx){
+    dctx.fillStyle='rgba(20,16,12,.34)';
+    dctx.beginPath();dctx.ellipse(x,y,R*0.60,R*0.33,0,0,6.2832);dctx.fill();
+    for(let i=0;i<5;i++){
+      const a=Math.random()*6.2832,d=R*(0.3+Math.random()*0.7);
+      dctx.fillStyle='rgba(26,21,16,.20)';
+      dctx.beginPath();dctx.ellipse(x+Math.cos(a)*d,y+Math.sin(a)*d*0.6,R*0.2,R*0.11,a,0,6.2832);dctx.fill();
+    }
   }
 }
 function die(u,killer){
@@ -1456,13 +1597,8 @@ function stepTank(tank,dt){
     if(tank.aim.t>=TANK_TELE){
       const a=tank.aim;tank.aim=null;
       /* it goes off */
-      spark(a.x,a.y,'#ffd08a',34,420);spark(a.x,a.y,'#7a6a58',20,200);
-      blasts.push({x:a.x,y:a.y,t:0,R:TANK_R,col:'#ff8a5a'});
+      boom(a.x,a.y,TANK_R,'255,231,176','#ff8a5a');
       shake=1.25;
-      if(dctx){
-        dctx.fillStyle='rgba(22,18,14,.42)';
-        dctx.beginPath();dctx.ellipse(a.x,a.y,TANK_R*0.62,TANK_R*0.34,0,0,6.2832);dctx.fill();
-      }
       const all=foes.concat(allies,[P]);
       for(let k=0;k<all.length;k++){
         const u=all[k];
@@ -1491,8 +1627,10 @@ function hurtTank(tank,dmg,by){
   tank.hp-=dmg;
   if(tank.hp>0)return;
   tank.alive=false;tank.aim=null;
-  spark(tank.x,tank.y,'#fcd14f',40,460);spark(tank.x,tank.y,'#3a332c',26,180);
-  blasts.push({x:tank.x,y:tank.y,t:0,R:TANK_R*0.9,col:'#fcd14f'});
+  boom(tank.x,tank.y,TANK_R*0.9,'255,240,190','#fcd14f');
+  /* a wreck keeps burning */
+  tank.burn=0;
+  chunks(tank.x,tank.y,14,300,'#2f2a24');
   shake=1.4;
   feed(by?by.name:'—',I18N[lang].tankName,by===P);
   radio(I18N[lang].rTankDown);
@@ -1620,7 +1758,13 @@ function step(dt){
       for(let k=0;k<BLOCK.length;k++){
         const o=BLOCK[k];
         if(nx>o.x&&nx<o.x+o.w&&ny>o.y-(o.tall?o.ht*0.4:2)&&ny<o.y+o.d){
-          spark(nx,ny,'#d8cfae',4,150);scuffAt(nx,ny);gone=true;break;
+          /* chips off the wall, a puff of what it was made of, and a mark */
+          spark(nx,ny,'#e8dfbe',5,190);
+          sparks.push({x:nx,y:ny,vx:-b.vx*0.10,vy:-b.vy*0.10,life:0.07,col:'#fff3cf',r:2.6});
+          smokes.push({x:nx,y:ny,vx:-b.vx*0.03,vy:-b.vy*0.03-6,r:2.2,grow:13,t:0,life:0.36,
+                       col:'168,158,132',rot:0});
+          glow(nx,ny,15,'255,236,190',0.06);
+          scuffAt(nx,ny);gone=true;break;
         }
       }
     }
@@ -1645,6 +1789,11 @@ function step(dt){
         if(Math.abs(nx-u.x)<rad&&Math.abs(ny-u.y)<rad*0.95){
           u.hp-=b.dmg;u.hurt=0.13;
           spark(nx,ny,'#ff9a9a',5,170);bloodAt(nx,ny,1);
+          /* it went through him: the spray carries on the way the round was */
+          for(let q=0;q<3;q++)
+            sparks.push({x:nx,y:ny,vx:b.vx*0.11*(0.5+Math.random()),vy:b.vy*0.11*(0.5+Math.random()),
+                         life:0.13+Math.random()*0.12,col:'#8e1f1f',r:1.9});
+          glow(nx,ny,13,'255,120,110',0.05);
           if(b.by===P)hits++;
           if(u===P)lastHit=t;
           gone=true;
@@ -1673,13 +1822,8 @@ function step(dt){
     n.f-=dt;
     if(n.f>0)continue;
     nades.splice(i,1);
-    spark(n.x,n.y,'#fcd14f',26,360);spark(n.x,n.y,'#ef9530',18,250);
-    blasts.push({x:n.x,y:n.y,t:0,R:NADE_R,col:'#fcd14f'});
+    boom(n.x,n.y,NADE_R,'255,244,206','#ef9530');
     shake=Math.max(shake,0.75);
-    if(dctx){
-      dctx.fillStyle='rgba(26,22,17,.32)';
-      dctx.beginPath();dctx.ellipse(n.x,n.y,28,16,0,0,6.2832);dctx.fill();
-    }
     for(let k=0;k<tanks.length;k++)
       if(tanks[k].alive&&Math.hypot(tanks[k].x-n.x,tanks[k].y-n.y)<NADE_R+14)hurtTank(tanks[k],NADE_TANK,n.by);
     const all=foes.concat(allies,[P]);
@@ -1749,6 +1893,36 @@ function step(dt){
   bodies.forEach(b=>b.t+=dt);
   if(bodies.length>16)bodies.splice(0,bodies.length-16);
   for(let i=blasts.length-1;i>=0;i--){blasts[i].t+=dt;if(blasts[i].t>0.55)blasts.splice(i,1);}
+  for(let i=glows.length-1;i>=0;i--){glows[i].t+=dt;if(glows[i].t>=glows[i].life)glows.splice(i,1);}
+  for(let i=smokes.length-1;i>=0;i--){
+    const k=smokes[i];k.t+=dt;
+    if(k.t>=k.life){smokes.splice(i,1);continue;}
+    /* it slows as it spreads, which is what smoke does */
+    k.x+=k.vx*dt;k.y+=k.vy*dt;
+    k.vx*=1-Math.min(1,dt*2.4);k.vy*=1-Math.min(1,dt*2.4);
+    k.r+=k.grow*dt;k.rot+=dt*0.5;
+  }
+  for(let i=debris.length-1;i>=0;i--){
+    const d=debris[i];d.life-=dt;
+    if(d.life<=0){debris.splice(i,1);continue;}
+    d.x+=d.vx*dt;d.y+=d.vy*dt;d.rot+=d.spin*dt;
+    d.z+=d.vz*dt;d.vz-=620*dt;
+    if(d.z<=0){                       /* it lands, loses most of it, and marks */
+      d.z=0;d.vz*=-0.32;d.vx*=0.42;d.vy*=0.42;d.spin*=0.4;
+      if(Math.abs(d.vz)<26){d.vz=0;d.vx=0;d.vy=0;d.spin=0;}
+    }
+  }
+  /* a wrecked tank keeps smoking */
+  for(let i=0;i<tanks.length;i++){
+    const tk=tanks[i];
+    if(tk.alive||tk.burn===undefined)continue;
+    tk.burn-=dt;
+    if(tk.burn<=0){
+      tk.burn=0.10+Math.random()*0.12;
+      smoke(tk.x-4+Math.random()*8,tk.y-4+Math.random()*8,1,5,10,1.7,'90,82,72',16);
+      if(Math.random()<0.35)spark(tk.x,tk.y,'#ef9530',2,60);
+    }
+  }
   if(shake>0)shake=Math.max(0,shake-dt*2.6);
 
   /* ---- the camera leans the way you are looking ---- */
@@ -2016,6 +2190,21 @@ function draw(now){
      so "how long have I got" is the size of the ring and nothing has to be
      read. It is drawn under the men, on the ground, because that is where it
      is. */
+  /* Anything bright puts light on the ground it is standing on, and it goes
+     down here — under the men, because the ground is under the men. Additive,
+     so two muzzles firing into the same dirt actually add up. */
+  if(glows.length){
+    g.save();g.globalCompositeOperation='lighter';
+    for(let i=0;i<glows.length;i++){
+      const q=glows[i], u=q.t/q.life, r=q.r*(0.75+0.45*u);
+      const gr=g.createRadialGradient(q.x,q.y,0,q.x,q.y,r);
+      gr.addColorStop(0,'rgba('+q.col+','+((1-u)*(1-u)*0.34).toFixed(3)+')');
+      gr.addColorStop(1,'rgba('+q.col+',0)');
+      g.fillStyle=gr;
+      g.beginPath();g.ellipse(q.x,q.y,r,r*0.56,0,0,6.2832);g.fill();
+    }
+    g.restore();
+  }
   for(let ti=0;ti<tanks.length;ti++){
     const tank=tanks[ti];
     if(!tank.alive||!tank.aim)continue;
@@ -2053,12 +2242,25 @@ function draw(now){
     g.beginPath();g.ellipse(tp.x,tp.y,NADE_R,NADE_R*0.52,0,0,6.2832);g.fill();
   }
   for(let i=0;i<blasts.length;i++){
-    const b=blasts[i], u=b.t/0.55, R=(b.R||NADE_R)*(0.25+0.95*u);
-    g.globalAlpha=(1-u)*0.5;g.fillStyle=b.col||'#fcd14f';
-    g.beginPath();g.ellipse(b.x,b.y,R*0.55,R*0.30,0,0,6.2832);g.fill();
-    g.globalAlpha=(1-u)*0.85;
-    g.strokeStyle=b.col||'#ef9530';g.lineWidth=3.4*(1-u)+0.8;
-    g.beginPath();g.ellipse(b.x,b.y,R,R*0.52,0,0,6.2832);g.stroke();
+    const b=blasts[i], u=b.t/0.55, R0=b.R||NADE_R;
+    /* the shockwave outruns everything and is thin by the time it is wide */
+    const sw=R0*(0.30+1.35*u);
+    g.globalAlpha=(1-u)*(1-u)*0.75;
+    g.strokeStyle='rgba('+(b.hot||'255,240,200')+',1)';g.lineWidth=3.6*(1-u)+0.5;
+    g.beginPath();g.ellipse(b.x,b.y,sw,sw*0.52,0,0,6.2832);g.stroke();
+    /* the fireball, which is slower and fatter */
+    const fb=R0*(0.22+0.72*Math.min(1,u*1.5));
+    g.globalAlpha=Math.max(0,1-u*1.5)*0.62;
+    g.fillStyle=b.col||'#ef9530';
+    g.beginPath();g.ellipse(b.x,b.y,fb,fb*0.55,0,0,6.2832);g.fill();
+    /* and the core, which is white and already gone */
+    const cu=Math.min(1,u*4.5);
+    if(cu<1){
+      const cr2=R0*(0.10+0.30*cu);
+      g.globalAlpha=(1-cu)*0.95;
+      g.fillStyle='rgba('+(b.hot||'255,240,200')+',1)';
+      g.beginPath();g.ellipse(b.x,b.y,cr2,cr2*0.6,0,0,6.2832);g.fill();
+    }
     g.globalAlpha=1;
   }
 
@@ -2078,10 +2280,28 @@ function draw(now){
     g.fillStyle='rgba(214,178,96,'+Math.min(1,s.life*2).toFixed(2)+')';
     g.fillRect(s.x-1,s.y-s.z*0.5,2.6,1.5);
   }
+  /* chunks: a shadow where they are, the chunk where it has got to */
+  for(let i=0;i<debris.length;i++){
+    const d=debris[i], f=Math.min(1,d.life*3);
+    g.globalAlpha=0.22*f;g.fillStyle='#08090c';
+    g.beginPath();g.ellipse(d.x,d.y,d.w*0.8,d.w*0.45,0,0,6.2832);g.fill();
+    g.globalAlpha=f;g.fillStyle=d.col;
+    g.save();g.translate(d.x,d.y-d.z*0.55);g.rotate(d.rot);
+    g.fillRect(-d.w/2,-d.h/2,d.w,d.h);g.restore();
+  }
+  g.globalAlpha=1;
   for(let i=0;i<sparks.length;i++){
     const s=sparks[i];
     g.globalAlpha=Math.min(1,s.life*5);g.fillStyle=s.col;
     g.beginPath();g.arc(s.x,s.y,s.r||1.6,0,6.2832);g.fill();
+  }
+  /* smoke over the top of all of it, because it is between you and the fight */
+  for(let i=0;i<smokes.length;i++){
+    const k=smokes[i], u=k.t/k.life;
+    g.globalAlpha=(u<0.14?u/0.14:1-(u-0.14)/0.86)*0.20;
+    g.fillStyle='rgba('+k.col+',1)';
+    g.save();g.translate(k.x,k.y);g.rotate(k.rot);g.scale(1,0.72);
+    g.beginPath();g.arc(0,0,k.r,0,6.2832);g.fill();g.restore();
   }
   g.globalAlpha=1;
 
