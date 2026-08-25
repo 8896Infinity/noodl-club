@@ -156,6 +156,80 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 20p
 .joinw:hover{background:rgba(0,255,255,.13)}
 .joinsoon{font-size:12.5px;color:var(--noodle-y)}
 .joinsoon[hidden]{display:none}
+/* ---- the wallet desk ---- */
+.jwpanel{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:9px;background:rgba(12,13,18,.55)}
+.jwpanel[hidden]{display:none}
+.jwrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.jwlab{flex:none;font-size:12.5px;color:var(--text-2);font-weight:600}
+.jwline{display:flex;gap:8px;flex:1;min-width:min(100%,300px)}
+.jwipt{
+  flex:1;min-width:0;background:#0c0d12;border:1px solid var(--line);border-radius:6px;
+  color:var(--text);font:500 12.5px/1.4 "Work Sans","PingFang SC",sans-serif;padding:9px 11px;
+  font-variant-numeric:tabular-nums;
+}
+.jwipt::placeholder{color:var(--dim)}
+.jwipt:focus{outline:none;border-color:rgba(0,255,255,.45)}
+.jwgo{
+  flex:none;border:1px solid rgba(0,255,255,.45);border-radius:6px;background:rgba(0,255,255,.07);
+  color:var(--cyan);font:600 12.5px/1 "Work Sans",sans-serif;padding:9px 15px;cursor:pointer;
+}
+.jwgo:hover{background:rgba(0,255,255,.13)}
+.jwgo[disabled]{opacity:.5;cursor:default}
+.jwwal{
+  flex:none;border:1px solid var(--line);border-radius:6px;background:#12141a;
+  color:var(--dim);font:600 12.5px/1 "Work Sans",sans-serif;padding:9px 14px;cursor:not-allowed;
+}
+.jwnote{color:var(--noodle-y);font-size:12px}
+.jwmsg{font-size:12.5px;color:var(--text-2)}
+.jwmsg.err{color:var(--red)}
+.jwmsg[hidden]{display:none}
+.jwcard{
+  margin-top:12px;border:1px solid var(--line);border-radius:10px;background:#0c0d12;
+  display:grid;grid-template-columns:170px minmax(0,1fr);overflow:hidden;
+}
+.jwcard[hidden]{display:none}
+.jwcv{
+  display:grid;place-items:end center;border-right:1px solid var(--line);padding:12px 8px 10px;
+  background:radial-gradient(120% 60% at 50% 100%,rgba(34,209,140,.13),rgba(34,209,140,0) 72%),#0a0f0d;
+}
+.jwcv canvas{width:150px;height:200px;display:block}
+.jwinfo{padding:13px 15px 12px;min-width:0}
+.jwname{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px;flex-wrap:wrap;word-break:break-all}
+.jwname a{color:var(--dim);text-decoration:none;font-size:12px;flex:none}
+.jwname a:hover{color:var(--cyan)}
+.jwtag{flex:none;font-style:normal;font:700 9.5px/1 "Work Sans",sans-serif;letter-spacing:.06em;padding:3.5px 6px;border-radius:4px;border:1px solid}
+.jwtag.n{color:var(--cyan);border-color:rgba(0,255,255,.4)}
+.jwtag.c{color:var(--noodle-y);border-color:rgba(252,209,79,.45)}
+.jwrank{margin-top:7px;font-size:12.5px;color:var(--text-2)}
+.jwrank b{color:#8fe9c2;font-weight:700;margin-right:7px}
+.jwrank span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px}
+.jwfacts{margin:8px 0 10px;font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.jwst{display:grid;grid-template-columns:5em 3.6em minmax(0,1fr);gap:9px;align-items:center;font-size:12px;margin-top:5px}
+.jwst .l{color:var(--text-2)}
+.jwst b{color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
+.jwbar{height:5px;border-radius:3px;background:#1a1e26;overflow:hidden;font-style:normal}
+.jwbar u{display:block;height:100%;background:linear-gradient(90deg,#0d6a47,#22d18c)}
+.jwcap{margin-top:8px;font-size:10.5px;color:var(--dim);line-height:1.6}
+.jwsec{margin:12px 0 6px;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--text-2)}
+.jwgear{display:flex;gap:6px;flex-wrap:wrap}
+.jwgear i{font-style:normal;font-size:11.5px;color:var(--text-2);border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:#12141a}
+.jwgear i[data-slot]{cursor:pointer;user-select:none}
+.jwgear i[data-slot]:hover{border-color:var(--dim)}
+.jwgear i.p3{color:var(--noodle-y);border-color:rgba(252,209,79,.5)}
+.jwghint{margin-top:6px;font-size:10.5px;color:var(--dim)}
+.jwarm{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.jwslot{border:1px solid var(--line);border-radius:8px;background:#12141a;padding:7px 8px 8px;text-align:center;min-width:0}
+.jwslot canvas{width:64px;height:38px;display:block;margin:0 auto 4px}
+.jwslot b{display:block;font-size:11px;color:var(--text)}
+.jwslot span{display:block;font-size:10px;color:var(--dim);margin-top:2px}
+.jwslot.off{opacity:.62}
+.jwslot.off b{color:var(--dim)}
+.jwshow{margin-top:11px;font-size:11px;color:var(--noodle-y);line-height:1.6}
+@media (max-width:600px){
+  .jwcard{grid-template-columns:1fr}
+  .jwcv{border-right:none;border-bottom:1px solid var(--line)}
+  .jwlab{flex-basis:100%}
+}
 @media (max-width:600px){
   .joinbox{padding:18px 14px 14px}
   .jlab{font-size:15px}
@@ -519,6 +593,25 @@ footer a:hover{color:var(--cyan)}
       <button class="joinw" id="joinWallet" type="button" data-i="joinWallet"></button>
       <span class="joinsoon" id="joinSoon" hidden data-i="joinSoon"></span>
     </div>
+    <div class="jwpanel" id="jwPanel" hidden>
+      <div class="jwrow">
+        <label class="jwlab" for="jwId" data-i="jwByIdT"></label>
+        <div class="jwline">
+          <input class="jwipt" id="jwId" type="text" autocomplete="off" spellcheck="false">
+          <button class="jwgo" id="jwGoBtn" type="button" data-i="jwGo"></button>
+        </div>
+      </div>
+      <div class="jwrow jwoff">
+        <button class="jwwal" type="button" disabled data-i="jwUnisat"></button>
+        <span class="jwnote" data-i="jwTesting"></span>
+      </div>
+      <div class="jwrow jwoff">
+        <button class="jwwal" type="button" disabled data-i="jwXverse"></button>
+        <span class="jwnote" data-i="jwTesting"></span>
+      </div>
+      <div class="jwmsg" id="jwMsg" hidden></div>
+    </div>
+    <div class="jwcard" id="jwCard" hidden></div>
   </div>
 </div>
 
@@ -606,6 +699,35 @@ zh:{
            t50:'敌后战场 · 秘密潜入（5 分钟内买入 NOODL 加入）',
            t500:'敌后战场 · 秘密潜入（5 分钟内买入 NOODL 加入）',
            t5000:'敌后战场 · 秘密潜入（5 分钟内买入 NOODL 加入）'},
+  jwByIdT:'输入奥丁用户 ID',
+  jwPh:'例：cqexm-rqfpe-…-zqe，或 odin.fun 个人主页链接',
+  jwGo:'查军籍',
+  jwUnisat:'UniSat 钱包',
+  jwXverse:'Xverse 钱包',
+  jwTesting:'还在进行安全测试，暂不开放',
+  jwLoading:'正在调取军籍档案…',
+  jwErrFmt:'这不像一个奥丁用户 ID —— 它长这样：cqexm-rqfpe-dffqm-…-zqe',
+  jwErrNotFound:'没查到这个用户 ID，检查一下再试',
+  jwErrNet:'网络不给力，稍后再试',
+  jwRank:'军衔',
+  jwRecruit:'新兵',
+  jwRankNote:'正式版开放晋升 —— 军衔越高，可指挥周边越多我方 AI 部队',
+  jwFacts:d=>'持有 '+jwNf(d.bal)+' NOODL · '
+    +(d.days===null?'持有天数 —':'已持有 '+Math.max(1,Math.floor(d.days))+' 天')
+    +' · 加池 '+d.adds+' 次 · 池中份额 '+d.share.toFixed(2)+'%'
+    +(d.joined?' · 入伍 '+d.joined.slice(0,10):''),
+  jwHp:'生命值',jwStr:'力量',jwSpd:'速度',jwCrit:'暴击率',
+  jwCap:'生命值·持有天数 / 力量·持仓量 / 速度·加池次数 / 暴击率·池中份额 —— 新兵基准 100，上限 150：最强也不超过新兵的 1.5 倍',
+  jwGear:'装 备',
+  jwG1:{helm:'一级头盔',armor:'一级护甲',legs:'一级护腿',glove:'一级手套'},
+  jwG3:{helm:'三级头盔',armor:'三级护甲',legs:'三级护腿',glove:'三级手套'},
+  jwPrevHint:'点一下装备试穿三级 —— 盔甲等级越高，士兵越厚重（正式版战场可拾取）',
+  jwArmory:'枪 械 库',
+  jwRifle:'普通步枪',jwNade:'手雷 ×2',jwMg:'机枪',jwSniper:'狙击枪',
+  jwOwned:'已配发',jwLockFull:'正式版解锁',
+  jwTank:'载具 · 坦克',jwPlane:'载具 · 飞机',
+  jwNeedTank:'持有 1 万枚解锁',jwNeedPlane:'持有 10 万枚解锁',
+  jwShow:'目前仅作展示 · 正式版上线后，战场上捡到的装备将永久保存进弹药数据库',
   fresh:'有新交易 · 刷新战场',freshing:'刷新中…',
   objBlue:'上一轮已达成 · 联合曲线毕业',
   objRed:p=>'本阶段目标市值 · 已完成 '+p+'%',
@@ -670,6 +792,35 @@ en:{
            t50:'Behind the lines \u00b7 slip in (buy NOODL within 5 minutes to join)',
            t500:'Behind the lines \u00b7 slip in (buy NOODL within 5 minutes to join)',
            t5000:'Behind the lines \u00b7 slip in (buy NOODL within 5 minutes to join)'},
+  jwByIdT:'Enter your Odin user ID',
+  jwPh:'e.g. cqexm-rqfpe-\u2026-zqe, or your odin.fun profile link',
+  jwGo:'Pull my file',
+  jwUnisat:'UniSat wallet',
+  jwXverse:'Xverse wallet',
+  jwTesting:'still in security testing \u2014 not open yet',
+  jwLoading:'pulling the service record\u2026',
+  jwErrFmt:'that does not look like an Odin user ID \u2014 they look like cqexm-rqfpe-dffqm-\u2026-zqe',
+  jwErrNotFound:'no user found under that ID \u2014 check it and try again',
+  jwErrNet:'network trouble \u2014 try again in a moment',
+  jwRank:'Rank',
+  jwRecruit:'Recruit',
+  jwRankNote:'promotions open with the full release \u2014 the higher the rank, the more nearby friendly AI units you command',
+  jwFacts:d=>jwNf(d.bal)+' NOODL held \u00b7 '
+    +(d.days===null?'days held \u2014':'held '+Math.max(1,Math.floor(d.days))+' days')
+    +' \u00b7 '+d.adds+' LP adds \u00b7 '+d.share.toFixed(2)+'% of the pool'
+    +(d.joined?' \u00b7 enlisted '+d.joined.slice(0,10):''),
+  jwHp:'HP',jwStr:'Strength',jwSpd:'Speed',jwCrit:'Crit rate',
+  jwCap:'HP \u00b7 days held / strength \u00b7 position / speed \u00b7 LP adds / crit \u00b7 pool share \u2014 recruit baseline 100, cap 150: nobody beats a fresh recruit by more than half',
+  jwGear:'KIT',
+  jwG1:{helm:'Lv-1 helmet',armor:'Lv-1 armor',legs:'Lv-1 leg guards',glove:'Lv-1 gloves'},
+  jwG3:{helm:'Lv-3 helmet',armor:'Lv-3 armor',legs:'Lv-3 leg guards',glove:'Lv-3 gloves'},
+  jwPrevHint:'tap a piece to try its Lv-3 look \u2014 heavier armor reads heavier (lootable in the full release)',
+  jwArmory:'ARMOURY',
+  jwRifle:'Standard rifle',jwNade:'Grenades \u00d72',jwMg:'Machine gun',jwSniper:'Sniper rifle',
+  jwOwned:'issued',jwLockFull:'full release',
+  jwTank:'Vehicle \u00b7 tank',jwPlane:'Vehicle \u00b7 plane',
+  jwNeedTank:'hold 10k to unlock',jwNeedPlane:'hold 100k to unlock',
+  jwShow:'Display only for now \u00b7 once the full version ships, gear picked up on the battlefield is kept forever in your ammo database',
   fresh:'New trades · refresh the battlefield',freshing:'Refreshing…',
   objBlue:'already taken · graduated the bonding curve',
   objRed:p=>'stage target market cap · '+p+'% of the way',
@@ -8943,6 +9094,7 @@ function paintJoin(){
         : '<li class="'+side+'">'+body+'</li>';
     }).join('');
   }
+  jwRelang();
   jTip(null);
 }
 function jTip(id){
@@ -8986,7 +9138,7 @@ addEventListener('keydown',e=>{
   if(e.key==='Escape'){e.preventDefault();closeJoin();return;}
   if(e.key!=='Tab')return;
   /* the dialog keeps the focus while it is open */
-  const f=[...w.querySelectorAll('button,[tabindex="0"]')].filter(el=>el.offsetParent!==null||el.ownerSVGElement);
+  const f=[...w.querySelectorAll('button:not([disabled]),input,a[href],[tabindex="0"]')].filter(el=>el.offsetParent!==null||el.ownerSVGElement);
   if(!f.length)return;
   const first=f[0],last=f[f.length-1];
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
@@ -9004,9 +9156,373 @@ document.querySelectorAll('#joinSvg .jc').forEach(g=>{
   });
 });
 $('#joinWallet').addEventListener('click',()=>{
-  const n=$('#joinSoon');
-  if(n)n.hidden=false;
+  const p=$('#jwPanel');
+  p.hidden=!p.hidden;
+  if(!p.hidden){const i=$('#jwId');if(i)i.focus();}
 });
+
+/* ================= the wallet desk ================= */
+/* An Odin user id becomes a dossier. All figures come off the same public API
+   the holders board reads, and every stat is clamped so the strongest holder
+   never beats a fresh recruit by more than half. Wallets are on display but
+   roped off while they clear security testing. */
+const JW={cache:new Map(),liq:null,busy:false,last:null,preview:{helm:1,armor:1,legs:1,glove:1}};
+const JW_ODIN=['https://api.odin.fun/v2','/api/odin'];
+async function jwApi(path){
+  let last;
+  for(const b of JW_ODIN){
+    try{
+      const r=await fetch(b+path,{headers:{accept:'application/json'},cache:'no-store'});
+      if(!r.ok){last=new Error(path+' HTTP '+r.status);continue;}
+      return await r.json();
+    }catch(e){last=e;}
+  }
+  throw last||new Error('fetch failed');
+}
+function jwParseId(v){
+  v=(v||'').trim();
+  const m=v.match(/odin\.fun\/user\/([a-z0-9-]+)/i);
+  if(m)v=m[1];
+  v=v.toLowerCase().replace(/\s+/g,'');
+  return /^[a-z0-9]{2,7}(-[a-z0-9]{2,7}){4,14}$/.test(v)?v:null;
+}
+function jwNf(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+async function jwLookup(id){
+  if(JW.cache.has(id))return JW.cache.get(id);
+  const MS=1e11;
+  const [u,balR,actR,lpActR]=await Promise.all([
+    jwApi('/user/'+id),
+    jwApi('/user/'+id+'/balances?limit=100'),
+    jwApi('/user/'+id+'/activity?token=hjrg&limit=100'),
+    jwApi('/user/'+id+'/activity?token=lp_hjrg&limit=100')
+  ]);
+  if(!JW.liq){
+    try{JW.liq=(await jwApi('/token/hjrg/liquidity?limit=1000')).data||[];}
+    catch(e){JW.liq=[];}
+  }
+  const rows=balR.data||[];
+  const bal=Number((rows.find(t=>t.id==='hjrg')||{}).balance||0)/MS;
+  /* tenure by the holders-board rules: BUY/RECEIVE starts the clock, a SELL
+     resets it, a SEND between your own addresses does not */
+  let acts=actR.data||[];
+  if((actR.count||0)>100){
+    for(let pg=2;pg<=3&&acts.length<(actR.count||0);pg++)
+      acts=acts.concat((await jwApi('/user/'+id+'/activity?token=hjrg&limit=100&page='+pg)).data||[]);
+  }
+  let firstAcq=null,lastSell=null;
+  acts.forEach(a=>{
+    const t=Date.parse(a.time);
+    if(a.action==='BUY'||a.action==='RECEIVE'){if(firstAcq===null||t<firstAcq)firstAcq=t;}
+    else if(a.action==='SELL'){if(lastSell===null||t>lastSell)lastSell=t;}
+  });
+  const since=lastSell?Math.max(firstAcq||0,lastSell):firstAcq;
+  const days=since?(Date.now()-since)/864e5:null;
+  const adds=(lpActR.data||[]).filter(a=>a.action==='ADD_LIQUIDITY').length;
+  const lpTotal=JW.liq.reduce((t,o)=>t+Number(o.balance),0);
+  const mine=JW.liq.find(o=>o.user===id);
+  const lpBal=mine?Number(mine.balance):Number((rows.find(t=>t.id==='lp_hjrg')||{}).balance||0);
+  const share=lpTotal?lpBal/lpTotal*100:0;
+  const d={id,name:u.username||id.slice(0,12),joined:u.created_at||'',bal,days,adds,share};
+  JW.cache.set(id,d);
+  return d;
+}
+/* four numbers, one leash: the recruit is 100 (crit 10%), the ceiling 150 (15%) */
+function jwStats(d){
+  return {
+    hp:  Math.round(100+50*Math.min((d.days||0)/60,1)),
+    str: Math.round(100+50*Math.min(Math.sqrt(Math.max(d.bal,0)/500000),1)),
+    spd: Math.round(100+50*Math.min(d.adds/4,1)),
+    crit:10+5*Math.min(d.share/15,1)
+  };
+}
+function jwRender(){
+  const d=JW.last,card=$('#jwCard');
+  if(!d||!card){if(card)card.hidden=true;return;}
+  const ui=I18N[lang],st=jwStats(d);
+  const tags=(d.days!==null&&d.days>=30?'<i class="jwtag n">NOODLER</i>':'')
+            +(d.share>0?'<i class="jwtag c">CHEF</i>':'');
+  const bar=(v,lo,hi)=>Math.max(3,Math.round((v-lo)/(hi-lo)*100));
+  const stat=(lab,val,pct)=>'<div class="jwst"><span class="l">'+lab+'</span><b>'+val+'</b>'
+    +'<i class="jwbar"><u style="width:'+pct+'%"></u></i></div>';
+  const slot=(kind,on,lab,sub)=>'<div class="jwslot'+(on?'':' off')+'" data-k="'+kind+'" data-on="'+(on?1:0)+'">'
+    +'<canvas width="128" height="76"></canvas><b>'+lab+'</b><span>'+sub+'</span></div>';
+  const tank=d.bal>=10000, plane=d.bal>=100000;
+  card.innerHTML=
+    '<div class="jwcv"><canvas id="jwCv" width="300" height="400"></canvas></div>'
+   +'<div class="jwinfo">'
+   +'<div class="jwname">'+esc(d.name)+tags
+     +'<a href="https://odin.fun/user/'+esc(d.id)+'" target="_blank" rel="noopener">&#8599;</a></div>'
+   +'<div class="jwrank"><b>'+esc(ui.jwRank)+'</b>'+esc(ui.jwRecruit)
+     +'<span>'+esc(ui.jwRankNote)+'</span></div>'
+   +'<div class="jwfacts">'+esc(ui.jwFacts(d))+'</div>'
+   +stat(esc(ui.jwHp),st.hp,bar(st.hp,100,150))
+   +stat(esc(ui.jwStr),st.str,bar(st.str,100,150))
+   +stat(esc(ui.jwSpd),st.spd,bar(st.spd,100,150))
+   +stat(esc(ui.jwCrit),st.crit.toFixed(1)+'%',bar(st.crit,10,15))
+   +'<div class="jwcap">'+esc(ui.jwCap)+'</div>'
+   +'<div class="jwsec">'+esc(ui.jwGear)+'</div>'
+   +'<div class="jwgear" id="jwGear">'
+     +'<i data-slot="helm">'+esc(ui.jwG1.helm)+'</i><i data-slot="armor">'+esc(ui.jwG1.armor)+'</i>'
+     +'<i data-slot="legs">'+esc(ui.jwG1.legs)+'</i><i data-slot="glove">'+esc(ui.jwG1.glove)+'</i></div>'
+   +'<div class="jwghint">'+esc(ui.jwPrevHint)+'</div>'
+   +'<div class="jwsec">'+esc(ui.jwArmory)+'</div>'
+   +'<div class="jwarm">'
+     +slot('rifle',true,esc(ui.jwRifle),esc(ui.jwOwned))
+     +slot('nade',true,esc(ui.jwNade),esc(ui.jwOwned))
+     +slot('mg',false,esc(ui.jwMg),esc(ui.jwLockFull))
+     +slot('sniper',false,esc(ui.jwSniper),esc(ui.jwLockFull))
+     +slot('tank',tank,esc(ui.jwTank),esc(tank?ui.jwOwned:ui.jwNeedTank))
+     +slot('plane',plane,esc(ui.jwPlane),esc(plane?ui.jwOwned:ui.jwNeedPlane))
+   +'</div>'
+   +'<div class="jwshow">'+esc(ui.jwShow)+'</div>'
+   +'</div>';
+  card.hidden=false;
+  jwChips();
+  jwDrawSoldier();
+  card.querySelectorAll('.jwslot').forEach(jwDrawSlot);
+}
+function jwMix(a,b,t){
+  const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);
+  const r=Math.round(((A>>16)&255)+(((B>>16)&255)-((A>>16)&255))*t);
+  const g2=Math.round(((A>>8)&255)+(((B>>8)&255)-((A>>8)&255))*t);
+  const b2=Math.round((A&255)+((B&255)-(A&255))*t);
+  return 'rgb('+r+','+g2+','+b2+')';
+}
+/* A full-length trooper, drawn for this card alone. Foot point at the origin,
+   one lamp at the top left, colours off PAL.blue, and the kit levels decide
+   the silhouette: level 3 reads heavier because it IS heavier. */
+function jwSoldierArt(g,W,H,gv){
+  const p=PAL.blue;
+  const sc=H/112, cx=W/2-9*sc, fy=H*0.945;
+  const FAT=jwMix(p.base,p.dark,0.42), FATD=jwMix(p.base,p.dark,0.62), FATL=jwMix(p.base,p.light,0.16);
+  const VST=jwMix(p.base,p.dark,0.18), VSTL=jwMix(p.base,p.light,0.32), VSTD=jwMix(p.base,p.dark,0.52);
+  const GEAR='#12211a', GUN='#2c313c', GUNL='#4a5160', GUND='#1c2027';
+  const A3=gv.armor===3,H3=gv.helm===3,L3=gv.legs===3,G3=gv.glove===3;
+  const GLV=G3?'#1c2f26':GEAR;
+  g.save();g.translate(cx,fy);g.scale(sc,sc);
+  g.lineJoin='round';g.lineCap='round';
+  /* two shadows: a soft one thrown by the lamp, a tight one holding the boots down */
+  g.fillStyle='rgba(0,0,0,.30)';g.beginPath();g.ellipse(6,-1,28,7,0,0,Math.PI*2);g.fill();
+  g.fillStyle='rgba(0,0,0,.42)';g.beginPath();g.ellipse(1,-1.2,15,4,0,0,Math.PI*2);g.fill();
+  const limb=(x1,y1,x2,y2,x3,y3,w,c)=>{g.strokeStyle=c;g.lineWidth=w;
+    g.beginPath();g.moveTo(x1,y1);g.quadraticCurveTo(x2,y2,x3,y3);g.stroke();};
+  /* far arm, reaching for the foregrip; far leg set back — both in shade */
+  limb(-7,-71,-2,-64,15.2,-64.5,6.8,FATD);
+  limb(-4,-44,-8,-33,-11,-7,10,FATD);
+  g.fillStyle=GUND;rr(g,-16.5,-7,11,6.2,2);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.6;rr(g,-16.5,-7,11,6.2,2);g.stroke();
+  if(L3){g.fillStyle=GEAR;rr(g,-11.5,-30,7.5,7,2.5);g.fill();}
+  /* torso base */
+  g.fillStyle=FAT;rr(g,-12,-78,24,35,6);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.7;rr(g,-12,-78,24,35,6);g.stroke();
+  /* near leg, lit seam down the thigh */
+  limb(5,-44,9,-30,7,-6,10.6,FAT);
+  g.strokeStyle=FATL;g.lineWidth=2;g.beginPath();
+  g.moveTo(4.4,-42);g.quadraticCurveTo(8,-32,7.4,-18);g.stroke();
+  /* kneepad; level 3 adds a shin guard */
+  g.fillStyle=GEAR;rr(g,4.6,-29,8.6,7.4,2.6);g.fill();
+  g.strokeStyle=VSTL;g.lineWidth=.9;g.beginPath();g.moveTo(5.4,-28.4);g.lineTo(12,-28.4);g.stroke();
+  if(L3){
+    g.fillStyle=GEAR;rr(g,3.6,-20,9.4,12.4,3);g.fill();
+    g.strokeStyle=VSTL;g.lineWidth=.8;g.beginPath();g.moveTo(4.6,-18.8);g.lineTo(4.6,-9.4);g.stroke();
+  }
+  /* boots */
+  g.fillStyle=GUND;rr(g,2,-6.6,13,6.4,2);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.6;rr(g,2,-6.6,13,6.4,2);g.stroke();
+  g.strokeStyle='#000';g.globalAlpha=.35;g.lineWidth=1;
+  g.beginPath();g.moveTo(2.5,-1.4);g.lineTo(14.5,-1.4);g.stroke();g.globalAlpha=1;
+  /* belt */
+  g.fillStyle=GEAR;rr(g,-10.5,-49,21,4.4,1.6);g.fill();
+  g.fillStyle=p.accent;g.globalAlpha=.5;rr(g,-2,-48.4,4,3,1);g.fill();g.globalAlpha=1;
+  /* the vest — the piece that grows */
+  const vx=A3?-13.5:-11, vw=A3?27:22, vy=A3?-77:-75, vh=A3?31:27;
+  g.fillStyle=VST;rr(g,vx,vy,vw,vh,4.5);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=A3?1.1:.8;rr(g,vx,vy,vw,vh,4.5);g.stroke();
+  const pg=g.createLinearGradient(vx,vy,vx+vw,vy+vh);
+  pg.addColorStop(0,VSTL);pg.addColorStop(.55,VST);pg.addColorStop(1,VSTD);
+  g.fillStyle=pg;rr(g,vx+2,vy+2,vw-4,A3?14:12,3);g.fill();
+  /* pouches — a third one on the heavy set */
+  g.fillStyle=GEAR;
+  rr(g,vx+2.5,vy+(A3?18:15),6.6,7.2,1.6);g.fill();
+  rr(g,vx+10.2,vy+(A3?18:15),6.6,7.2,1.6);g.fill();
+  if(A3){rr(g,vx+17.9,vy+18,6,7.2,1.6);g.fill();}
+  g.strokeStyle=VSTL;g.lineWidth=.8;g.beginPath();
+  g.moveTo(vx+3.2,vy+(A3?20:17));g.lineTo(vx+8.4,vy+(A3?20:17));
+  g.moveTo(vx+10.9,vy+(A3?20:17));g.lineTo(vx+16.1,vy+(A3?20:17));g.stroke();
+  if(A3){
+    /* collar, shoulder plates, groin flap: the parts that make it look like weight */
+    g.fillStyle=VSTD;rr(g,-6.5,-81.5,13,6,2.2);g.fill();
+    g.strokeStyle=p.edge;g.lineWidth=.7;rr(g,-6.5,-81.5,13,6,2.2);g.stroke();
+    g.fillStyle=VST;
+    g.beginPath();g.ellipse(-10,-74.5,6,4.2,.25,0,Math.PI*2);g.fill();
+    g.beginPath();g.ellipse(10,-74.5,6,4.2,-.25,0,Math.PI*2);g.fill();
+    g.strokeStyle=p.edge;g.lineWidth=.7;
+    g.beginPath();g.ellipse(-10,-74.5,6,4.2,.25,0,Math.PI*2);g.stroke();
+    g.beginPath();g.ellipse(10,-74.5,6,4.2,-.25,0,Math.PI*2);g.stroke();
+    g.fillStyle=VSTD;rr(g,-5.5,-47.5,11,7,2.4);g.fill();
+    g.strokeStyle=p.edge;g.lineWidth=.7;rr(g,-5.5,-47.5,11,7,2.4);g.stroke();
+  }
+  /* neck, face, glasses, strap */
+  g.fillStyle=FATD;rr(g,-2,-82,7,6,2);g.fill();
+  g.fillStyle=jwMix(p.base,p.light,0.32);
+  g.beginPath();g.ellipse(3,-86,5.2,6.2,0,0,Math.PI*2);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.6;
+  g.beginPath();g.ellipse(3,-86,5.2,6.2,0,0,Math.PI*2);g.stroke();
+  g.fillStyle=p.edge;rr(g,-0.2,-88.8,9.2,3.7,1.8);g.fill();
+  g.strokeStyle=p.accent;g.globalAlpha=.55;g.lineWidth=.8;
+  g.beginPath();g.moveTo(1.6,-87.8);g.lineTo(5.4,-87.8);g.stroke();g.globalAlpha=1;
+  g.strokeStyle=GEAR;g.lineWidth=1.1;
+  g.beginPath();g.moveTo(-1.6,-84);g.quadraticCurveTo(2,-80.5,6.4,-83);g.stroke();
+  /* helmet — dome + ear band + visor lip; no brim all round, this is not a
+     boonie hat. The level-3 shell is bigger and carries rails and goggles. */
+  const hr=H3?9:7.8, hyr=H3?7.2:6.5, hcx=2.2, hcy=H3?-91.4:-90.8;
+  const band=jwMix(p.base,p.dark,0.32);
+  g.fillStyle=band;rr(g,hcx-hr+0.4,hcy-1.4,hr*2-0.8,4.4,2);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.6;rr(g,hcx-hr+0.4,hcy-1.4,hr*2-0.8,4.4,2);g.stroke();
+  const dg=g.createRadialGradient(hcx-3,hcy-3.4,1,hcx,hcy-0.4,hr+2);
+  dg.addColorStop(0,jwMix(p.base,p.light,0.55));
+  dg.addColorStop(.55,p.base);
+  dg.addColorStop(1,jwMix(p.base,p.dark,0.55));
+  g.fillStyle=dg;
+  g.beginPath();g.ellipse(hcx,hcy,hr,hyr,0,Math.PI,Math.PI*2);g.closePath();g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.7;g.stroke();
+  g.fillStyle=band;rr(g,hcx+hr-1.6,hcy-2.8,4.4,2.2,1);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.5;rr(g,hcx+hr-1.6,hcy-2.8,4.4,2.2,1);g.stroke();
+  if(H3){
+    g.strokeStyle=GEAR;g.lineWidth=1.6;
+    g.beginPath();g.moveTo(hcx-hr+1,hcy-1);g.quadraticCurveTo(hcx,hcy-hyr-2,hcx+hr-1,hcy-1);g.stroke();
+    g.fillStyle=GEAR;rr(g,hcx-0.4,hcy-hyr-1.2,8,3.2,1.5);g.fill();
+    g.strokeStyle=VSTL;g.lineWidth=.7;
+    g.beginPath();g.moveTo(hcx+0.4,hcy-hyr+0.3);g.lineTo(hcx+6.8,hcy-hyr+0.3);g.stroke();
+  }
+  /* rim light along the lamp side of the dome */
+  g.strokeStyle=p.accent;g.globalAlpha=.75;g.lineWidth=1.1;
+  g.beginPath();g.ellipse(hcx,hcy,hr-0.8,hyr-0.8,0,Math.PI*1.08,Math.PI*1.62);g.stroke();
+  g.globalAlpha=1;
+  /* the rifle, up at the ready: stock against the shoulder */
+  g.fillStyle=GUND;rr(g,-7,-68,9,5.4,1.6);g.fill();
+  g.fillStyle=GUN;rr(g,1,-69.2,17.5,7.4,1.6);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.6;rr(g,1,-69.2,17.5,7.4,1.6);g.stroke();
+  g.strokeStyle=GUNL;g.lineWidth=1;g.beginPath();g.moveTo(1.6,-68.6);g.lineTo(18,-68.6);g.stroke();
+  g.fillStyle=GUN;rr(g,18.5,-67.4,16,3,1);g.fill();
+  g.fillStyle=GUND;rr(g,34.5,-68.2,4.2,4.4,1);g.fill();
+  g.fillStyle=GUND;rr(g,5.5,-72.8,5,3.6,1.2);g.fill();
+  g.beginPath();g.moveTo(9,-61.8);g.lineTo(13.4,-61.8);g.lineTo(15,-52);g.lineTo(10.4,-51.6);g.closePath();
+  g.fillStyle=GUND;g.fill();g.strokeStyle=p.edge;g.lineWidth=.5;g.stroke();
+  /* far glove wraps the foregrip */
+  g.fillStyle=GLV;g.beginPath();g.ellipse(15.4,-63,3.1,2.7,0,0,Math.PI*2);g.fill();
+  if(G3){g.strokeStyle=p.accent;g.globalAlpha=.8;g.lineWidth=.9;
+    g.beginPath();g.moveTo(13.6,-64.6);g.lineTo(17.2,-64.6);g.stroke();g.globalAlpha=1;}
+  /* near arm bent to the pistol grip */
+  limb(7,-73,13.5,-69,7.5,-63.4,8,FAT);
+  g.strokeStyle=FATL;g.lineWidth=1.5;g.beginPath();
+  g.moveTo(7.4,-72.8);g.quadraticCurveTo(12.4,-69,9.2,-65.6);g.stroke();
+  g.fillStyle=GUND;rr(g,4.4,-62.8,3.6,6,1.2);g.fill();
+  g.fillStyle=GLV;g.beginPath();g.ellipse(6.4,-61.8,3.3,3,0,0,Math.PI*2);g.fill();
+  g.strokeStyle=p.edge;g.lineWidth=.5;
+  g.beginPath();g.ellipse(6.4,-61.8,3.3,3,0,0,Math.PI*2);g.stroke();
+  if(G3){g.strokeStyle=p.accent;g.globalAlpha=.8;g.lineWidth=.9;
+    g.beginPath();g.moveTo(4.8,-63.8);g.lineTo(8.4,-63.8);g.stroke();g.globalAlpha=1;}
+  /* shoulder rim toward the lamp */
+  g.strokeStyle=p.accent;g.globalAlpha=.5;g.lineWidth=1;
+  g.beginPath();g.moveTo(vx+1.5,vy+0.8);g.quadraticCurveTo(0,vy-1.2,vx+vw-4,vy+0.6);g.stroke();
+  g.globalAlpha=1;
+  g.restore();
+}
+function jwDrawSoldier(){
+  const cv=$('#jwCv');if(!cv)return;
+  const g=cv.getContext('2d');
+  g.clearRect(0,0,cv.width,cv.height);
+  jwSoldierArt(g,cv.width,cv.height,JW.preview);
+}
+function jwDrawSlot(el){
+  const cv=el.querySelector('canvas');if(!cv)return;
+  const g=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const k=el.dataset.k,on=el.dataset.on==='1';
+  g.clearRect(0,0,W,H);
+  if(!on){jwLockIcon(g,W,H);return;}
+  if(k==='tank')drawTank3D(g,W/2,H*0.8,1.9,1,PAL.blue,1);
+  else if(k==='plane')drawPlane3D(g,W/2,H*0.88,1.5,1,PAL.blue,0.25);
+  else if(k==='rifle')jwRifleIcon(g,W,H);
+  else if(k==='nade')jwNadeIcon(g,W,H);
+}
+function jwRifleIcon(g,W,H){
+  g.save();g.translate(W/2,H/2);g.scale(3.1,3.1);
+  g.strokeStyle=PAL.blue.edge;g.lineWidth=0.6;
+  g.fillStyle='#3a3f4b';rr(g,-13,-1.6,8.4,3.4,1);g.fill();g.stroke();
+  g.fillStyle='#2c313c';rr(g,-5.4,-2.6,12,4.4,1);g.fill();g.stroke();
+  g.fillStyle='#454b58';rr(g,6.6,-1.5,9.6,1.9,0.8);g.fill();g.stroke();
+  g.fillStyle='#262b34';rr(g,-0.6,1.6,3.4,4.4,1);g.fill();g.stroke();
+  g.fillStyle=PAL.blue.base;rr(g,-3.6,-4,5.4,1.5,0.7);g.fill();
+  g.restore();
+}
+function jwNadeIcon(g,W,H){
+  g.save();g.translate(W/2,H/2+2);g.scale(3,3);
+  g.fillStyle='#39424d';g.beginPath();g.ellipse(0,1.2,4,5,0,0,Math.PI*2);g.fill();
+  g.strokeStyle=PAL.blue.edge;g.lineWidth=0.6;g.stroke();
+  g.fillStyle='#2c333d';rr(g,-2,-5.4,4,2.4,0.8);g.fill();g.stroke();
+  g.strokeStyle=PAL.blue.light;g.lineWidth=0.9;
+  g.beginPath();g.moveTo(2,-4.8);g.quadraticCurveTo(5.4,-4.4,5,-1.4);g.stroke();
+  g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=0.7;
+  g.beginPath();g.moveTo(-3.6,0.4);g.lineTo(3.6,0.4);g.moveTo(0,-2.8);g.lineTo(0,5);g.stroke();
+  g.restore();
+}
+function jwLockIcon(g,W,H){
+  g.save();g.translate(W/2,H/2+3);g.scale(2.6,2.6);
+  g.strokeStyle='#4a4f5c';g.lineWidth=1.6;
+  g.beginPath();g.arc(0,-2.8,3.2,Math.PI,0);g.stroke();
+  g.fillStyle='#3a3f4b';rr(g,-5,-2.8,10,8,1.5);g.fill();
+  g.strokeStyle='#262b34';g.lineWidth=0.8;rr(g,-5,-2.8,10,8,1.5);g.stroke();
+  g.fillStyle='#1c2027';g.beginPath();g.arc(0,0.6,1.3,0,Math.PI*2);g.fill();
+  g.restore();
+}
+function jwSetMsg(kind,txt){
+  const m=$('#jwMsg');if(!m)return;
+  m.hidden=!txt;
+  m.className='jwmsg'+(kind?' '+kind:'');
+  m.textContent=txt||'';
+}
+async function jwGo(){
+  if(JW.busy)return;
+  const ui=I18N[lang];
+  const id=jwParseId($('#jwId').value);
+  if(!id){jwSetMsg('err',ui.jwErrFmt);return;}
+  JW.busy=true;$('#jwGoBtn').disabled=true;
+  jwSetMsg('',ui.jwLoading);$('#jwCard').hidden=true;
+  try{
+    JW.last=await jwLookup(id);
+    JW.preview={helm:1,armor:1,legs:1,glove:1};
+    jwSetMsg('','');
+    jwRender();
+  }catch(e){
+    jwSetMsg('err',/HTTP (400|404|500)/.test(String(e))?ui.jwErrNotFound:ui.jwErrNet);
+  }
+  JW.busy=false;$('#jwGoBtn').disabled=false;
+}
+$('#jwGoBtn').addEventListener('click',jwGo);
+$('#jwId').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();jwGo();}});
+$('#jwCard').addEventListener('click',e=>{
+  let c=e.target;
+  while(c&&c!==e.currentTarget&&!(c.dataset&&c.dataset.slot))c=c.parentNode;
+  if(!c||!c.dataset||!c.dataset.slot)return;
+  const k=c.dataset.slot;
+  JW.preview[k]=JW.preview[k]===3?1:3;
+  jwChips();
+  jwDrawSoldier();
+});
+function jwChips(){
+  const ui=I18N[lang];
+  document.querySelectorAll('#jwGear i[data-slot]').forEach(c=>{
+    const k=c.dataset.slot,three=JW.preview[k]===3;
+    c.classList.toggle('p3',three);
+    c.textContent=three?ui.jwG3[k]:ui.jwG1[k];
+  });
+}
+function jwRelang(){
+  const ui=I18N[lang];
+  const i=$('#jwId');if(i)i.placeholder=ui.jwPh||'';
+  if(JW.last&&$('#jwCard')&&!$('#jwCard').hidden)jwRender();
+}
 addEventListener('hashchange',()=>{if(location.hash==='#join')openJoin();});
 
 /* ================= playback ================= */
