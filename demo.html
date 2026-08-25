@@ -577,139 +577,125 @@ function poly(c,pts){
    the spot walks the highlight round him instead of carrying it along, which
    is the only reason any of this reads as solid rather than as cut paper.   */
 function drawTrooper(c,x,y,ang,kit,st){
-  const cr=st.cr||0, run=st.run||0, s=(st.s||1)*(1-0.2*cr);
-  const gait=st.gait||0, amp=(0.8+0.9*run)*(1-0.72*cr);
+  const cr=st.cr||0, run=st.run||0, s=st.s||1;
+  const gait=st.gait||0, amp=(0.8+0.9*run)*(1-0.6*cr);
   const sw=Math.sin(gait);
-  /* the sun, in his frame */
-  const la=SUNA-ang, lx=Math.cos(la), ly=Math.sin(la);
+  const ca=Math.cos(ang), sa=Math.sin(ang);
+  const dir=ca>=0?1:-1;
+  /* the rifle's slope on screen: the vertical part of the aim flattened by
+     the camera, capped so he never stops reading as a standing man */
+  const lra=Math.atan2(sa*0.6,Math.max(0.22,ca*dir))+(run>0.5?0.3:0);
+  const la=dir===1?SUNA:Math.PI-SUNA;   /* the lamp, seen from his mirror */
+  const crc=1-0.22*cr;
 
-  /* Two shadows. The far one is soft and offset, which puts him above the
-     ground; the near one is tight and dark under his boots, which puts him
-     back on it. Without the second he floats. */
+  if(st.sh!==0){
+    /* two shadows still: the soft thrown one and the tight one at his boots */
+    c.save();
+    c.translate(x+SUN.x*8*s,y+SUN.y*4*s);c.scale(s,s);
+    c.fillStyle='rgba(10,10,14,.22)';
+    c.beginPath();c.ellipse(1,0,10.5,4.6,0,0,6.2832);c.fill();
+    c.restore();
+    c.save();
+    c.translate(x+SUN.x*2.5*s,y+SUN.y*1.2*s);c.scale(s,s);
+    c.fillStyle='rgba(8,8,11,.30)';
+    c.beginPath();c.ellipse(0.5,0,6.8,3.1,0,0,6.2832);c.fill();
+    c.restore();
+  }
+
   c.save();
-  c.translate(x+SUN.x*9*s, y+SUN.y*6.5*s);
-  c.rotate(ang);c.scale(s,s*0.92);
-  c.fillStyle='rgba(10,10,14,.22)';
-  c.beginPath();c.ellipse(-1,0,13.5,8.6,0,0,6.2832);c.fill();
-  c.beginPath();c.ellipse(9,1,6.6,3.9,0,0,6.2832);c.fill();
-  c.restore();
-  c.save();
-  c.translate(x+SUN.x*3*s, y+SUN.y*2*s);
-  c.rotate(ang);c.scale(s,s*0.92);
-  c.fillStyle='rgba(8,8,11,.30)';
-  c.beginPath();c.ellipse(-1,0,9.5,6.0,0,0,6.2832);c.fill();
-  c.restore();
+  c.translate(x,y);c.scale(dir*s,s*crc);
+  const LX=-dir;                        /* which local side faces the lamp */
 
-  c.save();
-  c.translate(x,y);c.rotate(ang);c.scale(s,s);
+  /* legs: a scissor along the way he faces, boots planted on the ground */
+  const hipY=-11.6, k1=sw*3.8*amp;
+  cap(c,-2.0,hipY,-3.0-k1,-1.2,3.8,kit.coatD);
+  c.fillStyle=kit.boot;rr(c,-5.4-k1,-2.2,5.2,2.4,1.1);c.fill();
+  cap(c,2.0,hipY,3.0+k1,-1.0,4.1,kit.coat);
+  c.fillStyle=kit.boot;rr(c,0.6+k1,-2.2,5.4,2.5,1.1);c.fill();
 
-  /* Legs. They have to reach out past the back of him or the walk cycle is
-     hidden under his own torso and he reads as a man on castors. Feet land
-     behind the pack, so at any moment one of them is clear of the outline. */
-  const hip=-3.6, foot=-14+5*cr, k1=sw*6.6*amp;
-  cap(c,hip,-3.6,foot+k1,-5.0,4.0,kit.coatD);
-  cap(c,hip, 3.6,foot-k1, 5.0,4.0,kit.coatD);
-  c.fillStyle=kit.boot;
-  c.beginPath();c.ellipse(foot-1.6+k1,-5.5,2.4,1.9,0,0,6.2832);c.fill();
-  c.beginPath();c.ellipse(foot-1.6-k1, 5.5,2.4,1.9,0,0,6.2832);c.fill();
+  /* the far arm first, reaching along the rifle to the foregrip */
+  const px2=1.2, py2=-16.6;
+  const fgx=px2+Math.cos(lra)*9.6, fgy=py2+Math.sin(lra)*9.6+1.2;
+  cap(c,px2-3.2,py2-0.4,fgx,fgy,3.3,kit.coatD);
 
-  /* the pack rides high and narrow, or it sits on his legs and he has none */
-  c.fillStyle=kit.pack;
-  rr(c,-9.4,-4.3,6.4,8.6,2.4);c.fill();
-  /* its lit face, clipped to itself so the highlight cannot leak off the box */
-  c.save();rr(c,-9.4,-4.3,6.4,8.6,2.4);c.clip();
-  c.fillStyle=kit.coatL;c.globalAlpha=0.55;
-  c.beginPath();c.ellipse(-6.2+lx*3.6,lx*0+ly*4.6,4.4,4.0,0,0,6.2832);c.fill();
-  c.globalAlpha=0.38;c.fillStyle='#05070a';
-  c.beginPath();c.ellipse(-6.2-lx*3.6,-ly*4.6,4.4,4.0,0,0,6.2832);c.fill();
-  c.restore();
-  c.strokeStyle='rgba(8,9,12,.35)';c.lineWidth=0.9;rr(c,-9.4,-4.3,6.4,8.6,2.4);c.stroke();
+  /* the pack on his back */
+  c.fillStyle=kit.pack;rr(c,-7.6,-18.8,3.8,7,1.5);c.fill();
+  c.strokeStyle='rgba(8,9,12,.35)';c.lineWidth=0.8;rr(c,-7.6,-18.8,3.8,7,1.5);c.stroke();
 
-  /* The torso: a solid, not a disc. Lit cap toward the sun, shade crescent
-     away from it, and a rim along the lit edge. */
+  /* the torso: a coat with a lamp edge and a shaded one */
+  c.fillStyle=kit.coat;rr(c,-4.7,-20.2,9.4,9.4,3.2);c.fill();
+  c.fillStyle=kit.coatL;c.globalAlpha=0.8;
+  rr(c,LX>0?1.7:-4.7,-20.2,3.0,9.4,1.8);c.fill();
+  c.globalAlpha=0.55;c.fillStyle=kit.coatD;
+  rr(c,LX>0?-4.7:1.7,-20.2,3.0,9.4,1.8);c.fill();
+  c.globalAlpha=1;
+  c.strokeStyle='rgba(8,9,12,.42)';c.lineWidth=0.9;rr(c,-4.7,-20.2,9.4,9.4,3.2);c.stroke();
+  /* the shoulder bar across the top of the coat */
   c.fillStyle=kit.coat;
-  c.beginPath();c.ellipse(-0.6,0,7.8,6.8,0,0,6.2832);c.fill();
-  c.save();
-  c.beginPath();c.ellipse(-0.6,0,7.8,6.8,0,0,6.2832);c.clip();
-  c.fillStyle=kit.coatL;
-  c.beginPath();c.ellipse(-0.6+lx*3.2,ly*2.8,5.0,4.3,0,0,6.2832);c.fill();
-  c.globalAlpha=0.62;c.fillStyle=kit.coatD;
-  c.beginPath();c.ellipse(-0.6-lx*5.4,-ly*4.7,6.8,6.0,0,0,6.2832);c.fill();
+  c.beginPath();c.ellipse(0,-19.8,5.4,2.2,0,0,6.2832);c.fill();
+  c.fillStyle=kit.coatL;c.globalAlpha=0.7;
+  c.beginPath();c.ellipse(LX*2.6,-20.2,2.6,1.6,0,0,6.2832);c.fill();
   c.globalAlpha=1;
-  /* The rim only belongs on the arc that turns into the light, so it is
-     offset far enough that its far half falls outside the clip and never
-     gets drawn — a rim all the way round is an outline, not a rim. */
-  c.strokeStyle=kit.rim;c.lineWidth=1.3;c.globalAlpha=0.55;
-  c.beginPath();c.ellipse(-0.6+lx*2.9,ly*2.5,7.5,6.5,0,0,6.2832);c.stroke();
+  c.strokeStyle='rgba(8,9,12,.35)';c.lineWidth=0.8;
+  c.beginPath();c.ellipse(0,-19.8,5.4,2.2,0,0,6.2832);c.stroke();
+  /* webbing: the sling across the chest, the belt, a pouch on the front */
+  c.strokeStyle=kit.coatD;c.lineWidth=1.4;
+  c.beginPath();c.moveTo(-3.4,-19.4);c.lineTo(3.2,-12.6);c.stroke();
+  c.fillStyle=kit.pack;rr(c,-4.7,-12.6,9.4,1.9,0.9);c.fill();
+  c.fillStyle=kit.coatD;rr(c,0.6,-16.4,3.0,3.1,0.9);c.fill();
+  /* rim light along the lamp edge of the coat */
+  const rimX=LX>0?4.4:-4.4;
+  c.strokeStyle=kit.rim;c.globalAlpha=0.5;c.lineWidth=1;
+  c.beginPath();c.moveTo(rimX,-19.4);c.lineTo(rimX,-12.8);c.stroke();
   c.globalAlpha=1;
-  c.restore();
-  c.strokeStyle='rgba(8,9,12,.42)';c.lineWidth=1;
-  c.beginPath();c.ellipse(-0.6,0,7.8,6.8,0,0,6.2832);c.stroke();
 
-  /* shoulders, so there is a front and a back to him — the one the sun is on
-     catches it, the other one does not */
-  const shA=1.8, shL=(-1*ly>0)?kit.coatL:kit.coat, shR=(ly>0)?kit.coatL:kit.coat;
-  c.fillStyle=shL;
-  c.beginPath();c.ellipse(shA,-5.4,3.1,2.4,-0.3,0,6.2832);c.fill();
-  c.fillStyle=shR;
-  c.beginPath();c.ellipse(shA, 5.4,3.1,2.4, 0.3,0,6.2832);c.fill();
-  /* webbing, so he reads as kit and not as a blob */
-  c.strokeStyle=kit.coatD;c.lineWidth=1.5;
-  c.beginPath();c.moveTo(-4.2,-4.8);c.lineTo(2,4.4);c.stroke();
-
-  /* arms out to the weapon, tucked in on a sprint */
-  const grip=run>0.5?6.4:8.6;
-  cap(c,0.5,-5.6,grip,-1.6,3.5,kit.coat);
-  cap(c,0.5, 5.6,grip+2.2, 2.0,3.5,kit.coat);
-
-  /* the rifle: back on the recoil, dropped across the body while running */
-  const kick=(st.fire||0)*2.8;
+  /* the head: a face under a dome, the dome lit by the world's one lamp */
+  c.fillStyle=kit.skin;
+  c.beginPath();c.ellipse(1.0,-21.8,2.3,2.5,0,0,6.2832);c.fill();
+  c.fillStyle=dome(c,kit.helm+'b',0.6,-23.6,4.3,la,kit.helmL,kit.helm,kit.helmD);
+  c.beginPath();c.arc(0.6,-23.6,4.3,0,6.2832);c.fill();
+  c.strokeStyle='rgba(8,9,12,.5)';c.lineWidth=0.9;
+  c.beginPath();c.arc(0.6,-23.6,4.3,0,6.2832);c.stroke();
+  /* the brim, and the strap under the chin */
+  c.fillStyle=kit.helmD;
+  c.beginPath();c.ellipse(0.9,-21.5,4.8,1.3,0,0,6.2832);c.fill();
+  c.strokeStyle=kit.helmD;c.lineWidth=0.8;
+  c.beginPath();c.moveTo(-0.8,-21.1);c.quadraticCurveTo(1,-19.2,2.9,-20.8);c.stroke();
+  /* rim on the lamp side of the dome */
   c.save();
-  c.translate(-kick,0.8);
-  if(run>0.5)c.rotate(0.46);
-  c.fillStyle=GUN.m;rr(c,-0.5,-1.2,7.5,2.6,1.1);c.fill();     /* stock  */
-  c.fillStyle=GUN.d;rr(c,5.5,-1.0,13.5,2.1,0.9);c.fill();     /* barrel */
-  c.fillStyle=GUN.m;rr(c,7.4,0.9,2.7,3.8,0.9);c.fill();       /* mag    */
-  c.fillStyle=GUN.l;rr(c,10.5,-1.6,3.2,0.9,0.4);c.fill();     /* rail   */
+  c.beginPath();c.arc(0.6,-23.6,4.3,0,6.2832);c.clip();
+  c.strokeStyle=kit.rim;c.globalAlpha=0.55;c.lineWidth=1.2;
+  c.beginPath();c.arc(0.6+LX*1.7,-25.0,4.0,0,6.2832);c.stroke();
+  c.globalAlpha=1;c.restore();
+
+  /* the rifle, swung about the shoulder to where he is actually aiming */
+  c.save();
+  c.translate(px2,py2);c.rotate(lra);
+  c.translate(-(st.fire||0)*2.4,0);
+  c.fillStyle=GUN.m;rr(c,-4.8,-1.15,4.4,2.3,1);c.fill();
+  c.fillStyle=GUN.m;rr(c,-1,-1.4,8.6,2.7,1);c.fill();
+  c.fillStyle=GUN.d;rr(c,7.4,-0.95,7.2,1.8,0.8);c.fill();
+  c.fillStyle=GUN.d;rr(c,1.6,1.0,2.3,3.6,0.8);c.fill();
+  c.fillStyle=GUN.l;rr(c,3.4,-1.8,3.4,0.8,0.4);c.fill();
   if(st.fire>0.35){
-    /* Four parts, because a flash is not a shape: a soft bloom, a hot core, a
-       star of spikes, and two side lobes where the gas leaves the muzzle. */
-    const f=st.fire, L=19.5;
+    /* the flash: a bloom, a hot core, a star, and two side lobes */
+    const f=st.fire,L=15.2;
     c.globalAlpha=f*0.34;c.fillStyle='#ffcf7a';
-    c.beginPath();c.ellipse(L+5,0.4,10+f*5,7+f*3,0,0,6.2832);c.fill();
+    c.beginPath();c.ellipse(L+4,0,8.5+f*4,6+f*2.6,0,0,6.2832);c.fill();
     c.globalAlpha=f*0.95;c.fillStyle='#ffe9b0';
-    poly(c,[L,0.4, L+7,-4.6, L+16+f*7,-1.1, L+21+f*9,0.4, L+16+f*7,1.9, L+7,5.4]);c.fill();
+    poly(c,[L,0, L+5.6,-3.8, L+13+f*6,-0.9, L+17+f*7,0, L+13+f*6,1.3, L+5.6,4.4]);c.fill();
     c.fillStyle='#fffbe8';
-    c.beginPath();c.ellipse(L+2.4,0.4,4.4+f*1.6,2.9+f*1.1,0,0,6.2832);c.fill();
-    c.globalAlpha=f*0.6;c.fillStyle='#ffd98a';
-    poly(c,[L+1,0.4, L+9,-8.5, L+11,-1.2]);c.fill();
-    poly(c,[L+1,0.4, L+9, 9.3, L+11, 2.0]);c.fill();
+    c.beginPath();c.ellipse(L+2,0,3.6+f*1.4,2.4+f*0.9,0,0,6.2832);c.fill();
     c.globalAlpha=1;
   }
   c.restore();
 
-  /* the helmet last, so it sits on top of the shoulders. this one is a dome
-     and a dome wants a gradient — a facet on a sphere reads as a dent. */
+  /* the near arm over the rifle, hand on the grip */
+  const ngx=px2+Math.cos(lra)*4.2, ngy=py2+Math.sin(lra)*4.2+1.6;
+  cap(c,px2+0.6,py2+0.4,ngx,ngy,3.5,kit.coat);
   c.fillStyle=kit.skin;
-  c.beginPath();c.ellipse(4.4,0.2,1.5,2.0,0,0,6.2832);c.fill();
-  /* the shadow the helmet drops onto his own shoulders */
-  c.fillStyle='rgba(6,7,10,.34)';
-  c.beginPath();c.arc(0.7-lx*1.8,-ly*1.8,4.4,0,6.2832);c.fill();
-  /* A shade smaller than it was: a domed helmet at the old radius won the
-     whole sprite and he read as a ball carrying a rifle. */
-  const HR=4.15;
-  c.fillStyle=dome(c,kit.helm,0.7,0,HR,la,kit.helmL,kit.helm,kit.helmD);
-  c.beginPath();c.arc(0.7,0,HR,0,6.2832);c.fill();
-  c.save();
-  c.beginPath();c.arc(0.7,0,HR,0,6.2832);c.clip();
-  c.strokeStyle=kit.rim;c.lineWidth=1.2;c.globalAlpha=0.55;
-  c.beginPath();c.arc(0.7+lx*1.6,ly*1.6,4.0,0,6.2832);c.stroke();
-  c.globalAlpha=1;
-  c.fillStyle='rgba(255,255,255,.22)';
-  c.beginPath();c.ellipse(0.7+lx*1.9,ly*1.9,1.1,0.8,la,0,6.2832);c.fill();
-  c.restore();
-  c.strokeStyle='rgba(8,9,12,.5)';c.lineWidth=1;
-  c.beginPath();c.arc(0.7,0,HR,0,6.2832);c.stroke();
+  c.beginPath();c.ellipse(ngx+0.4,ngy+0.2,1.3,1.2,0,0,6.2832);c.fill();
+
   c.restore();
 }
 
@@ -739,14 +725,15 @@ function drawMark(c,x,y,kit,me,now,s){
    is a tank. Same one sun as everything else: the top plate is lit, the near
    skirt is not, and the shadow is thrown by the sun rather than by its facing. */
 function drawTank(c,x,y,ang,tur,tread,pal,dead){
+  const HD=dead?2:7, HT=dead?5:12;      /* deck and turret lifts, screen-up */
   c.save();
   c.translate(x+SUN.x*13,y+SUN.y*10);c.rotate(ang);
   c.fillStyle='rgba(10,10,14,.34)';
   rr(c,-30,-19,60,38,7);c.fill();
   c.restore();
 
+  /* tracks and the dark hull mass sit on the ground */
   c.save();c.translate(x,y);c.rotate(ang);
-  /* tracks, and the links crawling along them */
   c.fillStyle=dead?'#241f1b':'#2a2521';
   rr(c,-29,-21,58,10,3);c.fill();
   rr(c,-29,11,58,10,3);c.fill();
@@ -756,32 +743,59 @@ function drawTank(c,x,y,ang,tur,tread,pal,dead){
     c.beginPath();c.moveTo(i+o,-21);c.lineTo(i+o,-11);
     c.moveTo(i+o,11);c.lineTo(i+o,21);c.stroke();
   }
-  /* hull: near skirt, then the deck over it */
-  c.fillStyle=dead?'#3a2c26':pal.coatD;
-  rr(c,-27,-14,54,28,4);c.fill();
-  c.fillStyle=dead?'#4a382f':pal.coat;
-  rr(c,-27,-14,54,22,4);c.fill();
-  c.strokeStyle='rgba(8,9,12,.45)';c.lineWidth=1.1;
-  rr(c,-27,-14,54,28,4);c.stroke();
-  c.fillStyle=dead?'#553f34':pal.coatL;                 /* the plate that catches it */
-  rr(c,-22,-11,44,7,3);c.fill();
+  c.fillStyle=dead?'#2e2420':pal.coatD;
+  rr(c,-27,-15,54,30,4);c.fill();
   c.restore();
 
-  /* the turret is its own argument */
-  c.save();c.translate(x,y);c.rotate(tur);
+  /* the deck, lifted straight up the screen: height that survives rotation */
+  c.save();c.translate(x,y-HD);c.rotate(ang);
+  c.fillStyle=dead?'#4a382f':pal.coat;
+  rr(c,-27,-14,54,28,4);c.fill();
+  c.strokeStyle='rgba(8,9,12,.45)';c.lineWidth=1.1;
+  rr(c,-27,-14,54,28,4);c.stroke();
+  c.fillStyle=dead?'#553f34':pal.coatL;
+  rr(c,-22,-11,44,7,3);c.fill();
+  /* deck furniture: engine grilles and a stowage box */
+  c.fillStyle=dead?'#3a2f28':pal.coatD;
+  rr(c,-24,4,16,7,2);c.fill();
+  c.strokeStyle='rgba(8,9,12,.4)';c.lineWidth=0.8;
+  for(let i=-22;i<-10;i+=3){c.beginPath();c.moveTo(i,5);c.lineTo(i,10);c.stroke();}
+  c.fillStyle=dead?'#39302a':pal.coat;
+  rr(c,16,-11,8,8,1.5);c.fill();
+  c.strokeStyle='rgba(8,9,12,.35)';rr(c,16,-11,8,8,1.5);c.stroke();
+  c.restore();
+
+  /* the turret's own shadow, dropped onto the deck */
+  c.save();c.translate(x+SUN.x*4,y-HD+SUN.y*3);
+  c.fillStyle='rgba(10,10,14,.28)';
+  c.beginPath();c.ellipse(-1,0,15,12,0,0,6.2832);c.fill();
+  c.restore();
+  /* the drum wall between deck and turret top */
+  c.save();c.translate(x,y-HD);
+  c.fillStyle=dead?'#241d18':pal.helmD;
+  c.beginPath();c.ellipse(-1,-2,14.5,12.5,0,0,6.2832);c.fill();
+  c.restore();
+  /* the top itself turns with the gun */
+  c.save();c.translate(x,y-HT);c.rotate(tur);
   c.fillStyle=dead?'#2f251f':pal.helm;
-  c.beginPath();c.ellipse(-1,0,15,13,0,0,6.2832);c.fill();
-  c.strokeStyle='rgba(8,9,12,.5)';c.lineWidth=1.2;c.stroke();
-  c.fillStyle=dead?'#20201f':'#26282d';                 /* the barrel */
+  c.beginPath();c.ellipse(-1,0,14.5,11.5,0,0,6.2832);c.fill();
+  c.strokeStyle='rgba(8,9,12,.5)';c.lineWidth=1.2;
+  c.beginPath();c.ellipse(-1,0,14.5,11.5,0,0,6.2832);c.stroke();
+  c.fillStyle=dead?'#20201f':'#26282d';
   rr(c,10,-3.2,34,6.4,2.4);c.fill();
   c.fillStyle=dead?'#2b2b2a':'#34373d';
   rr(c,40,-4.4,7,8.8,2.4);c.fill();
+  /* the hatch on the crown */
+  c.fillStyle=dead?'#3a332c':pal.coat;
+  c.beginPath();c.ellipse(-6,-2,4.8,3.9,0,0,6.2832);c.fill();
+  c.strokeStyle='rgba(8,9,12,.4)';c.lineWidth=0.9;
+  c.beginPath();c.ellipse(-6,-2,4.8,3.9,0,0,6.2832);c.stroke();
   c.restore();
 
-  /* one highlight, square to the world, exactly as the helmets get */
-  c.save();c.translate(x,y);
+  /* one highlight, square to the world, on the turret crown */
+  c.save();c.translate(x,y-HT);
   c.fillStyle=dead?'rgba(120,96,80,.5)':pal.helmL;
-  c.beginPath();c.ellipse(-5,-6,7.5,5,0,0,6.2832);c.fill();
+  c.beginPath();c.ellipse(-5,-4.5,6.5,4.2,0,0,6.2832);c.fill();
   c.restore();
   if(dead){
     for(let k=0;k<3;k++){
@@ -1400,6 +1414,12 @@ const PROPS={
       c.fillStyle='rgba(122,132,148,.5)';
       rr(c,rx+rw*0.18,ry+rh*0.22,14,9,1.5);c.fill();
       rr(c,rx+rw*0.62,ry+rh*0.6,12,8,1.5);c.fill();
+      /* odd shingles, light and dark, so the roof reads as courses of tile */
+      for(let i2=0;i2<10;i2++){
+        const sx2=rx+4+((i2*53)%Math.max(4,rw-18)), sy2=ry+3+((i2*31)%Math.max(4,rh-10));
+        c.fillStyle=i2%3?'rgba(24,28,36,.35)':'rgba(120,130,146,.30)';
+        c.fillRect(sx2,sy2,9,5);
+      }
       /* a low chimney against the ridge */
       c.fillStyle='#3e4550';c.fillRect(rx+rw*0.72,ry-7,9,9);
       c.fillStyle='#525a67';c.fillRect(rx+rw*0.72,ry-9,9,2.5);
@@ -1519,7 +1539,18 @@ const PROPS={
     c.strokeStyle='#54432c';c.lineWidth=4;
     c.beginPath();c.moveTo(cx,top+18);c.lineTo(cx-13,top+4);
     c.moveTo(cx,top+16);c.lineTo(cx+12,top+2);c.stroke();
-    const blob=(x,y,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,6.2832);c.fill();};
+    /* low-poly lobes: seven corners with a deterministic wobble, because a
+       perfect circle is the one shape no leaf pile ever makes */
+    const blob=(bx,by,br,col)=>{
+      c.fillStyle=col;c.beginPath();
+      for(let k2=0;k2<7;k2++){
+        const a3=k2*0.8976+(((bx*7+by*13)|0)%6)*0.15;
+        const r4=br*(0.84+0.22*((((k2*37+(bx*11|0))%10)+10)%10/10));
+        const qx=bx+Math.cos(a3)*r4, qy=by+Math.sin(a3)*r4*0.94;
+        if(k2)c.lineTo(qx,qy);else c.moveTo(qx,qy);
+      }
+      c.closePath();c.fill();
+    };
     /* the crown in four layers: the shade under it, the body, the lit
        shoulder, and the dapple the sun leaves on top */
     blob(cx-17,top+18,20,'#2f3a22');blob(cx+17,top+16,21,'#2f3a22');blob(cx+1,top+22,18,'#2f3a22');
@@ -2881,12 +2912,12 @@ function step(dt){
           let dTake=b.dmg;
           if(u===P)dTake*=(P.gear.armor>=3?0.5:1)*(P.gear.helm>=3?0.8:1);
           u.hp-=dTake;u.hurt=0.13;
-          spark(nx,ny,'#ff9a9a',5,170);bloodAt(nx,ny,1);
+          spark(nx,ny-14,'#ff9a9a',5,170);bloodAt(nx,ny,1);
           /* it went through him: the spray carries on the way the round was */
           for(let q=0;q<3;q++)
-            sparks.push({x:nx,y:ny,vx:b.vx*0.11*(0.5+Math.random()),vy:b.vy*0.11*(0.5+Math.random()),
+            sparks.push({x:nx,y:ny-14,vx:b.vx*0.11*(0.5+Math.random()),vy:b.vy*0.11*(0.5+Math.random()),
                          life:0.13+Math.random()*0.12,col:'#8e1f1f',r:1.9});
-          glow(nx,ny,13,'255,120,110',0.05);
+          glow(nx,ny-10,13,'255,120,110',0.05);
           if(b.by===P)hits++;
           if(u===P)lastHit=t;
           gone=true;
@@ -3320,8 +3351,8 @@ function draw(now){
       drawTank(g,tk.x,tk.y,tk.ang,tk.turret,tk.tread,it.blue?KIT.blue:KIT.red,!tk.alive);
       if(tk.alive&&tk.flash>0){
         const f=Math.min(1,tk.flash/0.09);
-        const mx=tk.x+Math.cos(tk.turret)*34, my=tk.y+Math.sin(tk.turret)*34;
-        g.save();g.translate(mx,my);g.rotate(tk.turret);
+        const mx=tk.x+Math.cos(tk.turret)*40, my=tk.y+Math.sin(tk.turret)*40;
+        g.save();g.translate(mx,my-12);g.rotate(tk.turret);
         g.globalAlpha=f*0.4;g.fillStyle='#ffcf7a';
         g.beginPath();g.ellipse(5,0,11,7,0,0,6.2832);g.fill();
         g.globalAlpha=f;g.fillStyle='#fff3cf';
@@ -3339,7 +3370,7 @@ function draw(now){
       g.save();g.globalAlpha=0.10+0.28*k;g.fillStyle='#000';
       g.beginPath();g.ellipse(u.x+8*(1-k),u.y,17*(0.55+0.45*k),8*(0.55+0.45*k),0,0,6.2832);
       g.fill();g.restore();
-      drawTrooper(g,u.x+sway,u.y-u.alt,u.ang,KIT[u.team],{s:sc,cr:0.5,gait:0,run:0,fire:0});
+      drawTrooper(g,u.x+sway,u.y-u.alt,u.ang,KIT[u.team],{s:sc,cr:0.5,gait:0,run:0,fire:0,sh:0});
       drawChute(u,tt,sc,sway);
       continue;
     }
@@ -3347,8 +3378,9 @@ function draw(now){
     drawTrooper(g,u.x,u.y,u.ang,KIT[u.sup?'sup':u.team],
       {s:SC*(u.scX||1),cr:u.cr,run:u.run,gait:u.gait,fire:t-u.fire<0.11?1-(t-u.fire)/0.11:0});
     if(u.hurt>0){
+      const hs=SC*(u.scX||1);
       g.save();g.globalAlpha=Math.min(0.5,u.hurt*4);g.fillStyle='#fff';
-      g.beginPath();g.arc(u.x,u.y,10*SC,0,6.2832);g.fill();g.restore();
+      g.beginPath();g.ellipse(u.x,u.y-11*hs,7.5*hs,13*hs,0,0,6.2832);g.fill();g.restore();
     }
   }
 
@@ -3485,12 +3517,14 @@ function draw(now){
   /* rounds, brass, dust */
   for(let i=0;i<bullets.length;i++){
     const b=bullets[i], L2=Math.hypot(b.vx,b.vy)||1, ux=b.vx/L2, uy=b.vy/L2;
+    /* drawn a rifle's height off the ground the round actually flies over */
+    const bz=15;
     /* a charged round is longer and cyan, so you can see the bowl working */
     const hot=b.side==='blue'&&b.dmg>1, tail=hot?38:26;
     g.strokeStyle=hot?'rgba(0,255,255,.55)':(b.side==='blue'?'rgba(190,255,225,.5)':'rgba(255,190,150,.5)');
-    g.lineWidth=hot?3:2.1;g.beginPath();g.moveTo(b.x-ux*tail,b.y-uy*tail);g.lineTo(b.x,b.y);g.stroke();
+    g.lineWidth=hot?3:2.1;g.beginPath();g.moveTo(b.x-ux*tail,b.y-uy*tail-bz);g.lineTo(b.x,b.y-bz);g.stroke();
     g.strokeStyle=hot?'#e6ffff':(b.side==='blue'?'#e6fff4':'#ffe9c8');
-    g.lineWidth=hot?1.7:1.1;g.beginPath();g.moveTo(b.x-ux*(hot?14:9),b.y-uy*(hot?14:9));g.lineTo(b.x,b.y);g.stroke();
+    g.lineWidth=hot?1.7:1.1;g.beginPath();g.moveTo(b.x-ux*(hot?14:9),b.y-uy*(hot?14:9)-bz);g.lineTo(b.x,b.y-bz);g.stroke();
   }
   for(let i=0;i<shells.length;i++){
     const s=shells[i];
