@@ -185,14 +185,22 @@ main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:26px 20p
 .jwmsg[hidden]{display:none}
 .jwcard{
   margin-top:12px;border:1px solid var(--line);border-radius:10px;background:#0c0d12;
-  display:grid;grid-template-columns:170px minmax(0,1fr);overflow:hidden;
+  display:grid;grid-template-columns:196px minmax(0,1fr);overflow:hidden;
 }
 .jwcard[hidden]{display:none}
 .jwcv{
-  display:grid;place-items:end center;border-right:1px solid var(--line);padding:12px 8px 10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;
+  border-right:1px solid var(--line);padding:12px 8px 10px;
   background:radial-gradient(120% 60% at 50% 100%,rgba(34,209,140,.13),rgba(34,209,140,0) 72%),#0a0f0d;
 }
-.jwcv canvas{width:150px;height:200px;display:block}
+.jwcv canvas#jwCv{width:172px;height:224px;display:block;cursor:grab;touch-action:none}
+.jwcv canvas#jwCv.grab{cursor:grabbing}
+.jwacts{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.jwacts i{font-style:normal;font-size:10.5px;color:var(--text-2);border:1px solid var(--line);
+  border-radius:5px;padding:3.5px 7px;background:#12141a;cursor:pointer;user-select:none}
+.jwacts i:hover{border-color:var(--dim)}
+.jwacts i.on{color:var(--cyan);border-color:rgba(0,255,255,.45)}
+.jwspin{font-size:10px;color:var(--dim)}
 .jwinfo{padding:13px 15px 12px;min-width:0}
 .jwname{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px;flex-wrap:wrap;word-break:break-all}
 .jwname a{color:var(--dim);text-decoration:none;font-size:12px;flex:none}
@@ -728,6 +736,8 @@ zh:{
   jwTank:'载具 · 坦克',jwPlane:'载具 · 飞机',
   jwNeedTank:'持有 1 万枚解锁',jwNeedPlane:'持有 10 万枚解锁',
   jwShow:'目前仅作展示 · 正式版上线后，战场上捡到的装备将永久保存进弹药数据库',
+  jwActShoot:'射击',jwActJump:'跳跃',jwActCrouch:'蹲下',jwActProne:'趴下',jwActRoll:'翻滚',
+  jwSpinHint:'拖动士兵旋转查看',
   fresh:'有新交易 · 刷新战场',freshing:'刷新中…',
   objBlue:'上一轮已达成 · 联合曲线毕业',
   objRed:p=>'本阶段目标市值 · 已完成 '+p+'%',
@@ -821,6 +831,8 @@ en:{
   jwTank:'Vehicle \u00b7 tank',jwPlane:'Vehicle \u00b7 plane',
   jwNeedTank:'hold 10k to unlock',jwNeedPlane:'hold 100k to unlock',
   jwShow:'Display only for now \u00b7 once the full version ships, gear picked up on the battlefield is kept forever in your ammo database',
+  jwActShoot:'fire',jwActJump:'jump',jwActCrouch:'crouch',jwActProne:'prone',jwActRoll:'roll',
+  jwSpinHint:'drag the soldier to look around',
   fresh:'New trades · refresh the battlefield',freshing:'Refreshing…',
   objBlue:'already taken · graduated the bonding curve',
   objRed:p=>'stage target market cap · '+p+'% of the way',
@@ -9247,8 +9259,15 @@ function jwRender(){
   const slot=(kind,on,lab,sub)=>'<div class="jwslot'+(on?'':' off')+'" data-k="'+kind+'" data-on="'+(on?1:0)+'">'
     +'<canvas width="128" height="76"></canvas><b>'+lab+'</b><span>'+sub+'</span></div>';
   const tank=d.bal>=10000, plane=d.bal>=100000;
+  const act=(k,lab)=>'<i data-act="'+k+'">'+lab+'</i>';
   card.innerHTML=
-    '<div class="jwcv"><canvas id="jwCv" width="300" height="400"></canvas></div>'
+    '<div class="jwcv"><canvas id="jwCv" width="344" height="448"></canvas>'
+     +'<div class="jwacts" id="jwActs">'
+       +act('shoot',esc(ui.jwActShoot))+act('jump',esc(ui.jwActJump))
+       +act('crouch',esc(ui.jwActCrouch))+act('prone',esc(ui.jwActProne))
+       +act('roll',esc(ui.jwActRoll))
+     +'</div>'
+     +'<div class="jwspin">'+esc(ui.jwSpinHint)+'</div></div>'
    +'<div class="jwinfo">'
    +'<div class="jwname">'+esc(d.name)+tags
      +'<a href="https://odin.fun/user/'+esc(d.id)+'" target="_blank" rel="noopener">&#8599;</a></div>'
@@ -9288,183 +9307,420 @@ function jwMix(a,b,t){
   const b2=Math.round((A&255)+((B&255)-(A&255))*t);
   return 'rgb('+r+','+g2+','+b2+')';
 }
-/* A full-length trooper, drawn for this card alone. Foot point at the origin,
-   one lamp at the top left, colours off PAL.blue, and the kit levels decide
-   the silhouette: level 3 reads heavier because it IS heavier. */
-function jwSoldierArt(g,W,H,gv){
-  const p=PAL.blue;
-  const sc=H/112, cx=W/2-9*sc, fy=H*0.945;
-  const FAT=jwMix(p.base,p.dark,0.42), FATD=jwMix(p.base,p.dark,0.62), FATL=jwMix(p.base,p.light,0.16);
-  const VST=jwMix(p.base,p.dark,0.18), VSTL=jwMix(p.base,p.light,0.32), VSTD=jwMix(p.base,p.dark,0.52);
-  const GEAR='#12211a', GUN='#2c313c', GUNL='#4a5160', GUND='#1c2027';
-  const A3=gv.armor===3,H3=gv.helm===3,L3=gv.legs===3,G3=gv.glove===3;
-  const GLV=G3?'#1c2f26':GEAR;
-  g.save();g.translate(cx,fy);g.scale(sc,sc);
-  g.lineJoin='round';g.lineCap='round';
-  /* two shadows: a soft one thrown by the lamp, a tight one holding the boots down */
-  g.fillStyle='rgba(0,0,0,.30)';g.beginPath();g.ellipse(6,-1,28,7,0,0,Math.PI*2);g.fill();
-  g.fillStyle='rgba(0,0,0,.42)';g.beginPath();g.ellipse(1,-1.2,15,4,0,0,Math.PI*2);g.fill();
-  const limb=(x1,y1,x2,y2,x3,y3,w,c)=>{g.strokeStyle=c;g.lineWidth=w;
-    g.beginPath();g.moveTo(x1,y1);g.quadraticCurveTo(x2,y2,x3,y3);g.stroke();};
-  /* far arm, reaching for the foregrip; far leg set back — both in shade */
-  limb(-7,-71,-2,-64,15.2,-64.5,6.8,FATD);
-  limb(-4,-44,-8,-33,-11,-7,10,FATD);
-  g.fillStyle=GUND;rr(g,-16.5,-7,11,6.2,2);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.6;rr(g,-16.5,-7,11,6.2,2);g.stroke();
-  if(L3){g.fillStyle=GEAR;rr(g,-11.5,-30,7.5,7,2.5);g.fill();}
-  /* torso base */
-  g.fillStyle=FAT;rr(g,-12,-78,24,35,6);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.7;rr(g,-12,-78,24,35,6);g.stroke();
-  /* near leg, lit seam down the thigh */
-  limb(5,-44,9,-30,7,-6,10.6,FAT);
-  g.strokeStyle=FATL;g.lineWidth=2;g.beginPath();
-  g.moveTo(4.4,-42);g.quadraticCurveTo(8,-32,7.4,-18);g.stroke();
-  /* kneepad; level 3 adds a shin guard */
-  g.fillStyle=GEAR;rr(g,4.6,-29,8.6,7.4,2.6);g.fill();
-  g.strokeStyle=VSTL;g.lineWidth=.9;g.beginPath();g.moveTo(5.4,-28.4);g.lineTo(12,-28.4);g.stroke();
-  if(L3){
-    g.fillStyle=GEAR;rr(g,3.6,-20,9.4,12.4,3);g.fill();
-    g.strokeStyle=VSTL;g.lineWidth=.8;g.beginPath();g.moveTo(4.6,-18.8);g.lineTo(4.6,-9.4);g.stroke();
+/* ---------------- a pocket renderer ----------------
+   Boxes and one dome, posed, rotated by the visitor's drag, lit by a single
+   lamp fixed to the camera, depth-sorted and painted far to near. Cheap
+   enough to run every frame; honest enough to read as a solid. */
+const J3={yaw:0.52,pitch:0.15,act:'idle',t:0,last:0,raf:0,quads:[],fx:[],cur:null,shade:{}};
+function j3rx(p,a){const c=Math.cos(a),q=Math.sin(a);return [p[0],p[1]*c-p[2]*q,p[1]*q+p[2]*c];}
+function j3ry(p,a){const c=Math.cos(a),q=Math.sin(a);return [p[0]*c+p[2]*q,p[1],-p[0]*q+p[2]*c];}
+function j3rz(p,a){const c=Math.cos(a),q=Math.sin(a);return [p[0]*c-p[1]*q,p[0]*q+p[1]*c,p[2]];}
+function j3ap(p,ops){
+  for(let i=0;i<ops.length;i++){
+    const o=ops[i];
+    if(o[0]==='t')p=[p[0]+o[1],p[1]+o[2],p[2]+o[3]];
+    else if(o[0]==='rx')p=j3rx(p,o[1]);
+    else if(o[0]==='ry')p=j3ry(p,o[1]);
+    else p=j3rz(p,o[1]);
   }
-  /* boots */
-  g.fillStyle=GUND;rr(g,2,-6.6,13,6.4,2);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.6;rr(g,2,-6.6,13,6.4,2);g.stroke();
-  g.strokeStyle='#000';g.globalAlpha=.35;g.lineWidth=1;
-  g.beginPath();g.moveTo(2.5,-1.4);g.lineTo(14.5,-1.4);g.stroke();g.globalAlpha=1;
-  /* belt */
-  g.fillStyle=GEAR;rr(g,-10.5,-49,21,4.4,1.6);g.fill();
-  g.fillStyle=p.accent;g.globalAlpha=.5;rr(g,-2,-48.4,4,3,1);g.fill();g.globalAlpha=1;
-  /* the vest — the piece that grows */
-  const vx=A3?-13.5:-11, vw=A3?27:22, vy=A3?-77:-75, vh=A3?31:27;
-  g.fillStyle=VST;rr(g,vx,vy,vw,vh,4.5);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=A3?1.1:.8;rr(g,vx,vy,vw,vh,4.5);g.stroke();
-  const pg=g.createLinearGradient(vx,vy,vx+vw,vy+vh);
-  pg.addColorStop(0,VSTL);pg.addColorStop(.55,VST);pg.addColorStop(1,VSTD);
-  g.fillStyle=pg;rr(g,vx+2,vy+2,vw-4,A3?14:12,3);g.fill();
-  /* pouches — a third one on the heavy set */
-  g.fillStyle=GEAR;
-  rr(g,vx+2.5,vy+(A3?18:15),6.6,7.2,1.6);g.fill();
-  rr(g,vx+10.2,vy+(A3?18:15),6.6,7.2,1.6);g.fill();
-  if(A3){rr(g,vx+17.9,vy+18,6,7.2,1.6);g.fill();}
-  g.strokeStyle=VSTL;g.lineWidth=.8;g.beginPath();
-  g.moveTo(vx+3.2,vy+(A3?20:17));g.lineTo(vx+8.4,vy+(A3?20:17));
-  g.moveTo(vx+10.9,vy+(A3?20:17));g.lineTo(vx+16.1,vy+(A3?20:17));g.stroke();
+  return p;
+}
+/* faces wound so the normals point out; the renderer culls what faces away */
+const J3F=[[1,0,3,2],[4,5,6,7],[0,4,7,3],[5,1,2,6],[7,6,2,3],[0,1,5,4]];
+function j3box(x,y,z,w,h,d,c,ops){
+  const hw=w/2,hh=h/2,hd=d/2;
+  const Pt=[[x-hw,y-hh,z-hd],[x+hw,y-hh,z-hd],[x+hw,y+hh,z-hd],[x-hw,y+hh,z-hd],
+            [x-hw,y-hh,z+hd],[x+hw,y-hh,z+hd],[x+hw,y+hh,z+hd],[x-hw,y+hh,z+hd]]
+            .map(p=>j3ap(p,ops));
+  for(let f=0;f<6;f++){
+    const F=J3F[f];
+    J3.quads.push({p:[Pt[F[0]],Pt[F[1]],Pt[F[2]],Pt[F[3]]],c,cull:1});
+  }
+}
+function j3dome(x,y,z,r,ry2,c,ops){
+  const SEG=8,RING=3;
+  for(let ri=0;ri<RING;ri++){
+    const a0=ri/RING*1.5708,a1=(ri+1)/RING*1.5708;
+    const r0=r*Math.cos(a0),r1=r*Math.cos(a1);
+    const y0=ry2*Math.sin(a0),y1=ry2*Math.sin(a1);
+    for(let si=0;si<SEG;si++){
+      const b0=si/SEG*6.2832,b1=(si+1)/SEG*6.2832;
+      J3.quads.push({p:[
+        j3ap([x+Math.cos(b0)*r0,y+y0,z+Math.sin(b0)*r0],ops),
+        j3ap([x+Math.cos(b1)*r0,y+y0,z+Math.sin(b1)*r0],ops),
+        j3ap([x+Math.cos(b1)*r1,y+y1,z+Math.sin(b1)*r1],ops),
+        j3ap([x+Math.cos(b0)*r1,y+y1,z+Math.sin(b0)*r1],ops)],c,cull:0});
+    }
+  }
+}
+function j3shade(c,k){
+  const key=c+'|'+k;
+  let v=J3.shade[key];
+  if(!v){
+    const A=parseInt(c.slice(1),16);
+    const t=k/24;
+    const f=x=>Math.max(0,Math.min(255,Math.round(x*(0.64+0.66*t))));
+    v='rgb('+f((A>>16)&255)+','+f((A>>8)&255)+','+f(A&255)+')';
+    J3.shade[key]=v;
+  }
+  return v;
+}
+function j3render(g,W,H){
+  const cy=Math.cos(J3.yaw),sy=Math.sin(J3.yaw);
+  const cp=Math.cos(J3.pitch),sp=Math.sin(J3.pitch);
+  const S=H/46, OX=W/2, OY=H*0.885;
+  const L=[-0.42,0.72,0.55];
+  const T=[];
+  for(let i=0;i<J3.quads.length;i++){
+    const q=J3.quads[i], pp=new Array(4), r3=new Array(4);
+    let zs=0;
+    for(let k=0;k<4;k++){
+      const p=q.p[k];
+      const x=p[0]*cy+p[2]*sy, z0=-p[0]*sy+p[2]*cy;
+      const y2=p[1]*cp-z0*sp, z2=p[1]*sp+z0*cp;
+      r3[k]=[x,y2,z2];
+      const pf=1+z2*0.008;
+      pp[k]=[OX+x*S*pf,OY-y2*S*pf];
+      zs+=z2;
+    }
+    const ax=r3[1][0]-r3[0][0],ay=r3[1][1]-r3[0][1],az=r3[1][2]-r3[0][2];
+    const bx=r3[3][0]-r3[0][0],by=r3[3][1]-r3[0][1],bz=r3[3][2]-r3[0][2];
+    let nx=ay*bz-az*by, ny=az*bx-ax*bz, nz=ax*by-ay*bx;
+    const nl=Math.hypot(nx,ny,nz)||1;
+    nx/=nl;ny/=nl;nz/=nl;
+    if(q.cull&&nz<=0.02)continue;
+    if(!q.cull&&nz<0){nx=-nx;ny=-ny;nz=-nz;}
+    const lum=Math.max(0,nx*L[0]+ny*L[1]+nz*L[2]);
+    T.push({pp,z:zs/4,c:j3shade(q.c,Math.round(lum*24))});
+  }
+  T.sort((a,b)=>a.z-b.z);
+  for(let i=0;i<T.length;i++){
+    const q=T[i];
+    g.fillStyle=q.c;g.strokeStyle=q.c;g.lineWidth=0.7;
+    g.beginPath();
+    g.moveTo(q.pp[0][0],q.pp[0][1]);g.lineTo(q.pp[1][0],q.pp[1][1]);
+    g.lineTo(q.pp[2][0],q.pp[2][1]);g.lineTo(q.pp[3][0],q.pp[3][1]);
+    g.closePath();g.fill();g.stroke();
+  }
+  /* the flash last: a screen-space star at the projected muzzle */
+  for(let i=0;i<J3.fx.length;i++){
+    const q=J3.fx[i], p=q.p;
+    const x=p[0]*cy+p[2]*sy, z0=-p[0]*sy+p[2]*cy;
+    const y2=p[1]*cp-z0*sp;
+    const px=OX+x*S,py=OY-y2*S,r=q.r*S;
+    g.save();g.globalAlpha=q.a;
+    g.fillStyle='#ffcf7a';
+    g.beginPath();g.ellipse(px,py,r*1.7,r*1.2,0,0,6.2832);g.fill();
+    g.fillStyle='#fff3cf';
+    g.beginPath();
+    for(let k=0;k<8;k++){
+      const a2=k*0.7854, rr2=k%2?r*0.55:r*1.5;
+      g[k?'lineTo':'moveTo'](px+Math.cos(a2)*rr2,py+Math.sin(a2)*rr2);
+    }
+    g.closePath();g.fill();
+    g.restore();
+  }
+}
+
+/* ---------------- the rig ----------------
+   The demo's field colours, a joint chain done by hand, and the kit levels
+   deciding the silhouette: level 3 reads heavier because it IS heavier. */
+const J3C={coat:'#59683f',coatL:'#6d7d4d',coatD:'#39442a',helm:'#4d5b36',helmD:'#2c3520',
+           pack:'#414c2f',boot:'#2b3220',skin:'#c39068',vest:'#3a452c',vestD:'#2b3320',
+           gear:'#20281c',wood:'#6b4d2c',metal:'#3c414e',metalL:'#565d6e',metalD:'#282c35',acc:'#22d18c'};
+function jwBuildSoldier(gv,Ps){
+  J3.quads.length=0;J3.fx.length=0;
+  const C=J3C;
+  const H3=gv.helm===3,A3=gv.armor===3,L3=gv.legs===3,G3=gv.glove===3;
+  /* the whole-body frame: prone and roll are one rotation about the low pivot */
+  const WB=[];
+  const tilt=(Ps.prone||0)*1.42+(Ps.rollA||0);
+  const pv=Ps.pivY!==undefined?Ps.pivY:2.0;
+  if(tilt){WB.push(['t',0,-pv,0],['rx',tilt],['t',0,pv,0]);}
+  WB.push(['t',0,(Ps.y||0)+(Ps.lift||0),Ps.zoff||0]);
+  const hipY=12.3-(Ps.crouch||0)*3.8;
+  /* one leg: thigh from the hip, shin from the knee, boot on the end */
+  const leg=(sx,hipA,kneeA,near)=>{
+    const upOps=[['rx',hipA],['t',sx,hipY,0]].concat(WB);
+    const loOps=[['rx',kneeA],['t',0,-6.2,0],['rx',hipA],['t',sx,hipY,0]].concat(WB);
+    j3box(0,-3.1,0,2.9,6.4,3.1,near?C.coat:C.coatD,upOps);
+    j3box(0,-2.9,0,2.5,5.9,2.7,near?C.coatD:C.vestD,loOps);
+    j3box(0,-0.4,1.65,2.2,1.9,1.1,C.gear,loOps);                 /* kneepad */
+    if(L3)j3box(0,-3.1,1.5,2.3,4.4,0.8,C.vest,loOps);            /* shin guard */
+    j3box(0,-5.75,0.9,2.7,1.6,4.7,C.boot,loOps);
+  };
+  leg(-2.15,Ps.hipL||0,Ps.kneeL||0,false);
+  leg(2.15,Ps.hipR||0,Ps.kneeR||0,true);
+  /* pelvis and belt */
+  j3box(0,hipY+1.0,0,6.6,2.6,4.2,C.coatD,WB);
+  j3box(0,hipY+2.45,0,7.0,1.2,4.6,C.gear,WB);
+  j3box(0,hipY+2.45,2.35,1.6,1.0,0.3,C.acc,WB);
+  if(A3)j3box(0,hipY-0.6,2.2,4.6,2.6,0.9,C.vestD,WB);            /* groin flap */
+  /* the torso frame carries chest, head, arms and the rifle */
+  const T=[['rx',Ps.lean||0],['t',0,hipY+2.2,0]].concat(WB);
+  j3box(0,4.3,0,8,8.6,4.6,C.coat,T);
+  const vw=A3?9.8:8.7, vh=A3?7.8:6.9;
+  j3box(0,4.5,0.25,vw,vh,5.5,C.vest,T);
+  j3box(-1.9,3.0,3.05,2.2,2.4,0.9,C.gear,T);                     /* pouches */
+  j3box(0.6,3.0,3.05,2.2,2.4,0.9,C.gear,T);
+  if(A3)j3box(2.9,3.2,2.95,1.9,2.2,0.9,C.gear,T);
+  j3box(0,6.8,3.0,vw-2.6,0.9,0.5,C.vestD,T);                     /* chest strap */
   if(A3){
-    /* collar, shoulder plates, groin flap: the parts that make it look like weight */
-    g.fillStyle=VSTD;rr(g,-6.5,-81.5,13,6,2.2);g.fill();
-    g.strokeStyle=p.edge;g.lineWidth=.7;rr(g,-6.5,-81.5,13,6,2.2);g.stroke();
-    g.fillStyle=VST;
-    g.beginPath();g.ellipse(-10,-74.5,6,4.2,.25,0,Math.PI*2);g.fill();
-    g.beginPath();g.ellipse(10,-74.5,6,4.2,-.25,0,Math.PI*2);g.fill();
-    g.strokeStyle=p.edge;g.lineWidth=.7;
-    g.beginPath();g.ellipse(-10,-74.5,6,4.2,.25,0,Math.PI*2);g.stroke();
-    g.beginPath();g.ellipse(10,-74.5,6,4.2,-.25,0,Math.PI*2);g.stroke();
-    g.fillStyle=VSTD;rr(g,-5.5,-47.5,11,7,2.4);g.fill();
-    g.strokeStyle=p.edge;g.lineWidth=.7;rr(g,-5.5,-47.5,11,7,2.4);g.stroke();
+    j3box(0,8.85,0,5.2,1.7,3.4,C.vestD,T);                       /* collar */
+    j3box(-5.1,7.5,0,2.3,1.6,3.6,C.vest,T);                      /* shoulder plates */
+    j3box(5.1,7.5,0,2.3,1.6,3.6,C.vest,T);
   }
-  /* neck, face, glasses, strap */
-  g.fillStyle=FATD;rr(g,-2,-82,7,6,2);g.fill();
-  g.fillStyle=jwMix(p.base,p.light,0.32);
-  g.beginPath();g.ellipse(3,-86,5.2,6.2,0,0,Math.PI*2);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.6;
-  g.beginPath();g.ellipse(3,-86,5.2,6.2,0,0,Math.PI*2);g.stroke();
-  g.fillStyle=p.edge;rr(g,-0.2,-88.8,9.2,3.7,1.8);g.fill();
-  g.strokeStyle=p.accent;g.globalAlpha=.55;g.lineWidth=.8;
-  g.beginPath();g.moveTo(1.6,-87.8);g.lineTo(5.4,-87.8);g.stroke();g.globalAlpha=1;
-  g.strokeStyle=GEAR;g.lineWidth=1.1;
-  g.beginPath();g.moveTo(-1.6,-84);g.quadraticCurveTo(2,-80.5,6.4,-83);g.stroke();
-  /* helmet — dome + ear band + visor lip; no brim all round, this is not a
-     boonie hat. The level-3 shell is bigger and carries rails and goggles. */
-  const hr=H3?9:7.8, hyr=H3?7.2:6.5, hcx=2.2, hcy=H3?-91.4:-90.8;
-  const band=jwMix(p.base,p.dark,0.32);
-  g.fillStyle=band;rr(g,hcx-hr+0.4,hcy-1.4,hr*2-0.8,4.4,2);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.6;rr(g,hcx-hr+0.4,hcy-1.4,hr*2-0.8,4.4,2);g.stroke();
-  const dg=g.createRadialGradient(hcx-3,hcy-3.4,1,hcx,hcy-0.4,hr+2);
-  dg.addColorStop(0,jwMix(p.base,p.light,0.55));
-  dg.addColorStop(.55,p.base);
-  dg.addColorStop(1,jwMix(p.base,p.dark,0.55));
-  g.fillStyle=dg;
-  g.beginPath();g.ellipse(hcx,hcy,hr,hyr,0,Math.PI,Math.PI*2);g.closePath();g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.7;g.stroke();
-  g.fillStyle=band;rr(g,hcx+hr-1.6,hcy-2.8,4.4,2.2,1);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.5;rr(g,hcx+hr-1.6,hcy-2.8,4.4,2.2,1);g.stroke();
+  j3box(0,4.6,-3.35,5.8,6.2,2.3,C.pack,T);                       /* the pack */
+  j3box(0,8.0,-3.3,4.6,1.5,2.5,C.gear,T);                        /* bedroll */
+  /* the head */
+  const HD=[['ry',Ps.headYaw||0],['rx',Ps.headPitch||0],['t',0,9.3,0]].concat(T);
+  j3box(0,0.55,0,2.3,1.3,2.3,C.skin,HD);
+  j3box(0,2.55,0.5,3.6,3.4,3.3,C.skin,HD);
+  j3box(0,3.1,2.2,3.4,0.9,0.4,C.gear,HD);                        /* brow shade */
+  const hr=H3?3.15:2.75;
+  j3dome(0,3.9,0,hr,H3?2.7:2.4,C.helm,HD);
+  j3box(0,3.85,H3?2.5:2.2,H3?5.9:5.2,1.0,1.1,C.helmD,HD);        /* the brim lip */
   if(H3){
-    g.strokeStyle=GEAR;g.lineWidth=1.6;
-    g.beginPath();g.moveTo(hcx-hr+1,hcy-1);g.quadraticCurveTo(hcx,hcy-hyr-2,hcx+hr-1,hcy-1);g.stroke();
-    g.fillStyle=GEAR;rr(g,hcx-0.4,hcy-hyr-1.2,8,3.2,1.5);g.fill();
-    g.strokeStyle=VSTL;g.lineWidth=.7;
-    g.beginPath();g.moveTo(hcx+0.4,hcy-hyr+0.3);g.lineTo(hcx+6.8,hcy-hyr+0.3);g.stroke();
+    j3box(0,4.6,2.35,4.4,1.2,0.8,C.gear,HD);                     /* goggles */
+    j3box(0,4.6,2.78,3.6,0.4,0.12,C.acc,HD);
+    j3box(-3.05,3.9,0,0.6,0.8,2.6,C.gear,HD);                    /* side rails */
+    j3box(3.05,3.9,0,0.6,0.8,2.6,C.gear,HD);
   }
-  /* rim light along the lamp side of the dome */
-  g.strokeStyle=p.accent;g.globalAlpha=.75;g.lineWidth=1.1;
-  g.beginPath();g.ellipse(hcx,hcy,hr-0.8,hyr-0.8,0,Math.PI*1.08,Math.PI*1.62);g.stroke();
-  g.globalAlpha=1;
-  /* the rifle, up at the ready: stock against the shoulder */
-  g.fillStyle=GUND;rr(g,-7,-68,9,5.4,1.6);g.fill();
-  g.fillStyle=GUN;rr(g,1,-69.2,17.5,7.4,1.6);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.6;rr(g,1,-69.2,17.5,7.4,1.6);g.stroke();
-  g.strokeStyle=GUNL;g.lineWidth=1;g.beginPath();g.moveTo(1.6,-68.6);g.lineTo(18,-68.6);g.stroke();
-  g.fillStyle=GUN;rr(g,18.5,-67.4,16,3,1);g.fill();
-  g.fillStyle=GUND;rr(g,34.5,-68.2,4.2,4.4,1);g.fill();
-  g.fillStyle=GUND;rr(g,5.5,-72.8,5,3.6,1.2);g.fill();
-  g.beginPath();g.moveTo(9,-61.8);g.lineTo(13.4,-61.8);g.lineTo(15,-52);g.lineTo(10.4,-51.6);g.closePath();
-  g.fillStyle=GUND;g.fill();g.strokeStyle=p.edge;g.lineWidth=.5;g.stroke();
-  /* far glove wraps the foregrip */
-  g.fillStyle=GLV;g.beginPath();g.ellipse(15.4,-63,3.1,2.7,0,0,Math.PI*2);g.fill();
-  if(G3){g.strokeStyle=p.accent;g.globalAlpha=.8;g.lineWidth=.9;
-    g.beginPath();g.moveTo(13.6,-64.6);g.lineTo(17.2,-64.6);g.stroke();g.globalAlpha=1;}
-  /* near arm bent to the pistol grip */
-  limb(7,-73,13.5,-69,7.5,-63.4,8,FAT);
-  g.strokeStyle=FATL;g.lineWidth=1.5;g.beginPath();
-  g.moveTo(7.4,-72.8);g.quadraticCurveTo(12.4,-69,9.2,-65.6);g.stroke();
-  g.fillStyle=GUND;rr(g,4.4,-62.8,3.6,6,1.2);g.fill();
-  g.fillStyle=GLV;g.beginPath();g.ellipse(6.4,-61.8,3.3,3,0,0,Math.PI*2);g.fill();
-  g.strokeStyle=p.edge;g.lineWidth=.5;
-  g.beginPath();g.ellipse(6.4,-61.8,3.3,3,0,0,Math.PI*2);g.stroke();
-  if(G3){g.strokeStyle=p.accent;g.globalAlpha=.8;g.lineWidth=.9;
-    g.beginPath();g.moveTo(4.8,-63.8);g.lineTo(8.4,-63.8);g.stroke();g.globalAlpha=1;}
-  /* shoulder rim toward the lamp */
-  g.strokeStyle=p.accent;g.globalAlpha=.5;g.lineWidth=1;
-  g.beginPath();g.moveTo(vx+1.5,vy+0.8);g.quadraticCurveTo(0,vy-1.2,vx+vw-4,vy+0.6);g.stroke();
-  g.globalAlpha=1;
+  /* one arm: upper from the shoulder, forearm from the elbow, glove on the end */
+  const arm=(sx,shA,elA,spread,near)=>{
+    const upOps=[['rz',(spread||0)*(sx>0?-1:1)],['rx',shA],['t',sx,7.6,0]].concat(T);
+    const loOps=[['rx',elA],['t',0,-5.0,0]].concat(upOps);
+    j3box(0,-2.5,0,2.3,5.0,2.3,near?C.coat:C.coatD,upOps);
+    j3box(0,-2.2,0,2.0,4.6,2.0,near?C.coatD:C.vestD,loOps);
+    if(G3)j3box(0,-2.5,1.15,1.8,3.2,0.5,C.vest,loOps);           /* forearm guard */
+    j3box(0,-5.0,0,G3?2.2:1.8,G3?2.2:1.8,G3?2.2:1.8,C.gear,loOps);
+    if(G3)j3box(0,-4.6,1.15,1.6,0.5,0.14,C.acc,loOps);
+  };
+  arm(-4.9,Ps.shL||0,Ps.elL||0,Ps.spread,false);
+  arm(4.9,Ps.shR||0,Ps.elR||0,Ps.spread,true);
+  /* the rifle, hung on the chest frame where the hands can reach it */
+  const GO=[['t',0,0,-(Ps.kick||0)],['ry',Ps.gunYaw||0],['rx',Ps.gunPitch||0],
+            ['t',Ps.gunX!==undefined?Ps.gunX:1.1,Ps.gunY!==undefined?Ps.gunY:4.6,Ps.gunZ!==undefined?Ps.gunZ:3.1]].concat(T);
+  j3box(0,-0.25,-5.6,1.7,2.5,3.4,C.wood,GO);                     /* stock */
+  j3box(0,0,-0.8,2.0,2.3,6.6,C.metal,GO);                        /* receiver */
+  j3box(0,1.35,-0.8,1.0,0.55,5.6,C.metalL,GO);                   /* rail */
+  j3box(0,1.25,-3.4,0.6,0.9,0.6,C.metalD,GO);                    /* rear sight */
+  j3box(0,0.3,5.4,1.0,1.0,5.6,C.metalD,GO);                      /* barrel */
+  j3box(0,0.3,8.4,1.25,1.25,1.1,C.metalD,GO);                    /* muzzle */
+  j3box(0,1.25,7.5,0.6,1.0,0.6,C.metalD,GO);                     /* front sight */
+  j3box(0,-2.2,1.0,1.45,3.3,1.3,C.metalD,[['rx',0.22]].concat(GO.slice(1)));
+  j3box(0,-1.9,-2.7,1.3,2.4,1.35,C.wood,GO);                     /* grip */
+  if((Ps.flash||0)>0)J3.fx.push({p:j3ap([0,0.3,9.2],GO),r:2.6+Ps.flash,a:Math.min(1,Ps.flash*1.4)});
+}
+
+/* ---------------- the actions ---------------- */
+function jwPose(act,t){
+  const S=Math.sin;
+  /* at ease: low ready, a slow breath, the head looking about */
+  const idle={lean:0.06+0.02*S(t*1.4),crouch:0,y:0,
+    hipL:-0.06,kneeL:0.1,hipR:0.1,kneeR:0.06,
+    shL:-0.85,elL:1.15,shR:-0.5,elR:0.75,
+    headYaw:0.16*S(t*0.6),headPitch:0.04,
+    gunPitch:0.62,gunY:3.4,gunZ:2.9,flash:0,kick:0};
+  if(act==='shoot'){
+    const b=t%0.96, si=Math.floor(b/0.12), fl=(si<3&&b%0.12<0.055)?1-(b%0.12)/0.055:0;
+    return Object.assign(idle,{lean:0.12,headPitch:0.1,headYaw:0,
+      shL:-1.55,elL:0.65,shR:-1.25,elR:0.5,
+      gunPitch:0.03,gunY:6.4,gunZ:3.0,gunX:0.4,
+      flash:fl,kick:fl*0.8,crouch:0.1});
+  }
+  if(act==='jump'){
+    const u=t%1.6;
+    if(u<0.3){const k=u/0.3;return Object.assign(idle,{crouch:0.65*k,lean:0.18*k});}
+    if(u<1.0){
+      const k=(u-0.3)/0.7, air=S(k*3.1416);
+      return Object.assign(idle,{y:air*7.2,crouch:0.8,lean:0.22,
+        hipL:-1.5,kneeL:1.9,hipR:-1.1,kneeR:1.6,
+        shL:-1.0,elL:0.9,shR:-0.2,elR:0.5,spread:0.5,
+        gunPitch:0.8,headPitch:-0.12});
+    }
+    const k=Math.min(1,(u-1.0)/0.35);
+    return Object.assign(idle,{crouch:0.55*(1-k),lean:0.2*(1-k)});
+  }
+  if(act==='crouch'){
+    return Object.assign(idle,{crouch:1,lean:0.3,
+      hipL:-1.65,kneeL:2.1,hipR:-0.7,kneeR:1.5,
+      shL:-1.25,elL:0.85,shR:-0.95,elR:0.6,
+      gunPitch:0.18,gunY:4.6,gunZ:3.3,headPitch:0.02});
+  }
+  if(act==='prone'){
+    return Object.assign(idle,{prone:1,pivY:1.2,lift:2.5,zoff:-12,
+      hipL:0.12,kneeL:0.12,hipR:-0.12,kneeR:0.16,
+      lean:-0.34,headPitch:-1.05,
+      shL:-2.3,elL:1.9,shR:-2.05,elR:1.7,
+      gunPitch:-0.32,gunY:7.8,gunZ:4.6,gunX:0.4,
+      flash:(t%1.7)<0.06?1:0,kick:(t%1.7)<0.06?0.6:0});
+  }
+  if(act==='roll'){
+    const u=(t%1.35)/1.35;
+    return Object.assign(idle,{rollA:u*6.2832,pivY:7.5,lift:2.2,crouch:1,
+      hipL:-1.9,kneeL:2.3,hipR:-1.8,kneeR:2.2,
+      shL:-2.3,elL:2.3,shR:-2.2,elR:2.2,
+      lean:0.5,headPitch:0.55,gunPitch:0.9,gunY:3.0,gunZ:2.4});
+  }
+  return idle;
+}
+/* joints glide between poses; the hard params (height, spin, flash) are copied */
+const J3HARD={y:1,rollA:1,flash:1,kick:1,prone:0,lift:0};
+function jwBlend(cur,tgt,k){
+  const out=cur||{};
+  for(const key in tgt){
+    const v=tgt[key];
+    if(typeof v!=='number'){out[key]=v;continue;}
+    if(J3HARD[key]===1||out[key]===undefined)out[key]=v;
+    else out[key]=out[key]+(v-out[key])*k;
+  }
+  for(const key in out)if(tgt[key]===undefined&&typeof out[key]==='number')out[key]*=(1-k);
+  return out;
+}
+function jwFrame(now){
+  J3.raf=0;
+  const cv=$('#jwCv'),card=$('#jwCard'),wrap=$('#joinWrap');
+  if(!cv||!card||card.hidden||!wrap||wrap.hidden||document.hidden)return;
+  const dt=Math.min(0.05,(now-(J3.last||now))/1000);J3.last=now;
+  J3.t+=dt;
+  J3.cur=jwBlend(J3.cur,jwPose(J3.act,J3.t),Math.min(1,dt*9));
+  jwBuildSoldier(JW.preview,J3.cur);
+  const g=cv.getContext('2d');
+  g.clearRect(0,0,cv.width,cv.height);
+  /* the ground the lamp puts him on */
+  g.save();
+  g.fillStyle='rgba(0,0,0,.34)';
+  const gy=cv.height*0.9;
+  g.beginPath();g.ellipse(cv.width/2,gy,cv.width*0.3,cv.height*0.035,0,0,6.2832);g.fill();
   g.restore();
+  j3render(g,cv.width,cv.height);
+  J3.raf=requestAnimationFrame(jwFrame);
 }
 function jwDrawSoldier(){
   const cv=$('#jwCv');if(!cv)return;
-  const g=cv.getContext('2d');
-  g.clearRect(0,0,cv.width,cv.height);
-  jwSoldierArt(g,cv.width,cv.height,JW.preview);
+  if(!cv.__j3){
+    cv.__j3=1;
+    let px=0,py=0,on=false;
+    cv.addEventListener('pointerdown',e=>{
+      on=true;px=e.clientX;py=e.clientY;
+      cv.classList.add('grab');cv.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    cv.addEventListener('pointermove',e=>{
+      if(!on)return;
+      J3.yaw+=(e.clientX-px)*0.011;
+      J3.pitch=Math.max(-0.55,Math.min(0.8,J3.pitch+(e.clientY-py)*0.008));
+      px=e.clientX;py=e.clientY;
+    });
+    const up=()=>{on=false;cv.classList.remove('grab');};
+    cv.addEventListener('pointerup',up);
+    cv.addEventListener('pointercancel',up);
+  }
+  document.querySelectorAll('#jwActs i').forEach(b=>b.classList.toggle('on',b.dataset.act===J3.act));
+  if(!J3.raf){J3.last=0;J3.raf=requestAnimationFrame(jwFrame);}
 }
+addEventListener('visibilitychange',()=>{if(!document.hidden)jwDrawSoldier();});
 function jwDrawSlot(el){
   const cv=el.querySelector('canvas');if(!cv)return;
   const g=cv.getContext('2d'),W=cv.width,H=cv.height;
   const k=el.dataset.k,on=el.dataset.on==='1';
   g.clearRect(0,0,W,H);
-  if(!on){jwLockIcon(g,W,H);return;}
-  if(k==='tank')drawTank3D(g,W/2,H*0.8,1.9,1,PAL.blue,1);
-  else if(k==='plane')drawPlane3D(g,W/2,H*0.88,1.5,1,PAL.blue,0.25);
-  else if(k==='rifle')jwRifleIcon(g,W,H);
-  else if(k==='nade')jwNadeIcon(g,W,H);
+  if(k==='tank'){if(on)drawTank3D(g,W/2,H*0.8,1.9,1,PAL.blue,1);else jwLockIcon(g,W,H);return;}
+  if(k==='plane'){if(on)drawPlane3D(g,W/2,H*0.88,1.5,1,PAL.blue,0.25);else jwLockIcon(g,W,H);return;}
+  if(k==='rifle')jwRifleIcon(g,W,H,on);
+  else if(k==='nade')jwNadeIcon(g,W,H,on);
+  else if(k==='mg')jwMgIcon(g,W,H,on);
+  else if(k==='sniper')jwSniperIcon(g,W,H,on);
+  if(!on)jwLockBadge(g,W,H);
 }
-function jwRifleIcon(g,W,H){
+/* the weapons are drawn even when they are locked — grey, behind a small
+   padlock — because a thing you can look at is a thing worth unlocking */
+function jwGunInk(on){
+  return on?{w:'#5d4226',wl:'#71512e',m:'#31343c',ml:'#4a5160',d:'#22262e',a:PAL.blue.base}
+           :{w:'#3a3d45',wl:'#474b55',m:'#33363e',ml:'#42454e',d:'#26292f',a:'#5a5f6b'};
+}
+function jwRifleIcon(g,W,H,on){
+  const I=jwGunInk(on);
   g.save();g.translate(W/2,H/2);g.scale(3.1,3.1);
-  g.strokeStyle=PAL.blue.edge;g.lineWidth=0.6;
-  g.fillStyle='#3a3f4b';rr(g,-13,-1.6,8.4,3.4,1);g.fill();g.stroke();
-  g.fillStyle='#2c313c';rr(g,-5.4,-2.6,12,4.4,1);g.fill();g.stroke();
-  g.fillStyle='#454b58';rr(g,6.6,-1.5,9.6,1.9,0.8);g.fill();g.stroke();
-  g.fillStyle='#262b34';rr(g,-0.6,1.6,3.4,4.4,1);g.fill();g.stroke();
-  g.fillStyle=PAL.blue.base;rr(g,-3.6,-4,5.4,1.5,0.7);g.fill();
+  g.strokeStyle=PAL.blue.edge;g.lineWidth=0.5;
+  g.fillStyle=I.w;rr(g,-14,-1.7,7.2,3.8,1.2);g.fill();g.stroke();      /* stock */
+  g.fillStyle=I.wl;rr(g,-14,-1.7,7.2,1.4,0.8);g.fill();
+  g.fillStyle=I.m;rr(g,-7.2,-2.5,12.4,4.5,1);g.fill();g.stroke();      /* receiver */
+  g.fillStyle=I.ml;rr(g,-6.6,-2.1,11.4,1,0.5);g.fill();
+  g.fillStyle=I.d;rr(g,-2.4,1.8,3.2,4.6,1);g.fill();g.stroke();        /* mag */
+  g.fillStyle=I.w;rr(g,-5.6,1.8,2.6,3.6,0.9);g.fill();g.stroke();      /* grip */
+  g.fillStyle=I.d;rr(g,5.2,-1.4,10.4,1.9,0.8);g.fill();g.stroke();     /* barrel */
+  g.fillStyle=I.d;rr(g,15.4,-1.9,1.8,2.9,0.6);g.fill();                /* muzzle */
+  g.fillStyle=I.d;rr(g,-4.6,-4.2,6.6,1.6,0.7);g.fill();                /* rail */
+  g.fillStyle=I.d;rr(g,7.6,-3.2,0.9,1.8,0.4);g.fill();                 /* sight */
+  g.strokeStyle=I.a;g.globalAlpha=on?0.8:0.4;g.lineWidth=0.7;
+  g.beginPath();g.moveTo(-12.6,2.6);g.quadraticCurveTo(-2,7.4,6.4,1.2);g.stroke();
+  g.globalAlpha=1;g.restore();
+}
+function jwNadeIcon(g,W,H,on){
+  const I=jwGunInk(on);
+  g.save();g.translate(W/2,H/2+2);g.scale(3,3);
+  g.fillStyle=I.m;g.beginPath();g.ellipse(0,1.2,4.1,5.1,0,0,6.2832);g.fill();
+  g.strokeStyle=PAL.blue.edge;g.lineWidth=0.55;g.stroke();
+  /* the segments that make it a pineapple and not an egg */
+  g.strokeStyle='rgba(0,0,0,.4)';g.lineWidth=0.6;
+  for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(-3.6,0.4+i*2.4);g.lineTo(3.6,0.4+i*2.4);g.stroke();}
+  g.beginPath();g.moveTo(-1.9,-2.9);g.lineTo(-1.9,5);g.moveTo(1.9,-2.9);g.lineTo(1.9,5);g.stroke();
+  g.fillStyle=I.ml;g.beginPath();g.ellipse(-1.4,-0.4,1.3,2.1,0.3,0,6.2832);g.fill();
+  g.fillStyle=I.d;rr(g,-1.9,-5.6,3.8,2.5,0.8);g.fill();g.strokeStyle=PAL.blue.edge;g.stroke();
+  /* the spoon and the pin's ring */
+  g.strokeStyle=I.ml;g.lineWidth=1;
+  g.beginPath();g.moveTo(1.9,-5);g.quadraticCurveTo(5.6,-4.4,5.2,-0.8);g.stroke();
+  g.strokeStyle=I.a;g.globalAlpha=on?0.9:0.4;g.lineWidth=0.8;
+  g.beginPath();g.arc(-3.3,-4.9,1.5,0,6.2832);g.stroke();
+  g.globalAlpha=1;g.restore();
+}
+function jwMgIcon(g,W,H,on){
+  const I=jwGunInk(on);
+  g.save();g.translate(W/2,H/2);g.scale(2.9,2.9);
+  g.strokeStyle=PAL.blue.edge;g.lineWidth=0.5;
+  g.fillStyle=I.w;rr(g,-15,-1.4,5.6,3.4,1);g.fill();g.stroke();
+  g.fillStyle=I.m;rr(g,-9.6,-2.8,13.4,5,1);g.fill();g.stroke();
+  g.fillStyle=I.ml;rr(g,-9,-2.3,12.2,1,0.5);g.fill();
+  g.fillStyle=I.d;rr(g,3.6,-1.7,11.4,2.4,0.8);g.fill();g.stroke();     /* jacket */
+  g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=0.5;
+  for(let x=4.8;x<13.6;x+=2.2){g.beginPath();g.moveTo(x,-1.4);g.lineTo(x,0.4);g.stroke();}
+  g.fillStyle=I.d;rr(g,15,-2.1,1.8,3.2,0.6);g.fill();
+  /* the belt spilling out of the tray */
+  g.fillStyle=I.a;g.globalAlpha=on?0.85:0.4;
+  for(let i=0;i<5;i++)rr(g,-3.4+i*1.7,3+Math.sin(i*1.2)*1.1,1.1,2.6,0.4),g.fill();
+  g.globalAlpha=1;
+  /* the bipod */
+  g.strokeStyle=I.d;g.lineWidth=0.9;
+  g.beginPath();g.moveTo(7.4,0.7);g.lineTo(5.2,6);g.moveTo(7.4,0.7);g.lineTo(9.8,6);g.stroke();
   g.restore();
 }
-function jwNadeIcon(g,W,H){
-  g.save();g.translate(W/2,H/2+2);g.scale(3,3);
-  g.fillStyle='#39424d';g.beginPath();g.ellipse(0,1.2,4,5,0,0,Math.PI*2);g.fill();
-  g.strokeStyle=PAL.blue.edge;g.lineWidth=0.6;g.stroke();
-  g.fillStyle='#2c333d';rr(g,-2,-5.4,4,2.4,0.8);g.fill();g.stroke();
-  g.strokeStyle=PAL.blue.light;g.lineWidth=0.9;
-  g.beginPath();g.moveTo(2,-4.8);g.quadraticCurveTo(5.4,-4.4,5,-1.4);g.stroke();
-  g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=0.7;
-  g.beginPath();g.moveTo(-3.6,0.4);g.lineTo(3.6,0.4);g.moveTo(0,-2.8);g.lineTo(0,5);g.stroke();
+function jwSniperIcon(g,W,H,on){
+  const I=jwGunInk(on);
+  g.save();g.translate(W/2,H/2);g.scale(2.9,2.9);
+  g.strokeStyle=PAL.blue.edge;g.lineWidth=0.5;
+  g.fillStyle=I.w;rr(g,-16,-1.5,8.4,3.6,1.1);g.fill();g.stroke();
+  g.fillStyle=I.wl;rr(g,-16,-1.5,8.4,1.3,0.7);g.fill();
+  g.fillStyle=I.m;rr(g,-7.8,-2.2,10.6,4,1);g.fill();g.stroke();
+  g.fillStyle=I.d;rr(g,2.6,-1.2,13.8,1.6,0.7);g.fill();g.stroke();     /* long barrel */
+  g.fillStyle=I.d;rr(g,16.2,-1.7,1.9,2.6,0.6);g.fill();                /* brake */
+  /* the scope, the piece that names it */
+  g.fillStyle=I.d;rr(g,-5.2,-5.6,8.8,2.6,1.3);g.fill();g.stroke();
+  g.fillStyle=I.a;g.globalAlpha=on?0.8:0.4;
+  g.beginPath();g.ellipse(3.2,-4.3,0.9,1,0,0,6.2832);g.fill();g.globalAlpha=1;
+  g.fillStyle=I.d;rr(g,-1.6,-3.2,1.4,1.2,0.4);g.fill();
+  g.fillStyle=I.w;rr(g,-4.4,1.8,2.4,3.4,0.8);g.fill();g.stroke();
+  g.strokeStyle=I.d;g.lineWidth=0.9;
+  g.beginPath();g.moveTo(9.6,0.4);g.lineTo(7.6,5.6);g.moveTo(9.6,0.4);g.lineTo(11.8,5.6);g.stroke();
+  g.restore();
+}
+function jwLockBadge(g,W,H){
+  g.save();g.translate(W-16,H-14);
+  g.fillStyle='rgba(12,13,18,.75)';g.beginPath();g.arc(0,0,10,0,6.2832);g.fill();
+  g.strokeStyle='#4a4f5c';g.lineWidth=1.6;
+  g.beginPath();g.arc(0,-2,3,3.1416,0);g.stroke();
+  g.fillStyle='#565b68';rr(g,-4.4,-2,8.8,7,1.4);g.fill();
+  g.fillStyle='#1c2027';g.beginPath();g.arc(0,1,1.2,0,6.2832);g.fill();
   g.restore();
 }
 function jwLockIcon(g,W,H){
@@ -9503,8 +9759,16 @@ $('#jwGoBtn').addEventListener('click',jwGo);
 $('#jwId').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();jwGo();}});
 $('#jwCard').addEventListener('click',e=>{
   let c=e.target;
-  while(c&&c!==e.currentTarget&&!(c.dataset&&c.dataset.slot))c=c.parentNode;
-  if(!c||!c.dataset||!c.dataset.slot)return;
+  while(c&&c!==e.currentTarget&&!(c.dataset&&(c.dataset.slot||c.dataset.act)))c=c.parentNode;
+  if(!c||!c.dataset)return;
+  if(c.dataset.act){
+    /* the same button asked twice stands him back at ease */
+    J3.act=J3.act===c.dataset.act?'idle':c.dataset.act;
+    J3.t=0;
+    document.querySelectorAll('#jwActs i').forEach(b=>b.classList.toggle('on',b.dataset.act===J3.act));
+    return;
+  }
+  if(!c.dataset.slot)return;
   const k=c.dataset.slot;
   JW.preview[k]=JW.preview[k]===3?1:3;
   jwChips();
