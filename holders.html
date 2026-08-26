@@ -135,6 +135,36 @@ tbody tr:hover{background:#1c1c22}
 .scan-tw th:nth-child(2),.scan-tw td:nth-child(2){text-align:right}
 .scan-tw tr.self td{background:rgba(0,255,255,.035)}
 .scan-foot{margin-top:9px;font-size:10.5px;color:var(--dim);line-height:1.55}
+/* ---- the phone layout: the table becomes cards ----
+   Eleven columns cannot fit a portrait phone honestly; below 640px each
+   holder becomes a card that leads with the numbers that matter. */
+#cards{display:none}
+@media (max-width:640px){
+  .tw{display:none}
+  #cards{display:grid;gap:8px}
+  .mc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 11px}
+  .mc-t{display:flex;align-items:center;gap:8px;min-width:0}
+  .mc-t .rk{flex:none;font-size:10.5px;color:var(--dim);min-width:20px;text-align:center;font-variant-numeric:tabular-nums}
+  .mc-t .nm{flex:1;min-width:0;max-width:none;font-size:13px}
+  .mc-t .pnl{flex:none;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+  .mc-t .pnl small{display:block;font-size:10px;font-weight:600}
+  .mc-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
+  .mc-g div{min-width:0}
+  .mc-g b{display:block;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .mc-g span{display:block;font-size:9.5px;color:var(--dim);letter-spacing:.04em;margin-top:1px}
+  .mc-x{margin-top:7px;padding-top:7px;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;gap:5px 12px;
+    font-size:10.5px;color:var(--text-2);font-variant-numeric:tabular-nums;align-items:center}
+  /* the sort row scrolls sideways instead of stacking three deep */
+  .tools{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  .tools .sort,.tools .lbl{flex:none}
+  .tools .count{display:none}
+  #q{min-width:110px}
+  /* the x-ray table: entry and market cap step aside, the rest fits */
+  .scan-tw table{min-width:0}
+  .scan-tw th:nth-child(4),.scan-tw td:nth-child(4),
+  .scan-tw th:nth-child(7),.scan-tw td:nth-child(7){display:none}
+  .scan-head b{font-size:13.5px}
+}
 /* share bar behind the percentage, so the whale shape is readable at a glance */
 .shr{position:relative;display:inline-block;min-width:52px}
 .shr i{position:absolute;right:0;bottom:-3px;height:2px;background:var(--cyan);opacity:.5;border-radius:1px}
@@ -233,6 +263,7 @@ footer a:hover{color:var(--cyan)}
       <a class="btn" href="road.html" data-i="navRoad">The road here</a>
       <a class="btn" href="battle.html" data-i="navWar">Read the battle</a>
       <a class="btn" href="battle.html#join" data-i="navJoin">Join the battle</a>
+      <a class="btn" href="community.html" data-i="navCom">Community</a>
       <a class="btn" href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun ↗</a>
       <button class="btn" id="langBtn" type="button">中文</button>
     </nav>
@@ -318,6 +349,7 @@ footer a:hover{color:var(--cyan)}
       <tbody id="rows"></tbody>
     </table>
   </div>
+  <div id="cards"></div>
   <div class="prog" id="prog" hidden><span id="progTxt"></span><span class="bar"><i id="progBar"></i></span></div>
 
   <section class="note">
@@ -347,7 +379,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 /* ================= i18n ================= */
 const I18N={
  en:{
-  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',title:'HOLDER BOARD',
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',navCom:'Community',title:'HOLDER BOARD',
   bMarket:'Market',bHolders:'Holders',bPool:'Liquidity pool',bFees:'Fees earned to date',
   bChart:'Trend',cHolders:'Holders',cPool:'Pool size',cWait:'loading…',
   tf:{'1m':'1m','5m':'5m','1h':'1h','4h':'4h','1d':'1D','1w':'1W'},
@@ -384,6 +416,7 @@ const I18N={
   loading:'Reading holder history from odin.fun…',
   progress:(a,b)=>'Working out how long each holder has held — '+a+' / '+b,
   days:d=>d+'d',noData:'—',
+  mcBal:'HOLDING',mcVal:'VALUE',mcHeld:'HELD',
   errLoad:'Could not reach the odin.fun API. It rate-limits and occasionally blocks non-browser traffic; try a reload in a minute.',
   howTitle:'Titles',
   how:[
@@ -394,7 +427,7 @@ const I18N={
   footPosts:'#NOODL posts'
  },
  zh:{
-  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',title:'NOODL 持仓看板',
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',navCom:'加入社区',title:'NOODL 持仓看板',
   bMarket:'行情',bHolders:'持有者',bPool:'流动性池',bFees:'累计手续费收入',
   bChart:'走势',cHolders:'持仓人数',cPool:'池子规模',cWait:'加载中…',
   tf:{'1m':'1分','5m':'5分','1h':'1时','4h':'4时','1d':'1日','1w':'1周'},
@@ -431,6 +464,7 @@ const I18N={
   loading:'正在读取持有者历史…',
   progress:(a,b)=>'正在算每个人拿了多久 — '+a+' / '+b,
   days:d=>d+' 天',noData:'—',
+  mcBal:'持仓',mcVal:'价值',mcHeld:'持有',
   errLoad:'连不上 odin.fun 接口。它有频率限制，偶尔也会拦非浏览器流量，过一分钟刷新试试。',
   howTitle:'称号',
   how:[
@@ -1337,6 +1371,31 @@ function render(){
       +'<td><span class="tags">'+(tags||'<span class="pend">'+ui.noData+'</span>')+'</span></td>'
       +'</tr>';
   }).join('');
+
+  /* the same rows again, as cards, for the phone */
+  const mcs=$('#cards');
+  if(mcs)mcs.innerHTML=rows.map((o,i)=>{
+    const d=heldDays(o.user);
+    const earn=lpEarnedUsd(o.user);
+    const tags=(isNoodler(o)?'<span class="tag noodler">NOODLER</span>':'')
+              +(o.lpShare>0?'<span class="tag chef">CHEF</span>':'');
+    return '<div class="mc">'
+      +'<div class="mc-t"><span class="rk">'+(i+1)+'</span>'
+      +'<span class="av" aria-hidden="true">'+esc((o.name.trim()[0]||'?').toUpperCase())+'</span>'
+      +'<span class="nm"><a href="https://odin.fun/user/'+esc(o.user)+'" target="_blank" rel="noopener">'+esc(o.name)+'</a></span>'
+      +'<span class="pnl '+pctCls(o.pnlUsd)+'">'+(o.pnlUsd>=0?'+':'\u2212')+fmtUsd(Math.abs(o.pnlUsd))
+        +(o.pnlPct===null?'':'<small>'+signPct(o.pnlPct)+'</small>')+'</span></div>'
+      +'<div class="mc-g">'
+      +'<div><b>'+fmtTok(o.bal)+'</b><span>'+ui.mcBal+' \u00b7 '+nf(o.share,2)+'%</span></div>'
+      +'<div><b>'+fmtUsd(o.usd)+'</b><span>'+ui.mcVal+'</span></div>'
+      +'<div><b>'+(d===null?'\u2014':ui.days(nf(d,0)))+'</b><span>'+ui.mcHeld+'</span></div>'
+      +'</div>'
+      +((o.lpShare||tags)?'<div class="mc-x">'
+        +(o.lpShare?'<span>LP '+nf(o.lpShare,2)+'%'
+          +(typeof earn==='number'?' \u00b7 <span class="up">'+fmtUsd(earn)+'</span>':'')+'</span>':'')
+        +tags+'</div>':'')
+      +'</div>';
+  }).join('');
 }
 
 /* ================= events ================= */
@@ -1366,6 +1425,19 @@ $('#langBtn').addEventListener('click',()=>{
 });
 
 render();
+/* arriving from the homepage search: run the query it carried, then bring
+   the desk into view */
+(function(){
+  const m=location.search.match(/[?&]scan=([^&]+)/);
+  if(!m)return;
+  let q='';
+  try{q=decodeURIComponent(m[1].replace(/\+/g,' '));}catch(e){}
+  const el=$('#scanQ');
+  if(!q||!el)return;
+  el.value=q;
+  scanGo();
+  setTimeout(()=>{try{el.closest('.band').scrollIntoView({block:'start'});}catch(e){}},150);
+})();
 load().catch(e=>{
   console.error(e);
   setLive('fail',I18N[lang].liveFail);

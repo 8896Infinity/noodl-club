@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join the community · NOODL.club</title>
+<meta name="description" content="Every door into the NOODL community — the Odin community, X, Telegram and the QQ group — one tap or one scan away.">
+<meta name="theme-color" content="#111117">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#111117;--panel:#18181d;--line:#27272a;--line-soft:#1f1f25;
+  --cyan:#00ffff;--cyan-dim:#00c9c9;--text:#fafafa;--text-2:#a8aab8;
+  --dim:#6b6d7c;--up:#3ddc84;--down:#ff6b6b;--noodle-y:#fcd14f;--noodle-o:#ef9530;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
+  font-family:'Work Sans','PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+}
+a{color:inherit}
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+#stars i{position:absolute;border-radius:1.5px;animation:tw linear infinite}
+@keyframes tw{0%,100%{opacity:.12}50%{opacity:.9}}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:18px 18px 60px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;
+  padding-bottom:14px;border-bottom:1px solid var(--line)}
+.wordmark{font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--cyan);text-decoration:none;display:flex;align-items:center;gap:8px}
+.topnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{
+  font-family:inherit;font-weight:500;font-size:12.5px;letter-spacing:.02em;cursor:pointer;
+  color:var(--text-2);text-decoration:none;background:transparent;
+  border:1px solid var(--line);border-radius:6px;padding:6px 12px;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+.btn.on{color:var(--cyan);border-color:rgba(0,255,255,.5);background:rgba(0,255,255,.08);font-weight:600}
+#langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
+h1{font-weight:800;font-size:clamp(26px,5.5vw,38px);line-height:1.06;letter-spacing:.01em}
+.sub{margin-top:10px;font-size:13.5px;color:var(--text-2);line-height:1.6;max-width:620px}
+
+/* ---- the four doors ----
+   One card per channel, same rhythm on each: who it is, the code you scan,
+   the button you tap. On a phone the button is the door; on a desktop the
+   phone scans the screen. */
+.doors{margin-top:26px;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.door{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 15px;
+  display:flex;flex-direction:column;gap:12px}
+.door-h{display:flex;align-items:center;gap:10px}
+.door-ic{width:36px;height:36px;border-radius:10px;flex:none;display:grid;place-items:center;
+  border:1px solid var(--line);background:var(--bg)}
+.door-ic svg{display:block}
+.door-h b{font-size:14.5px;display:block}
+.door-h span{display:block;font-size:11px;color:var(--dim);margin-top:2px;font-variant-numeric:tabular-nums;word-break:break-all}
+.door-q{background:#fff;border-radius:10px;padding:10px;display:grid;place-items:center;margin:0 auto;width:100%;max-width:200px}
+.door-q canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+/* the QQ door has a number where the others have a code */
+.door-num{background:#fff;border-radius:10px;padding:10px;display:grid;place-items:center;margin:0 auto;width:100%;max-width:200px;aspect-ratio:1;text-align:center}
+.door-num b{display:block;color:#14161c;font-size:25px;font-weight:800;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.door-num span{display:block;color:#6b6d7c;font-size:11px;font-weight:600;margin-top:6px;letter-spacing:.08em}
+.door-num i{display:block;font-style:normal;font-size:34px;line-height:1;margin-bottom:10px}
+.door-go{margin-top:auto;display:block;text-align:center;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;
+  color:var(--cyan);text-decoration:none;background:rgba(0,255,255,.07);
+  border:1px solid rgba(0,255,255,.45);border-radius:6px;padding:10px 12px;width:100%}
+.door-go:hover{background:rgba(0,255,255,.13)}
+.door-go.ok{color:var(--up);border-color:rgba(61,220,132,.5);background:rgba(61,220,132,.08)}
+.door-tip{font-size:10.5px;color:var(--dim);line-height:1.55;text-align:center}
+.note{margin-top:22px;font-size:11.5px;color:var(--dim);line-height:1.7}
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);line-height:1.7}
+@media (max-width:560px){
+  .doors{grid-template-columns:1fr 1fr}
+  .door{padding:12px 11px 11px}
+  .door-h b{font-size:13px}
+  .door-num b{font-size:19px}
+}
+@media (max-width:400px){.doors{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){#stars i{animation:none}}
+</style>
+</head>
+<body>
+<div id="stars" aria-hidden="true"></div>
+<div class="wrap">
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">🍜 NOODL·CLUB</a>
+    <nav class="topnav">
+      <a class="btn" href="index.html" data-i="navHome">Home</a>
+      <a class="btn" href="holders.html" data-i="navBoard">Holder board</a>
+      <a class="btn" href="revelation.html" data-i="navRev">NOODL Revelation</a>
+      <a class="btn" href="road.html" data-i="navRoad">The road here</a>
+      <a class="btn" href="battle.html" data-i="navWar">Read the battle</a>
+      <a class="btn" href="battle.html#join" data-i="navJoin">Join the battle</a>
+      <a class="btn on" href="community.html" aria-current="page" data-i="navCom">Community</a>
+      <a class="btn" href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun ↗</a>
+      <button class="btn" id="langBtn" type="button">中文</button>
+    </nav>
+  </header>
+
+  <h1 data-i="title">JOIN THE COMMUNITY</h1>
+  <p class="sub" data-i="sub"></p>
+
+  <div class="doors">
+
+    <div class="door">
+      <div class="door-h">
+        <span class="door-ic"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.2" fill="none" stroke="#fcd14f" stroke-width="2"/><circle cx="10" cy="10" r="2.4" fill="#fcd14f"/></svg></span>
+        <div><b data-i="odinT">Odin community</b><span data-i="odinS"></span></div>
+      </div>
+      <div class="door-q"><canvas id="qrOdin" width="196" height="196"></canvas></div>
+      <a class="door-go" href="https://odin.fun/c/7ij3h-flwdx-jncgk-765tf-qyu7w-cr77f-wjvqt-bvapu-tgx56-aydty-bqe?r=u1jr4b658e" target="_blank" rel="noopener" data-i="odinGo">Open the community</a>
+      <div class="door-tip" data-i="odinTip"></div>
+    </div>
+
+    <div class="door">
+      <div class="door-h">
+        <span class="door-ic"><svg width="17" height="17" viewBox="0 0 24 24"><path fill="#fafafa" d="M18.3 2h3.4l-7.5 8.6L23 22h-6.9l-5.4-7.1L4.5 22H1.1l8-9.2L.7 2h7.1l4.9 6.5L18.3 2zm-1.2 18h1.9L6.7 3.9H4.7L17.1 20z"/></svg></span>
+        <div><b data-i="xT">X · Twitter</b><span>@NOODL_club</span></div>
+      </div>
+      <div class="door-q"><canvas id="qrX" width="196" height="196"></canvas></div>
+      <a class="door-go" href="https://x.com/NOODL_club" target="_blank" rel="noopener" data-i="xGo">Follow @NOODL_club</a>
+      <div class="door-tip" data-i="xTip"></div>
+    </div>
+
+    <div class="door">
+      <div class="door-h">
+        <span class="door-ic"><svg width="19" height="19" viewBox="0 0 24 24"><path fill="#2aabee" d="M21.9 3.4 18.6 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1L18.1 6c.4-.4-.1-.6-.6-.2L6 13l-4.9-1.5c-1.1-.3-1.1-1.1.2-1.6L20.4 2.2c.9-.3 1.7.2 1.5 1.2z"/></svg></span>
+        <div><b>Telegram</b><span>@NOODLENOVA</span></div>
+      </div>
+      <div class="door-q"><canvas id="qrTg" width="196" height="196"></canvas></div>
+      <a class="door-go" href="https://t.me/NOODLENOVA" target="_blank" rel="noopener" data-i="tgGo">Join the Telegram</a>
+      <div class="door-tip" data-i="tgTip"></div>
+    </div>
+
+    <div class="door">
+      <div class="door-h">
+        <span class="door-ic"><svg width="19" height="19" viewBox="0 0 24 24"><path fill="#12b7f5" d="M12 2c-3.9 0-6.5 2.7-6.5 6.6 0 .8-.7 2.6-1.2 3.7-.7 1.5-1.3 2.9-.6 3.5.5.5 1.4.1 2.2-.4.3 1 1 2 2 2.7-.9.3-2.2.9-2.2 1.7 0 1.1 2.9 1.7 6.3 1.7s6.3-.6 6.3-1.7c0-.8-1.3-1.4-2.2-1.7 1-.7 1.7-1.7 2-2.7.8.5 1.7.9 2.2.4.7-.6.1-2-.6-3.5-.5-1.1-1.2-2.9-1.2-3.7C18.5 4.7 15.9 2 12 2z"/></svg></span>
+        <div><b data-i="qqT">QQ group</b><span data-i="qqS"></span></div>
+      </div>
+      <div class="door-q"><canvas id="qrQq" width="196" height="196"></canvas></div>
+      <a class="door-go" href="https://qm.qq.com/q/uIUW1U9q5a" target="_blank" rel="noopener" data-i="qqGo">Join the QQ group</a>
+      <div class="door-tip" data-i="qqTip"></div>
+    </div>
+
+  </div>
+
+  <p class="note" data-i="note"></p>
+
+  <footer>
+    <span data-i="foot"></span>
+  </footer>
+</div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+
+/* ================= i18n ================= */
+const I18N={
+ en:{
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',navCom:'Community',
+  title:'JOIN THE COMMUNITY',
+  sub:'Four doors into the noodle universe. On a phone, tap the button; on a desktop, scan the code with your phone. Same room either way.',
+  odinT:'Odin community',odinS:'inside odin.fun, where the tape lives',
+  odinGo:'Open the community',odinTip:'opens on odin.fun — works signed in or out',
+  xT:'X · Twitter',xGo:'Follow @NOODL_club',xTip:'announcements and battle reports',
+  tgGo:'Join the Telegram',tgTip:'tap on a phone and the app opens straight in',
+  qqT:'QQ group',qqS:'NOODL 共识群 · 557302630',
+  qqGo:'Join the QQ group',
+  qqTip:'scan or tap to join — searching 557302630 in QQ works too',
+  note:'The QR codes are drawn by this page itself and point only at the addresses printed above them — nothing shortened, nothing tracked.',
+  foot:'NOODL.club — a community site. Nothing here is financial advice.'
+ },
+ zh:{
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',navCom:'加入社区',
+  title:'加入社区',
+  sub:'面条宇宙的四扇门。手机上点按钮直接进；电脑上打开这页，用手机扫码。殊途同归。',
+  odinT:'奥丁社区',odinS:'odin.fun 平台内部社区，行情就在这',
+  odinGo:'打开社区',odinTip:'在 odin.fun 打开，登录与否都能看',
+  xT:'X · 推特',xGo:'关注 @NOODL_club',xTip:'公告与战报都发这里',
+  tgGo:'加入 Telegram',tgTip:'手机上点一下，直接跳进 App',
+  qqT:'QQ 群',qqS:'NOODL 共识群 · 群号 557302630',
+  qqGo:'一键加群',
+  qqTip:'扫码或点按钮直接进群 · 在 QQ 搜索群号 557302630 也行',
+  note:'页面上的二维码由本页自行绘制，只指向各自上方印着的地址 —— 不经过短链，也不带跟踪。',
+  foot:'NOODL.club — 社区网站，本页内容不构成任何投资建议。'
+ }
+};
+let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
+if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
+
+function render(){
+  const ui=I18N[lang];
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const v=ui[el.dataset.i];if(typeof v==='string')el.textContent=v;
+  });
+  $('#langBtn').textContent=lang==='en'?'中文':'EN';
+  document.title=(lang==='zh'?'加入社区':'Join the community')+' · NOODL.club';
+}
+$('#langBtn').addEventListener('click',()=>{
+  lang=lang==='en'?'zh':'en';
+  try{localStorage.setItem('noodl_lang',lang);}catch(e){}
+  render();
+});
+
+/* ================= stars, same as the other pages ================= */
+(function(){
+  const box=$('#stars'),colors=['#f4ead0','#f5a86a','#8fd0c8','#ffffff','#e06a2b'];
+  for(let i=0;i<70;i++){
+    const s=document.createElement('i'),w=(1.5+Math.random()*2.5).toFixed(1);
+    s.style.cssText='left:'+(Math.random()*100).toFixed(2)+'%;top:'+(Math.random()*100).toFixed(2)+
+      '%;width:'+w+'px;height:'+w+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+
+      ';animation-delay:-'+(Math.random()*8).toFixed(2)+'s;animation-duration:'+(3+Math.random()*5).toFixed(2)+'s';
+    box.appendChild(s);
+  }
+})();
+
+/* ================= the codes ----------------
+   Each QR was generated offline from the exact URL on its card and baked in
+   as a hex bitmap — the page draws it, no library, no image request, and
+   nothing can drift out of sync with the printed address. */
+const QRS={
+  odin:{n:41,hex:'fe44dde9bfc13be24f106ebd5bc6cbb75d618dc5dbaca7b0daec154953e507faaaaaaafe01d76d3300be16e1f43e0a771fd7dde6b11b8da8112f96f1338270ee8ef875ecf2101dec1ddebef17d18000e366b2ad7eb755226279cc1df5faf488e3b109f51075da13a4261d16aa332e81f6cfc2228c311da7c1d5611c6325af416d6005a839e75a2709c200604c2e130bb6cff34f47488aa740d6ebaf051cba123403d50c98a9b527cfe004ebff446ff9df33deb9057fcda51bba89153efa5d5a19a22b2eb8531edf904747c115afedd63d57e0'},
+  x:{n:25,hex:'fe29bfc109d06eb22bb75945dbad5aec141d07faaafe010100be2a3e58d7c08ca5d174ae5111b167bf2f4caa3d96f759d5b1822efa0072c63f96aaf05e319babffa5d5537eebaa1b0477b9feae5f8'},
+  tg:{n:25,hex:'fe3ebfc130d06eb0cbb75e45dbaf12ec14f907faaafe01a800be723e363880b2be916d9652153177bde050aa9b93772999f19b48fa0060463f8e6af05a119bad1fb5d56b76eb1c1b049bf9feeb7f8'},
+  qq:{n:29,hex:'fef1d3fc1375506eb4f6bb74e465dba2752ec15cb507faaaafe0007500a32e3129e9b1f8e7905dbb7378788e2adce0ee7c598faf9b442e097470b3ee330a8173d1fc8c5db23af87f0ce058fd00405477fb9baa30497511ba76bfc5d131a7aeafd127041c5e8fef18988'}
+};
+function drawQr(cvId,q){
+  const cv=$(cvId);if(!cv)return;
+  const n=q.n, QZ=4, T=n+QZ*2;
+  const px=Math.floor(392/T), size=px*T;
+  cv.width=size;cv.height=size;
+  const g=cv.getContext('2d');
+  g.fillStyle='#ffffff';g.fillRect(0,0,size,size);
+  g.fillStyle='#14161c';
+  /* unpack the hex row by row */
+  let bi=0;
+  const bit=i=>(parseInt(q.hex[i>>2],16)>>(3-(i&3)))&1;
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++,bi++){
+    if(!bit(bi))continue;
+    g.fillRect((x+QZ)*px,(y+QZ)*px,px,px);
+  }
+}
+drawQr('#qrOdin',QRS.odin);
+drawQr('#qrX',QRS.x);
+drawQr('#qrTg',QRS.tg);
+drawQr('#qrQq',QRS.qq);
+
+render();
+</script>
+</body>
+</html>

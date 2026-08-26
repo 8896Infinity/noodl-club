@@ -364,6 +364,22 @@ footer a:hover{color:var(--cyan)}
   #stars i,.sparkle,#head,#nBlink,.live-dot{animation:none !important}
   .planet{transition:none}
 }
+/* ---- the doorway x-ray: type here, read the answer on the board ---- */
+.xray{max-width:640px;margin:16px auto 0;padding:0 16px;position:relative;z-index:2}
+.xray-in{display:flex;gap:8px}
+#xrayQ{flex:1;min-width:0;font-family:inherit;font-size:13px;color:var(--text);background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;padding:10px 13px}
+#xrayQ:focus{outline:none;border-color:var(--cyan)}
+#xrayQ::placeholder{color:var(--dim)}
+.xray-in button{flex:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--cyan);cursor:pointer;
+  background:rgba(0,255,255,.07);border:1px solid rgba(0,255,255,.45);border-radius:8px;padding:10px 18px}
+.xray-in button:hover{background:rgba(0,255,255,.13)}
+.xray-hint{margin-top:7px;font-size:11px;color:var(--dim);text-align:center;line-height:1.5;padding:0 4px}
+@media (max-width:560px){
+  .xray{margin-top:12px}
+  #xrayQ{font-size:16px;padding:9px 12px}
+  .xray-in button{padding:9px 14px}
+}
 </style>
 </head>
 <body>
@@ -386,7 +402,16 @@ footer a:hover{color:var(--cyan)}
   <a class="tab" href="road.html" data-i="navRoad">The road here</a>
   <a class="tab" href="battle.html" data-i="navWar">Read the battle</a>
   <a class="tab" href="battle.html#join" data-i="navJoin">Join the battle</a>
+  <a class="tab" href="community.html" data-i="navCom">Community</a>
 </nav>
+
+<div class="xray">
+  <form class="xray-in" id="xrayForm">
+    <input id="xrayQ" type="search" autocomplete="off" spellcheck="false">
+    <button type="submit" data-i="xrayGo">X-ray</button>
+  </form>
+  <div class="xray-hint" data-i="xrayHint"></div>
+</div>
 
 <main>
   <section class="hero">
@@ -578,7 +603,10 @@ en:{
     tipTarget:(btc,hit)=>'Target market cap <b>'+btc+' BTC</b> <span class="'+(hit?'yes':'no')+'">('+(hit?'reached':'not reached')+')</span>',
     tipNova:(hit)=>'<b>NOVA</b> · final target <b>5000 BTC</b> <span class="'+(hit?'yes':'no')+'">('+(hit?'reached':'not reached')+')</span>',
     reached:'🌟 NOVA REACHED, the noodle has left the bowl',
-    navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',
+    navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',navCom:'Community',
+      xrayPh:'Account x-ray: Odin user ID, profile link, or username',
+      xrayGo:'X-ray',
+      xrayHint:'Any Odin account: every holding, entry and unrealised P&L \u2014 the result opens on the holder board',
     dailyH:'NOODL Daily Report',
     dailyLead:'The whole platform and the whole token in one picture: ODIN·FUN over the last 24 hours, NOODL\'s price, holders, pool and fees. Save it as one image, or copy it straight to the clipboard.',
     chopHint:'PICK UP A #NOODL POST',
@@ -609,7 +637,10 @@ zh:{
     tipTarget:(btc,hit)=>'目标市值 <b>'+btc+' BTC</b><span class="'+(hit?'yes':'no')+'">（'+(hit?'已达成':'尚未达成')+'）</span>',
     tipNova:(hit)=>'<b>NOVA · 超新星</b> 终点市值 <b>5000 BTC</b><span class="'+(hit?'yes':'no')+'">（'+(hit?'已达成':'尚未达成')+'）</span>',
     reached:'🌟 超新星达成：面条已冲出碗外',
-    navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',
+    navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',navCom:'加入社区',
+      xrayPh:'查户口：输入奥丁用户 ID / 主页链接 / 用户名',
+      xrayGo:'透视',
+      xrayHint:'输入任意奥丁账号，看他全平台持有哪些代币、每项成本与未实现盈亏 —— 结果在持仓看板打开',
     dailyH:'NOODL 日报',
     dailyLead:'一张图看完平台和代币：ODIN·FUN 最近 24 小时的数据，以及 NOODL 的价格、持仓、池子与手续费。可保存为图片，也可以直接复制到剪贴板。',
     chopHint:'夹一条 #NOODL 帖子',
@@ -967,6 +998,7 @@ function applyLang(){
     if(typeof v==='string')el.textContent=v;
   });
   $('#langBtn').textContent=lang==='en'?'中文':'EN';
+  const xq=$('#xrayQ');if(xq)xq.placeholder=ui.xrayPh||'';
   chopEl.setAttribute('aria-label',ui.chopHint);
   chopHint.textContent=ui.chopHint;
   if(feedOpen())renderFeed();
@@ -978,6 +1010,13 @@ $('#langBtn').addEventListener('click',()=>{
   lang=lang==='en'?'zh':'en';
   try{localStorage.setItem('noodl_lang',lang);}catch(e){}
   applyLang();
+});
+/* the bar carries the query to the board; the board does the work */
+$('#xrayForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const q=($('#xrayQ').value||'').trim();
+  if(!q)return;
+  location.href='holders.html?scan='+encodeURIComponent(q);
 });
 /* ================= #NOODL post dropdown (chopsticks) ================= */
 const feedEl=$('#feed'),chopEl=$('#chopsticks');
