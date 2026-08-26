@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Defi · NOODL.club</title>
+<meta name="description" content="The road here, the live battlefield, and the recruiting desk — NOODL's whole DeFi story on one page.">
+<meta name="theme-color" content="#111117">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#111117;--panel:#18181d;--line:#27272a;--line-soft:#1f1f25;
+  --cyan:#00ffff;--cyan-dim:#00c9c9;--text:#fafafa;--text-2:#a8aab8;
+  --dim:#6b6d7c;--up:#3ddc84;--down:#ff6b6b;--noodle-y:#fcd14f;--noodle-o:#ef9530;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);overflow:hidden;
+  font-family:'Work Sans','PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+  display:flex;flex-direction:column;
+}
+a{color:inherit}
+.topbar{flex:none;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px 11px;border-bottom:1px solid var(--line)}
+.wordmark{font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--cyan);text-decoration:none;display:flex;align-items:center;gap:8px}
+.topnav{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.btn{
+  font-family:inherit;font-weight:500;font-size:12px;letter-spacing:.02em;cursor:pointer;
+  color:var(--text-2);text-decoration:none;background:transparent;
+  border:1px solid var(--line);border-radius:6px;padding:5px 11px;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+.btn.on{color:var(--cyan);border-color:rgba(0,255,255,.5);background:rgba(0,255,255,.08);font-weight:600}
+#langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
+/* the three chapters of the same story */
+.dfnav{flex:none;display:flex;gap:7px;justify-content:center;padding:9px 12px;border-bottom:1px solid var(--line);
+  background:rgba(17,17,23,.92)}
+.dfnav button{
+  font-family:inherit;font-weight:600;font-size:12.5px;cursor:pointer;
+  color:var(--text-2);background:transparent;border:1px solid var(--line);border-radius:6px;padding:7px 16px;
+  transition:border-color .15s,color .15s,background .15s;white-space:nowrap;
+}
+.dfnav button:hover{border-color:var(--cyan);color:var(--cyan)}
+.dfnav button.on{color:var(--cyan);border-color:rgba(0,255,255,.5);background:rgba(0,255,255,.08)}
+.dfnav button.jn{color:var(--noodle-y);border-color:rgba(252,209,79,.4)}
+.dfnav button.jn:hover{border-color:var(--noodle-y);background:rgba(252,209,79,.07)}
+/* the stage fills whatever is left of the screen */
+#stage{flex:1;position:relative;min-height:0;background:#0c0d12}
+#stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+@media (max-width:560px){
+  .topbar{padding:10px 10px 9px}
+  .dfnav{overflow-x:auto;justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="wordmark" href="index.html">🍜 NOODL·CLUB</a>
+    <nav class="topnav">
+      <a class="btn" href="index.html" data-i="navHome">Home</a>
+      <a class="btn" href="holders.html" data-i="navBoard">Holder board</a>
+      <a class="btn" href="revelation.html" data-i="navRev">NOODL Revelation</a>
+      <a class="btn on" href="defi.html" aria-current="page" data-i="navDefi">Defi</a>
+      <a class="btn" href="community.html" data-i="navCom">Community</a>
+      <a class="btn" href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun ↗</a>
+      <button class="btn" id="langBtn" type="button">中文</button>
+    </nav>
+  </header>
+
+  <nav class="dfnav" aria-label="Defi chapters">
+    <button type="button" data-v="road" data-i="navRoad">The road here</button>
+    <button type="button" data-v="battle" data-i="navWar">Read the battle</button>
+    <button type="button" class="jn" data-v="join" data-i="navJoin">Join the battle</button>
+  </nav>
+
+  <div id="stage"></div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+
+/* ================= i18n ================= */
+const I18N={
+ en:{navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navDefi:'Defi',navCom:'Community',
+     navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle'},
+ zh:{navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navDefi:'Defi',navCom:'加入社区',
+     navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场'}
+};
+let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
+if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
+function render(){
+  const ui=I18N[lang];
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const v=ui[el.dataset.i];if(typeof v==='string')el.textContent=v;
+  });
+  $('#langBtn').textContent=lang==='en'?'中文':'EN';
+}
+$('#langBtn').addEventListener('click',()=>{
+  lang=lang==='en'?'zh':'en';
+  try{localStorage.setItem('noodl_lang',lang);}catch(e){}
+  render();
+});
+
+/* ================= the chapters ----------------
+   Each chapter is its own page in a same-origin frame: nothing merged,
+   nothing broken, and the inner page's own nav row is tucked away. The
+   road restarts each visit — that also stops its music the honest way.
+   The battle stays alive in the background; it was built to survive
+   hidden tabs and pick the fight back up. */
+const V={road:null,battle:null};
+function mk(src){
+  const f=document.createElement('iframe');
+  f.src=src;
+  f.allow='fullscreen';
+  f.setAttribute('allowfullscreen','');
+  f.addEventListener('load',()=>{
+    f.__ready=true;
+    try{
+      const st=f.contentDocument.createElement('style');
+      st.textContent='.secnav{display:none!important}';
+      f.contentDocument.head.appendChild(st);
+    }catch(e){}
+  });
+  $('#stage').appendChild(f);
+  return f;
+}
+function show(v){
+  document.querySelectorAll('.dfnav button').forEach(b=>
+    b.classList.toggle('on',b.dataset.v===(v==='join'?'battle':v)));
+  if(v==='road'){
+    if(!V.road)V.road=mk('road.html');
+    V.road.style.display='block';
+    if(V.battle)V.battle.style.display='none';
+    return;
+  }
+  /* battle and the recruiting desk share one frame */
+  if(V.road){V.road.remove();V.road=null;}
+  const fresh=!V.battle;
+  if(fresh)V.battle=mk(v==='join'?'battle.html#join':'battle.html');
+  V.battle.style.display='block';
+  if(v==='join'&&!fresh&&V.battle.__ready){
+    try{
+      const w=V.battle.contentWindow;
+      if(w.location.hash==='#join')w.location.hash='';
+      w.location.hash='#join';
+    }catch(e){}
+  }
+}
+$('.dfnav')||0;
+document.querySelector('.dfnav').addEventListener('click',e=>{
+  const b=e.target.closest?e.target.closest('button[data-v]'):null;
+  if(b)show(b.dataset.v);
+});
+
+render();
+/* the road first: the story starts at the beginning */
+show(location.hash==='#battle'?'battle':location.hash==='#join'?'join':'road');
+</script>
+</body>
+</html>

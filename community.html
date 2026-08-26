@@ -91,9 +91,7 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-si
       <a class="btn" href="index.html" data-i="navHome">Home</a>
       <a class="btn" href="holders.html" data-i="navBoard">Holder board</a>
       <a class="btn" href="revelation.html" data-i="navRev">NOODL Revelation</a>
-      <a class="btn" href="road.html" data-i="navRoad">The road here</a>
-      <a class="btn" href="battle.html" data-i="navWar">Read the battle</a>
-      <a class="btn" href="battle.html#join" data-i="navJoin">Join the battle</a>
+      <a class="btn" href="defi.html" data-i="navDefi">Defi</a>
       <a class="btn on" href="community.html" aria-current="page" data-i="navCom">Community</a>
       <a class="btn" href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun ↗</a>
       <button class="btn" id="langBtn" type="button">中文</button>
@@ -112,7 +110,6 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-si
       </div>
       <div class="door-q"><canvas id="qrOdin" width="196" height="196"></canvas></div>
       <a class="door-go" href="https://odin.fun/c/7ij3h-flwdx-jncgk-765tf-qyu7w-cr77f-wjvqt-bvapu-tgx56-aydty-bqe?r=u1jr4b658e" target="_blank" rel="noopener" data-i="odinGo">Open the community</a>
-      <div class="door-tip" data-i="odinTip"></div>
     </div>
 
     <div class="door">
@@ -122,7 +119,6 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-si
       </div>
       <div class="door-q"><canvas id="qrX" width="196" height="196"></canvas></div>
       <a class="door-go" href="https://x.com/NOODL_club" target="_blank" rel="noopener" data-i="xGo">Follow @NOODL_club</a>
-      <div class="door-tip" data-i="xTip"></div>
     </div>
 
     <div class="door">
@@ -132,7 +128,6 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-si
       </div>
       <div class="door-q"><canvas id="qrTg" width="196" height="196"></canvas></div>
       <a class="door-go" href="https://t.me/NOODLENOVA" target="_blank" rel="noopener" data-i="tgGo">Join the Telegram</a>
-      <div class="door-tip" data-i="tgTip"></div>
     </div>
 
     <div class="door">
@@ -142,12 +137,10 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-si
       </div>
       <div class="door-q"><canvas id="qrQq" width="196" height="196"></canvas></div>
       <a class="door-go" href="https://qm.qq.com/q/uIUW1U9q5a" target="_blank" rel="noopener" data-i="qqGo">Join the QQ group</a>
-      <div class="door-tip" data-i="qqTip"></div>
     </div>
 
   </div>
 
-  <p class="note" data-i="note"></p>
 
   <footer>
     <span data-i="foot"></span>
@@ -161,7 +154,7 @@ const $=s=>document.querySelector(s);
 /* ================= i18n ================= */
 const I18N={
  en:{
-  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',navCom:'Community',
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',navDefi:'Defi',navCom:'Community',
   title:'JOIN THE COMMUNITY',
   sub:'Four doors into the noodle universe. On a phone, tap the button; on a desktop, scan the code with your phone. Same room either way.',
   odinT:'Odin community',odinS:'inside odin.fun, where the tape lives',
@@ -175,7 +168,7 @@ const I18N={
   foot:'NOODL.club — a community site. Nothing here is financial advice.'
  },
  zh:{
-  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',navCom:'加入社区',
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',navDefi:'Defi',navCom:'加入社区',
   title:'加入社区',
   sub:'面条宇宙的四扇门。手机上点按钮直接进；电脑上打开这页，用手机扫码。殊途同归。',
   odinT:'奥丁社区',odinS:'odin.fun 平台内部社区，行情就在这',

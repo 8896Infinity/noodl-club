@@ -135,6 +135,26 @@ tbody tr:hover{background:#1c1c22}
 .scan-tw th:nth-child(2),.scan-tw td:nth-child(2){text-align:right}
 .scan-tw tr.self td{background:rgba(0,255,255,.035)}
 .scan-foot{margin-top:9px;font-size:10.5px;color:var(--dim);line-height:1.55}
+/* the phone reads the book as folded cards: face and P&L up front, the
+   rest behind a tap */
+#scanCards{display:none}
+.sc{background:var(--bg);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.sc.self{border-color:rgba(0,255,255,.35)}
+.sc-h{display:flex;align-items:center;gap:9px;padding:10px 11px;cursor:pointer;user-select:none}
+.sc-h b{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-h .pnl{flex:none;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.sc-h .pnl small{display:block;font-size:10px;font-weight:600}
+.sc-h .chv{flex:none;width:8px;height:8px;border-right:1.6px solid var(--dim);border-bottom:1.6px solid var(--dim);
+  transform:rotate(45deg);transition:transform .18s;margin-top:-3px}
+.sc.open .sc-h .chv{transform:rotate(-135deg);margin-top:3px}
+.sc-d{display:none;grid-template-columns:auto 1fr;gap:6px 12px;padding:9px 12px 11px;
+  font-size:11.5px;font-variant-numeric:tabular-nums;border-top:1px solid var(--line-soft)}
+.sc-d span{color:var(--dim)}
+.sc-d b{font-weight:600;text-align:right;min-width:0;word-break:break-all}
+.sc-d a{grid-column:1/-1;text-align:center;color:var(--dim);text-decoration:none;font-size:11px;
+  border:1px solid var(--line);border-radius:6px;padding:6px;margin-top:3px}
+.sc-d a:active,.sc-d a:hover{color:var(--cyan);border-color:var(--cyan)}
+.sc.open .sc-d{display:grid}
 /* ---- the phone layout: the table becomes cards ----
    Eleven columns cannot fit a portrait phone honestly; below 640px each
    holder becomes a card that leads with the numbers that matter. */
@@ -159,10 +179,9 @@ tbody tr:hover{background:#1c1c22}
   .tools .sort,.tools .lbl{flex:none}
   .tools .count{display:none}
   #q{min-width:110px}
-  /* the x-ray table: entry and market cap step aside, the rest fits */
-  .scan-tw table{min-width:0}
-  .scan-tw th:nth-child(4),.scan-tw td:nth-child(4),
-  .scan-tw th:nth-child(7),.scan-tw td:nth-child(7){display:none}
+  /* the x-ray result: the table steps aside entirely for the folded cards */
+  .scan-tw{display:none}
+  #scanCards{display:grid;gap:7px}
   .scan-head b{font-size:13.5px}
 }
 /* share bar behind the percentage, so the whale shape is readable at a glance */
@@ -260,9 +279,7 @@ footer a:hover{color:var(--cyan)}
       <a class="btn" href="index.html" data-i="navHome">Home</a>
       <a class="btn on" href="holders.html" aria-current="page" data-i="navBoard">Holder board</a>
       <a class="btn" href="revelation.html" data-i="navRev">NOODL Revelation</a>
-      <a class="btn" href="road.html" data-i="navRoad">The road here</a>
-      <a class="btn" href="battle.html" data-i="navWar">Read the battle</a>
-      <a class="btn" href="battle.html#join" data-i="navJoin">Join the battle</a>
+      <a class="btn" href="defi.html" data-i="navDefi">Defi</a>
       <a class="btn" href="community.html" data-i="navCom">Community</a>
       <a class="btn" href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun ↗</a>
       <button class="btn" id="langBtn" type="button">中文</button>
@@ -379,7 +396,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 /* ================= i18n ================= */
 const I18N={
  en:{
-  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',navCom:'Community',title:'HOLDER BOARD',
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',navDefi:'Defi',navCom:'Community',title:'HOLDER BOARD',
   bMarket:'Market',bHolders:'Holders',bPool:'Liquidity pool',bFees:'Fees earned to date',
   bChart:'Trend',cHolders:'Holders',cPool:'Pool size',cWait:'loading…',
   tf:{'1m':'1m','5m':'5m','1h':'1h','4h':'4h','1d':'1D','1w':'1W'},
@@ -427,7 +444,7 @@ const I18N={
   footPosts:'#NOODL posts'
  },
  zh:{
-  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',navCom:'加入社区',title:'NOODL 持仓看板',
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',navDefi:'Defi',navCom:'加入社区',title:'NOODL 持仓看板',
   bMarket:'行情',bHolders:'持有者',bPool:'流动性池',bFees:'累计手续费收入',
   bChart:'走势',cHolders:'持仓人数',cPool:'池子规模',cWait:'加载中…',
   tf:{'1m':'1分','5m':'5分','1h':'1时','4h':'4时','1d':'1日','1w':'1周'},
@@ -1208,12 +1225,31 @@ function scanPaint(){
        +(t.pct==null?'':' <span class="scan-s">'+signPct(t.pct)+'</span>')+'</td>'
      +'<td>'+fmtUsd(t.mcapUsd)+'</td></tr>';
   }).join('');
+  /* the same book again as folded cards, for the phone */
+  const cards=d.toks.map(t=>{
+    const pn='<span class="pnl '+pctCls(t.pnl)+'">'+sign(t.pnl)
+      +(t.pct==null?'':'<small>'+signPct(t.pct)+'</small>')+'</span>';
+    return '<div class="sc'+(t.id===TOKEN?' self':'')+'">'
+     +'<div class="sc-h">'
+       +'<img class="avimg" src="https://api.odin.fun/v2/token/'+esc(t.id)+'/image" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">'
+       +'<b>'+esc(t.ticker)+'</b>'+pn+'<i class="chv"></i>'
+     +'</div>'
+     +'<div class="sc-d">'
+       +'<span>'+esc(ui.scanTh[1])+'</span><b>'+fmtTok(t.amt)+' \u00b7 '+(t.share>=0.01?nf(t.share,2)+'%':'&lt;0.01%')+'</b>'
+       +'<span>'+esc(ui.scanTh[2])+'</span><b>'+fmtUsd(t.curUsd)+' \u00b7 '+nf(t.priceSats,t.priceSats>=100?0:1)+' sats</b>'
+       +'<span>'+esc(ui.scanTh[3])+'</span><b>'+(t.costUsd?fmtUsd(t.costUsd):ui.noData)+'</b>'
+       +'<span>'+esc(ui.scanTh[4])+'</span><b>'+fmtUsd(t.usd)+' \u00b7 '+nf(t.btc,t.btc>=1?3:4)+' BTC</b>'
+       +'<span>'+esc(ui.scanTh[6])+'</span><b>'+fmtUsd(t.mcapUsd)+'</b>'
+       +'<a href="https://odin.fun/token/'+esc(t.id)+'" target="_blank" rel="noopener">odin.fun \u2197</a>'
+     +'</div></div>';
+  }).join('');
   out.innerHTML=head+grid
     +'<div class="tw scan-tw"><table><thead><tr>'
     +ui.scanTh.map(h=>'<th>'+esc(h)+'</th>').join('')
     +'</tr></thead><tbody>'
     +(body||'<tr><td colspan="7" class="pend" style="text-align:center">'+esc(ui.scanEmpty)+'</td></tr>')
     +'</tbody></table></div>'
+    +'<div id="scanCards">'+(cards||'<div class="sc"><div class="sc-h"><b class="pend">'+esc(ui.scanEmpty)+'</b></div></div>')+'</div>'
     +'<div class="scan-foot">'+esc(ui.scanFoot)+'</div>';
   out.hidden=false;
 }
@@ -1416,6 +1452,10 @@ $('#scanQ').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(
 $('#scanPick').addEventListener('click',e=>{
   const b=e.target.closest?e.target.closest('button[data-id]'):null;
   if(b){$('#scanPick').hidden=true;scanOpen(b.dataset.id);}
+});
+$('#scanOut').addEventListener('click',e=>{
+  const h=e.target.closest?e.target.closest('.sc-h'):null;
+  if(h)h.parentNode.classList.toggle('open');
 });
 $('#langBtn').addEventListener('click',()=>{
   lang=lang==='en'?'zh':'en';
