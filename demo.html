@@ -373,7 +373,7 @@ zh:{
   title:'空降长安',hint:'测试版 · 桌面端键鼠，手机双摇杆',
   hudHp:'生命',hudObj:'已肃清',
   briefSub:'任务',briefH:'空降到看空部落的长安据点',
-  briefP:'你和两名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。肃清阵地 —— 十六个人，外加两辆重坦克，而这只是开场：打到一半，仓库里会爬出别的东西。地上的面碗和机枪，你和队友都能捡；买盘越活跃，跟你跳下去的 NOODLER 越多。这一仗没有胜利，只看你能带走多少人。',
+  briefP:'你和四名 NOODLER 一起跳伞，落进看空部落把守的长安外郭。十六个守军已经在阵地上等着 —— 外加两辆重坦克，而这只是开场：打到一半，仓库里会爬出别的东西。空降途中会读取最新交易，落地那一刻按成交给两边点名：最近买入的站在你这边，最近卖出的站在对面。这一仗没有胜利，只看你能带走多少人。',
   kMove:'移动',kMouse:'鼠标',kAim:'瞄准',kClick:'左键',kFire:'射击',
   kRun:'冲刺',kCtrl:'CTRL / C',kCrouch:'蹲下 —— 更稳，也更难被打中',kReload:'换弹',
   kJump:'跳跃 —— 迎着矮掩体按，直接翻过去',
@@ -383,6 +383,7 @@ zh:{
   hudNade:'手雷',tapNade:'雷',hudPow:'机枪',tankName:'部落坦克',
   tkL:'看涨联盟',tkR:'看空部落',tkOn:n=>n+' 在场',
   svDrop:n=>'<b>'+n+'</b> 空降入场',svJoin:n=>'<b>'+n+'</b> 参战',
+  svEnter:n=>'<b>'+n+'</b> 加入战场',
   svDown:n=>'<b>'+n+'</b> 阵亡',svKill:(a,b)=>'<b>'+a+'</b> 击毙 <b>'+b+'</b>',
   svBowl:n=>'<b>'+n+'</b> 吃了碗面，回满',svMG:n=>'<b>'+n+'</b> 捡起机枪',
   svTankIn:n=>'<b>'+n+'</b> 的坦克压上来了',svTankOut:(a,b)=>'<b>'+a+'</b> 击毁了 <b>'+b+'</b> 的坦克',
@@ -427,7 +428,7 @@ en:{
   title:'Drop on Chang’an',hint:'test build · mouse and keys on desktop, twin sticks on a phone',
   hudHp:'HP',hudObj:'CLEARED',
   briefSub:'MISSION',briefH:'Drop behind the Tribe’s lines',
-  briefP:'You and two NOODLERs jump onto the Tribe’s compound outside Chang’an. Clear the ground — sixteen of them and two heavy tanks, and that is only the opening: halfway through, something else crawls out of the warehouse. The bowls and machine guns can be taken by you or your squad, and the busier the buy side, the more NOODLERs drop with you. There is no winning this one — only how many you take with you.',
+  briefP:'You and four NOODLERs jump onto the Tribe’s compound outside Chang’an. Sixteen defenders are already at their posts — plus two heavy tanks, and that is only the opening: halfway through, something else crawls out of the warehouse. The tape is read on the way down: the moment you land, the latest buyers stand with you and the latest sellers stand across. There is no winning this one — only how many you take with you.',
   kMove:'move',kMouse:'MOUSE',kAim:'aim',kClick:'LEFT CLICK',kFire:'fire',
   kRun:'sprint',kCtrl:'CTRL / C',kCrouch:'crouch — steadier, and harder to hit',kReload:'reload',
   kJump:'jump — press it into low cover to vault it',
@@ -437,6 +438,7 @@ en:{
   hudNade:'FRAGS',tapNade:'FRAG',hudPow:'MG',tankName:'Tribe tank',
   tkL:'BULL ALLIANCE',tkR:'BEAR TRIBE',tkOn:n=>n+' up',
   svDrop:n=>'<b>'+n+'</b> dropped in',svJoin:n=>'<b>'+n+'</b> joined',
+  svEnter:n=>'<b>'+n+'</b> joined the field',
   svDown:n=>'<b>'+n+'</b> is down',svKill:(a,b)=>'<b>'+a+'</b> killed <b>'+b+'</b>',
   svBowl:n=>'<b>'+n+'</b> ate a bowl, back to full',svMG:n=>'<b>'+n+'</b> took the MG',
   svTankIn:n=>'<b>'+n+'</b>\u2019s tank is rolling',svTankOut:(a,b)=>'<b>'+a+'</b> wrecked <b>'+b+'</b>\u2019s tank',
@@ -1808,6 +1810,7 @@ const BT_ID='i73zc-np52u-x66oi-dgbn5-kpai5-rhlxc-kfuig-otx4l-4grpf-eroem-gae';
 const BT_HP=90, BT_CD=4.6, BT_TELE=1.6, BT_R=62, BT_FALL=3.2;
 let btank=null, btSeen=false, btName='好好好我上车你们就出', btNamed=false, tapeT=75;
 let pJump=null, pJumpCd=0;
+let annQ=[], annT=0;
 /* smoke hangs about, debris falls, light does not last */
 let smokes=[], debris=[], glows=[];
 let cam={x:0,y:0}, aim={x:0,y:0};
@@ -1933,10 +1936,9 @@ function reset(){
   pickups=BOWLS.map((b,i)=>{const q=freeSpot(b[0],b[1]);
     return {x:q.x,y:q.y,kind:b[2]||'hp',on:true,t:0,pop:0,ph:i*1.7};});
   cleared=0;myKills=0;spawned=0;spawnT=1.2;shots=0;hits=0;lastHit=-9;
-  /* The squad answers the tape: two men always, and one more for every dozen
-     distinct buyers in the last two hundred trades, capped at six. A busy
-     book drops a bigger stick. */
-  const nAll=Math.min(6,2+Math.floor((TAPE.buy.length||0)/12));
+  /* Five under canopy, the player included. The tape is read on the way
+     down; the names land when the boots do. */
+  const nAll=4;
   for(let i=0;i<nAll;i++){
     const th=Math.PI*2*i/nAll+0.7;
     const a=mkUnit(LZ.x+Math.cos(th)*(85+((i*37)%45)),LZ.y+Math.sin(th)*(66+((i*29)%34)),
@@ -1944,8 +1946,26 @@ function reset(){
     a.alt=DROP_ALT+40+i*26;a.drift=i*2;allies.push(a);
   }
   ['#tkL','#tkR'].forEach(sel=>{const b=$(sel);if(b)while(b.children.length>1)b.removeChild(b.lastChild);});
-  ticker('blue',ui.svDrop(esc(ui.youName)));
-  allies.forEach(a=>ticker('blue',ui.svDrop(esc(a.name))));
+  annQ=[];annT=0;
+  /* The sixteen are not a queue, they are a garrison: at their posts from
+     the first frame — around the keep, along the wall, behind the sandbags —
+     and they hold until the fight reaches them. */
+  const posts=[
+    [1890,520],[1760,560],[2040,610],[2130,700],
+    [1700,300],[1250,300],[1850,395],[1730,520],
+    [1500,660],[1370,535],[1740,875],[1580,975],
+    [1260,955],[1520,1230],[900,675],[1160,600]
+  ];
+  for(let i=0;i<TARGET;i++){
+    const s0=posts[i%posts.length];
+    const sp0=freeSpot(s0[0]+rr2(-30,30),s0[1]+rr2(-24,24));
+    const f=mkUnit(sp0.x,sp0.y,'red',E_HP,
+                   traderName('red',ui.foeNames[i%ui.foeNames.length]));
+    f.hold=true;f.wakeR=430+rr2(0,380);
+    f.ang=Math.atan2(LZ.y-f.y,LZ.x-f.x);
+    foes.push(f);
+  }
+  spawned=TARGET;
   cam.x=clamp(P.x-VW/2,0,WW-VW);cam.y=clamp(P.y-VH/2,0,WH-VH);
   aim.x=P.x+240;aim.y=P.y-60;
   $('#radio').innerHTML='';$('#feed').innerHTML='';
@@ -2376,6 +2396,11 @@ function die(u,killer){
   if(u.team==='red'){
     cleared++;
     if(killer===P)myKills++;
+    /* a post that hears its neighbour fall stands to */
+    foes.forEach(f2=>{if(f2.alive&&f2.hold&&Math.hypot(f2.x-u.x,f2.y-u.y)<240)f2.hold=false;});
+    /* the armour answers the third and the seventh man down */
+    if(cleared>=3&&tanks.length===0)spawnTank(0);
+    if(cleared>=7&&tanks.length===1)spawnTank(1);
     if(u.boss){
       bossDead=true;boss=null;
       gearDrops.push({x:u.x-28,y:u.y+6,kind:'gun3',on:true,ph:0});
@@ -2704,6 +2729,19 @@ function gaitOf(u,dt,spd,ref){
   u.gait+=dt*(spd>4?(4.0+spd/ref*7.0):2.0);
 }
 
+/* The descent was the download window: whatever the tape brought back names
+   the field the moment the boots touch — newest buyers on the left wing,
+   newest sellers on the right, one line at a time. */
+function nameOnLanding(){
+  const ui=I18N[lang];
+  allies.forEach((a,i)=>{if(TAPE.buy.length)a.name=TAPE.buy[i%TAPE.buy.length];});
+  annQ.push({team:'blue',html:ui.svDrop(esc(ui.youName))});
+  allies.forEach(a=>annQ.push({team:'blue',html:ui.svEnter(esc(a.name))}));
+  foes.forEach((f,i)=>{
+    if(TAPE.sell.length)f.name=TAPE.sell[i%TAPE.sell.length];
+    annQ.push({team:'red',html:ui.svEnter(esc(f.name))});
+  });
+}
 /* SPACE. Into low cover it is a vault — out the far side of whatever crate,
    sandbag line or cart is in the first stride. In the open it is a hop that
    samples the path against every WALL first: over things, never through. */
@@ -2796,6 +2834,7 @@ function step(dt){
     if(P.alt<=0&&allies.every(a=>a.alt<=0)){
       phase='fight';arena.classList.remove('drop');
       radio(ui.rLand);radio(ui.rAlly);startAt=t;
+      nameOnLanding();
     }
   }
 
@@ -2900,6 +2939,12 @@ function step(dt){
       spawnTank(tanks.length%2);
       tankT=42+rnd()*16;
     }
+  }
+
+  /* ---- the wings read the roll one line at a time ---- */
+  if(annQ.length){
+    annT-=dt;
+    if(annT<=0){const a=annQ.shift();ticker(a.team,a.html);annT=0.55;}
   }
 
   /* ---- the tape stays live: re-read the market every 75 seconds ---- */
@@ -3225,6 +3270,25 @@ function brain(e,dt,enemies,isFoe){
      holds, red closes. A charge that ran dead straight would arrive as one
      line, so each man carries a weave of his own and leans off the axis. */
   if(isFoe){
+    /* a defender holds his post until the fight actually reaches him */
+    if(e.hold){
+      if(bd<e.wakeR||e.hp<E_HP)e.hold=false;
+      else{
+        e.ang=Math.atan2(tgt.y-e.y,tgt.x-e.x);
+        e.cr+=((bd<E_SHOOT*1.3?1:0)-e.cr)*Math.min(1,dt*4);
+        gaitOf(e,dt,0,E_SPEED);
+        if(bd<E_SHOOT&&losClear(e.x,e.y,tgt.x,tgt.y)){
+          e.cd-=dt;
+          if(e.cd<=0){
+            if(e.burst<=0)e.burst=3;
+            shoot(e,'red',0.13-0.03*e.cr,E_DMG,SC);
+            e.burst--;
+            e.cd=e.burst>0?0.14:1.3+rnd()*0.9;
+          }
+        }
+        return;
+      }
+    }
     let ux=(tgt.x-e.x)/bd, uy=(tgt.y-e.y)/bd;
     const canSee=losClear(e.x,e.y,tgt.x,tgt.y);
     if(!canSee){                       /* the targets here are always blue */
@@ -3820,6 +3884,7 @@ $('#lbGo').addEventListener('click',()=>{
   lbRender();
 });
 function begin(){
+  pullTape();                 /* the descent is the download window */
   reset();
   phase='drop';t=0;arena.classList.add('drop');
   $('#brief').hidden=true;$('#over').hidden=true;
