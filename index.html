@@ -111,6 +111,34 @@ a{color:inherit}
 main{position:relative;z-index:1}
 .hero{display:flex;flex-direction:column;align-items:center;padding:4px 16px 30px}
 .scene{position:relative;width:min(92vw,60vh,720px);aspect-ratio:1;margin:0 auto}
+/* the portal at the rim, and the fold into 3D */
+#warpBtn{position:absolute;right:1%;bottom:2.5%;z-index:5;width:58px;height:58px;
+  cursor:pointer;background:transparent;border:0;padding:0}
+#warpBtn .swirl{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(252,209,79,0) 0%,rgba(252,209,79,.85) 22%,rgba(0,255,255,.5) 42%,rgba(252,209,79,0) 55%,rgba(252,209,79,.6) 78%,rgba(252,209,79,0) 100%);
+  -webkit-mask:radial-gradient(closest-side,transparent 34%,#000 42%,#000 62%,transparent 70%);
+  mask:radial-gradient(closest-side,transparent 34%,#000 42%,#000 62%,transparent 70%);
+  animation:warpSpin 5.5s linear infinite}
+#warpBtn:hover .swirl{animation-duration:1.5s}
+#warpBtn .corep{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;
+  background:#fff6dc;box-shadow:0 0 10px 3px rgba(252,209,79,.75)}
+#warpBtn i{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:5px;
+  font-style:normal;font-size:9.5px;font-weight:600;letter-spacing:.09em;color:var(--dim);white-space:nowrap}
+#warpBtn:hover i{color:var(--noodle-y)}
+@keyframes warpSpin{to{transform:rotate(360deg)}}
+.scene.warp{transform:perspective(950px) rotateX(56deg) scale(3.1);opacity:0;pointer-events:none;
+  transition:transform 1.35s cubic-bezier(.55,0,.85,.4),opacity 1.35s ease-in}
+#warpFx{position:fixed;inset:0;z-index:80;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 46%,rgba(6,7,12,0) 0%,#06070c 74%);transition:opacity 1.15s ease-in}
+#warpFx.on{opacity:1}
+#warpFx .beam{position:absolute;inset:-42%;opacity:0;transform:scale(.4);
+  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,0) 0deg 9deg,rgba(255,246,220,.10) 9.6deg 10.4deg,rgba(255,255,255,0) 11deg 15deg)}
+#warpFx.on .beam{animation:warpBeam 1.35s ease-in forwards}
+@keyframes warpBeam{30%{opacity:0}60%{opacity:.85}100%{transform:scale(1.65) rotate(15deg);opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  #warpBtn .swirl{animation:none}
+  .scene.warp{transition:none}
+}
 .scene svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 /* An inline <svg> root hit-tests its whole box, so the stacked layers would each
    swallow clicks meant for the layer below. Only the real controls opt back in. */
@@ -472,6 +500,13 @@ footer a:hover{color:var(--cyan)}
         <rect id="headChip" width="0" height="26" rx="9"/>
         <text id="headLabel" class="ms-label"></text>
       </svg>
+
+      <!-- the portal: click, and the flat bowl folds into the 3D universe -->
+      <button id="warpBtn" type="button" aria-label="Enter the NOODL universe">
+        <span class="swirl" aria-hidden="true"></span>
+        <span class="corep" aria-hidden="true"></span>
+        <i data-i="uvGo">NOODL UNIVERSE</i>
+      </button>
     </div>
 
     <div class="title-block">
@@ -513,6 +548,8 @@ footer a:hover{color:var(--cyan)}
     <p class="sr-only" id="dAlt"></p>
   </div></div>
 </main>
+
+<div id="warpFx" aria-hidden="true"><div class="beam"></div></div>
 
 <footer>
   <span data-i="footer">NOODL is a community meme token on Odin.Fun. Nothing here is financial advice, just noodles.</span> 🍜<br>
@@ -604,7 +641,8 @@ en:{
     navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navRoad:'The road here',navWar:'Read the battle',navJoin:'Join the battle',navDefi:'Defi',navCom:'Community',
       xrayPh:'Account x-ray: Odin user ID, profile link, or username',
       xrayGo:'X-ray',
-      xrayHint:'Any Odin account: every holding, entry and unrealised P&L \u2014 the result opens on the holder board',
+      xrayHint:'Any Odin account: every holding, entry and unrealised P&L \u2014 the answer opens inside the NOODL universe',
+      uvGo:'NOODL UNIVERSE',
     dailyH:'NOODL Daily Report',
     dailyLead:'The whole platform and the whole token in one picture: ODIN·FUN over the last 24 hours, NOODL\'s price, holders, pool and fees. Save it as one image, or copy it straight to the clipboard.',
     chopHint:'PICK UP A #NOODL POST',
@@ -638,7 +676,8 @@ zh:{
     navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navRoad:'来时路',navWar:'分析战局',navJoin:'加入战场',navDefi:'Defi',navCom:'加入社区',
       xrayPh:'查户口：输入奥丁用户 ID / 主页链接 / 用户名',
       xrayGo:'透视',
-      xrayHint:'输入任意奥丁账号，看他全平台持有哪些代币、每项成本与未实现盈亏 —— 结果在持仓看板打开',
+      xrayHint:'输入任意奥丁账号，看他全平台持有哪些代币、每项成本与未实现盈亏 —— 结果在 NOODL 宇宙里打开',
+      uvGo:'NOODL 宇宙',
     dailyH:'NOODL 日报',
     dailyLead:'一张图看完平台和代币：ODIN·FUN 最近 24 小时的数据，以及 NOODL 的价格、持仓、池子与手续费。可保存为图片，也可以直接复制到剪贴板。',
     chopHint:'夹一条 #NOODL 帖子',
@@ -1009,13 +1048,33 @@ $('#langBtn').addEventListener('click',()=>{
   try{localStorage.setItem('noodl_lang',lang);}catch(e){}
   applyLang();
 });
-/* the bar carries the query to the board; the board does the work */
+/* the bar carries the question into the universe; the universe answers */
 $('#xrayForm').addEventListener('submit',e=>{
   e.preventDefault();
   const q=($('#xrayQ').value||'').trim();
   if(!q)return;
-  location.href='holders.html?scan='+encodeURIComponent(q);
+  location.href='universe.html?scan='+encodeURIComponent(q);
 });
+/* the portal at the rim: 1.4 seconds from flat bowl to the 3D universe */
+(function(){
+  const btn=$('#warpBtn');if(!btn)return;
+  let armed=false;
+  /* coming BACK from the universe restores this page from the bfcache
+     mid-warp — fold everything back the moment the page shows again */
+  window.addEventListener('pageshow',()=>{
+    armed=false;
+    $('#scene').classList.remove('warp');
+    $('#warpFx').classList.remove('on');
+  });
+  btn.addEventListener('click',()=>{
+    if(armed)return;armed=true;
+    const dest='defi.html#universe';
+    if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches){location.href=dest;return;}
+    $('#scene').classList.add('warp');
+    $('#warpFx').classList.add('on');
+    setTimeout(()=>{location.href=dest;},1400);
+  });
+})();
 /* ================= #NOODL post dropdown (chopsticks) ================= */
 const feedEl=$('#feed'),chopEl=$('#chopsticks');
 const TW=window.NoodlTweets;
