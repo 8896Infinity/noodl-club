@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOODL Universe · NOODL.club</title>
+<meta name="description" content="Every odin.fun address ever, floating in one bowl of noodles. Legacy dust, live holders lit, NOODL holders burning gold.">
+<meta name="theme-color" content="#06070c">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='0.9em'%20font-size='90'%3E%F0%9F%8D%9C%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#111117;--panel:#18181d;--line:#27272a;--line-soft:#1f1f25;
+  --cyan:#00ffff;--cyan-dim:#00c9c9;--text:#fafafa;--text-2:#a8aab8;
+  --dim:#6b6d7c;--up:#3ddc84;--down:#ff6b6b;--noodle-y:#fcd14f;--noodle-o:#ef9530;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:#06070c;color:var(--text);overflow:hidden;
+  font-family:'Work Sans','PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+  display:flex;flex-direction:column;
+}
+a{color:inherit}
+.topbar{flex:none;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px 11px;border-bottom:1px solid var(--line);background:rgba(17,17,23,.9)}
+.wordmark{font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--cyan);text-decoration:none;display:flex;align-items:center;gap:8px}
+.toplinks{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.toplinks a,#langBtn{
+  font-family:inherit;font-weight:500;font-size:12px;letter-spacing:.02em;cursor:pointer;
+  color:var(--text-2);text-decoration:none;background:transparent;
+  border:1px solid var(--line);border-radius:6px;padding:5px 11px;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.toplinks a:hover,#langBtn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+#langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
+.secnav{flex:none;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;
+  padding:8px 12px;border-bottom:1px solid var(--line);background:rgba(17,17,23,.9)}
+.secnav a.tab{
+  font-weight:500;font-size:12px;letter-spacing:.02em;color:var(--text-2);text-decoration:none;
+  border:1px solid var(--line);border-radius:6px;padding:5px 11px;white-space:nowrap;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.secnav a.tab:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+.secnav a.tab.on{color:var(--cyan);border-color:rgba(0,255,255,.5);background:rgba(0,255,255,.08);font-weight:600}
+/* ---- the sky ---- */
+#stage{flex:1;position:relative;min-height:0;background:#06070c;overflow:hidden}
+#uv,#flat{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#uv[hidden],#flat[hidden]{display:none}
+#uv.grabbing{cursor:grabbing}
+#uv.aim{cursor:pointer}
+#sticks{position:absolute;top:0;right:0;width:150px;height:150px;pointer-events:none;opacity:.85}
+/* ---- the plaque ---- */
+.plaque{position:absolute;top:14px;left:16px;max-width:340px;pointer-events:none}
+.plaque h1{font-size:21px;font-weight:800;letter-spacing:.16em;color:var(--text);text-shadow:0 0 18px rgba(0,0,0,.9)}
+.plaque .sub{margin-top:6px;font-size:11.5px;line-height:1.6;color:var(--text-2);text-shadow:0 1px 8px rgba(0,0,0,.9)}
+.stats{margin-top:11px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;pointer-events:auto}
+.stat{background:rgba(17,17,23,.78);border:1px solid var(--line);border-radius:8px;padding:7px 10px 6px}
+.stat i{display:block;font-style:normal;font-size:9.5px;letter-spacing:.08em;color:var(--dim);white-space:nowrap}
+.stat b{display:block;margin-top:2px;font-size:15.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat.gray b{color:#9a9dab}
+.stat.lit b{color:var(--cyan)}
+.stat.gold b{color:var(--noodle-y)}
+.stat .liv{display:inline-block;margin-left:5px;font-size:8.5px;font-weight:600;letter-spacing:.06em;color:var(--up);vertical-align:2px}
+.stat .liv[hidden]{display:none}
+.foot{margin-top:8px;font-size:9.5px;color:var(--dim);line-height:1.5;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+/* ---- the legend ---- */
+.key{position:absolute;left:16px;bottom:14px;display:flex;flex-direction:column;gap:5px;pointer-events:none}
+.key .k{display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--text-2);text-shadow:0 1px 6px rgba(0,0,0,.9)}
+.key .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.key .dot.g{background:#565a68}
+.key .dot.c{background:var(--cyan);box-shadow:0 0 7px rgba(0,255,255,.8)}
+.key .dot.n{background:var(--noodle-y);box-shadow:0 0 8px rgba(252,209,79,.9)}
+.hint{position:absolute;right:14px;bottom:14px;font-size:10px;color:var(--dim);text-align:right;
+  line-height:1.6;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+/* ---- the name card ---- */
+#tip{position:absolute;display:none;pointer-events:none;z-index:5;
+  background:rgba(17,17,23,.92);border:1px solid rgba(252,209,79,.45);border-radius:8px;
+  padding:8px 11px;max-width:250px}
+#tip b{display:block;font-size:12px;color:var(--noodle-y);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tip span{display:block;margin-top:2px;font-size:11px;color:var(--text-2);font-variant-numeric:tabular-nums}
+#tip em{display:block;margin-top:4px;font-style:normal;font-size:9.5px;color:var(--dim)}
+#nogl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:none;
+  font-size:12px;color:var(--dim);text-align:center;line-height:1.7}
+@media (max-width:640px){
+  .plaque{max-width:230px}
+  .plaque h1{font-size:16px;letter-spacing:.12em}
+  .plaque .sub{display:none}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  .stat{padding:5px 8px 4px}
+  .stat b{font-size:12.5px}
+  .foot{display:none}
+  .hint{display:none}
+  #sticks{width:96px;height:96px;opacity:.6}
+  .key{gap:3px}
+  .key .k{font-size:9.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  /* the sky holds still; JS reads this too */
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wordmark" href="index.html">🍜 NOODL·CLUB</a>
+  <nav class="toplinks">
+    <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener" data-i="linkToken">Odin.Fun ↗</a>
+    <button id="langBtn" type="button">中文</button>
+  </nav>
+</header>
+
+<nav class="secnav" aria-label="Pages">
+  <a class="tab" href="index.html" data-i="navHome">Home</a>
+  <a class="tab" href="holders.html" data-i="navBoard">Holder board</a>
+  <a class="tab" href="revelation.html" data-i="navRev">NOODL Revelation</a>
+  <a class="tab on" href="defi.html" aria-current="page" data-i="navDefi">Defi</a>
+  <a class="tab" href="community.html" data-i="navCom">Community</a>
+</nav>
+
+<div id="stage">
+  <canvas id="uv"></canvas>
+  <canvas id="flat" hidden></canvas>
+  <canvas id="sticks" width="300" height="300" aria-hidden="true"></canvas>
+  <div class="plaque">
+    <h1 data-i="title">NOODL UNIVERSE</h1>
+    <div class="sub" data-i="sub"></div>
+    <div class="stats">
+      <div class="stat gray"><i data-i="stLegacy">LEGACY ADDRESSES</i><b id="nLegacy">—</b></div>
+      <div class="stat"><i data-i="stTotal">ALL OF ODIN</i><b id="nTotal">—</b></div>
+      <div class="stat lit"><i data-i="stActive">STILL HOLDING</i><b id="nActive">—</b></div>
+      <div class="stat gold"><i data-i="stNoodl">NOODL STARS</i><b><span id="nNoodl">—</span><span class="liv" id="livTag" hidden>LIVE</span></b></div>
+    </div>
+    <div class="foot" data-i="foot"></div>
+  </div>
+  <div class="key">
+    <div class="k"><span class="dot g"></span><span data-i="keyGray"></span></div>
+    <div class="k"><span class="dot c"></span><span data-i="keyLit"></span></div>
+    <div class="k"><span class="dot n"></span><span data-i="keyGold"></span></div>
+  </div>
+  <div class="hint" data-i="hint"></div>
+  <div id="tip"><b></b><span></span><em data-i="tipOpen"></em></div>
+  <div id="nogl" data-i="nogl"></div>
+</div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+
+/* ================= baked census =================
+   Rebaked offline every so often: tools/README notes the recipe. The gold
+   stars refresh live from the API; everything else is the snapshot. */
+const UD={"v1":408461,"v2":420238,"active":1923,"tokens":350,"ts":"2026-08-27"};
+const UD_NOODL=[["cqexm-rqfpe-dffqm-s4au2-vpnrg-xd5w7-xfj6l-6sehq-pnu6d-hi26j-zqe","NOODL铁军@拿到一个亿",50945840561024050],["f2oxz-5hcor-isfqx-kmxog-4z6dt-n6nky-jh2qj-kvjhb-jsmqk-mtpya-xqe","V2一定超过V1，时间问题",46896858355729320],["7ij3h-flwdx-jncgk-765tf-qyu7w-cr77f-wjvqt-bvapu-tgx56-aydty-bqe","$NOODL ( 1st token on ODIN·FUN )",35307183088214324],["lgixi-ze4me-n4pz6-6addm-my7ef-lpcuf-f7lhm-g5o4p-rowrn-xnrga-zae","lgixi...zae",34460119538700276],["kyidx-coaza-b76um-7cphk-u546f-lgo6n-neszr-evxd6-3wze4-lpgss-gqe","A9社区Odin to the moom",33833660322088696],["dvjjn-y2ogx-cioko-v6qij-q5uzu-mz2k2-znw5c-f6dpo-7rul7-5kzfz-tae","奥丁第一个代币NOODL 群557302630",32000000010000000],["kevqv-q4ovp-j22ks-zcwme-gnjny-qraay-vxi57-v5dx3-dbz7h-fbrub-bqe","ReturnOdin",29453777179188370],["vgam4-ldsti-wordm-2qpqj-l2onw-xwrkt-krjd4-5bwsk-stfd3-267tr-3qe","微风徐徐的吹来",29078974112766304],["fqfq4-ar6w7-65nzx-lrzrt-h2afj-t5y6k-vkrp3-xl3ef-cyoxb-3gkwe-7qe","Noodl",29020325258835290],["wybqk-zvfuu-zhz3f-w5wb4-vatlz-cdzba-syokp-6r62m-bkf3h-6bp2l-hqe","盘古社区（温州）",28963217547083508],["rvgoj-3txlu-oi5am-lonvb-luruw-s4un6-guoiz-iuiex-rsaqf-i5ho5-lqe","Noodl奥丁第一个币 群557302630",27317177150329936],["73d35-ofxue-57xvm-mirah-vwdr5-rpidu-33pgk-7ds5f-3xpnq-n6m53-tqe","NOODL to the moon",26368863686118650],["cfkqb-agxxa-eskrj-qjlr3-5psez-mhqrk-beh6f-dxfzj-guolq-r6w26-iae","cfkqb-agxxa",26179163037241136],["zztqn-rai4a-mot36-j6aas-za4zn-f6aqf-wnyak-myeuu-yutgo-3s37m-zae","V2 First Token",25336886903659004],["2driu-ikhr4-cuznp-heblu-dbrlw-4vsx2-sxyvt-wjkqq-p774n-xpl7x-kae","ODIN  FUN EXPLORER",22393490797907780],["k45x2-67x5w-3qh3r-zucis-dh5n3-5ffzl-oe5vw-nb6mi-kw5z4-d27l6-jqe","奥丁之王子",22254808085820310],["7bpok-wmigr-pw6u3-sgkyo-ggfm4-mfz35-6uudg-xyhrf-hw3iy-2jiua-6ae","7bpok-wmigr",20796326842916620],["md757-fp7ea-a4b2n-ayrso-kax7h-i7bmp-44iuz-on3fl-nj3mb-bp4hh-iae","md757-fp7ea",20785816137647816],["tywzw-u5tvp-3xfk3-g2nwr-3uqbe-llsi5-rk5h3-7y73g-t5zwu-cqqn2-rqe","BTC Gang Moon",20004019472416120],["stkd3-mbjwt-fihde-czbyk-bc2rg-66olo-jodrr-jzfau-o7lui-zso4v-jqe","jqe6631",19989161029170030],["jnkzv-wvspz-b35k3-mhk6y-ffu4s-imy43-ibmwe-req7u-ada4p-3ceuo-7ae","NOODL.NOODL.NOODL",19498570267736184],["jinxh-amckr-gquda-ss46y-pilh6-nqubi-k7j6r-kzw2m-ct3ll-yo755-pae","jinxh-amckr",18975383635907012],["2h5ki-lrm7s-66dh4-kjieu-zxil6-7au3n-2twmq-eal6z-tp5zp-cttcc-iqe","2h5ki-lrm7s",18493798910428150],["4kekc-wbbgi-unep6-prtnx-tibow-r5epr-2tt7i-2die2-yys6h-i2w3h-2ae","568",18383202260571770],["kjmzt-egbld-xfpq5-bxzd2-7jd7o-e5tha-ovohq-jjecb-jljlt-kkuqy-uqe","kjmzt-egbld",18320211265992090],["kt3zg-luji4-35ccf-tbetj-a4num-hcq3f-4ru3m-5iueq-ra4at-sblde-mqe","NOODL！HOLD！",18083209890120550],["ibedh-hk6p7-bsztx-6bn7y-en2g2-nm4rp-sjxr7-fqd3z-ltdzt-pyd2z-zqe","风清飘扬",18060574713713140],["7sgxl-yy4hb-62y6z-oik5f-b374r-wd3kv-we6wy-rcfjk-w66sv-5wxcj-gqe","tianzhugege",17062463273937528],["rzubd-hf6vr-7yqbg-r22jb-b7owq-2dqoq-saaam-upbnb-vz4or-hpbdm-nqe","rzubd-hf6vr",16627930242251116],["v23el-5ydbu-beldn-dl6ot-6k3mw-yqtak-njsy3-venpk-4eecq-epzaa-wqe","v23el-5ydbu",16573931248742344],["4r5tr-ay7as-bso6q-2by6n-bnq4h-moagp-gd62h-3s4oi-umpyr-ohhkk-mae","4r5tr-ay7as",16300454334311964],["3al6b-neuak-golts-hmfbm-s6rwn-66h7u-x2fkq-wjlaf-pvo7a-r6eey-wqe","qwertyuiiidooo_hjkloiuutt",16074092675269626],["4lxuv-vbldb-u6i66-uwizj-mvwix-klb7n-fmkxa-c4j7o-4nllh-vlto2-lae","wealth",14859655563766368],["xlpan-bfrhu-kd3by-rvdcq-tcufs-2r3az-f6ire-43waa-joseb-hix23-xae","xlpan-bfrhu",14788176555914420],["rpeny-jppsx-njyj6-dcmje-dkwmw-ujjhj-6dtro-nmyyx-irq3s-opnwp-qae","rpeny-jppsx",14765507920019304],["jnbgq-ij24a-24scf-bcgso-7tfko-k37wo-eqnmj-lyppu-bk3ep-ucqo4-aqe","木林森-2233",14726386411000740],["yuejl-kpti5-spf5p-a5ool-wbcx3-6zkt5-gy7m6-funxv-3t63y-cnxmt-oqe","yuejl-kpti5",14714324581884518],["z35sw-jz5kg-cu2hh-kdqbd-scg5i-gbbyh-4ieij-yy7dl-cn4ds-fscgg-hae","z35sw-jz5kg",14068062381923372],["y3vzq-xayl4-wuepy-k5oln-6jbim-b3a7q-e7fgh-4khaf-mqj5s-hgtv5-aqe","y3vzq-xayl4",13708178977074108],["pif4m-qosbr-qnow5-wfz5i-3nsjt-sfrzq-sla6i-23pm5-shykl-23kde-6qe","pif4m-qosbr",12816082571921262],["e7x2w-rq4yh-ylll5-jy3ou-zhcus-wiki3-xbdaz-2uz25-qreov-xv26y-yqe","e7x2w-rq4yh",12730586092493012],["zvuxg-h2y32-qc26z-6nax4-vzpwq-ljfkk-a74dz-fmw5n-yowtm-kvub4-3qe","吃面条",12657486874221946],["ikja4-tworm-a4ceb-vck5t-xjfts-ucbuf-lu7bv-rl5ac-yeuhr-fqeua-hae","abc10086",12634408599753704],["men56-ikazk-irrzw-4zsph-tekcj-gd4gt-5fkns-7xeog-myjtz-flj4g-cqe","men56-ikazk",12515554369793846],["2zhbw-khgjf-55xfr-vdtqm-abt4t-twvxd-mizze-n6kfu-e7qml-wywp2-3ae","2zhbw-khgjf",12424338197718216],["cro42-thfbs-nj2sw-eowok-2lcdi-tb7jq-lg6tk-2jk72-xnbrc-asstb-gqe","noodl共识群557302630",12354604530736152],["kqvot-uoir7-3myvu-l2ioq-3q4ea-bnm4b-tp2ih-jpqyg-aokdh-6kb3m-xqe","付哈哈冲冲冲",11864805373241384],["k52jo-4jfgf-a73ci-awpkf-teqcu-cawg6-3thhb-fvqho-rnzpv-6id2d-zae","k52jo-4jfgf",11652644524703996],["5c4gv-evpld-6llbj-hjzao-pm5s7-ubhid-h7rpo-xezzt-nub3h-h62sj-eqe","汉堡俱乐部",11582755839606222],["2pdld-4hg5e-iryqr-rx7oq-56us3-3f46n-w3bkl-qfgs7-5nmf7-rw3hj-wqe","2pdln-4hg5e",11549999999950000],["i5ln2-4tdzy-6e4mu-etktp-oiyiz-cxyos-yhdzk-5wgwm-vmi72-2bkl7-iae","i5ln2-4tdzy",11424662822737772],["7a5ro-cwffx-lnpon-ifmkg-jwdgv-siwth-y5rch-twilg-lydvd-zc6n3-tae","等面条2000聪",11408943957739160],["ocrau-gy5rj-l56zz-cxp3o-hmp7a-pfy4x-pflaa-htni6-53mfp-b6vzl-iae","ocrau-gy5rj",11364485055835810],["3hb2j-aaelj-tw3qi-nlbpm-ttn5e-y3yre-lxrii-zdle7-oqd77-vcwoz-zqe","3hb2j-aaelj",11355407019174302],["atao4-dsg6z-zhvjf-kviqz-vfdfu-cvc4u-7kkcm-fzhwi-n6tlm-nkcpw-mqe","我乃一介散修",11000000000000000],["3dobn-xepr5-2pa73-5qc4p-kbopo-sxryb-nw5gj-codol-ititl-rm6fg-6qe","3dobn-xepr5",10819378288125056],["4pjpn-33zmf-yfuz5-mlcdr-gaulv-u7eh5-rsnb2-7e5rf-pjjc4-ergyg-5ae","4pjpn-1pzmf",10799999999999906],["i73zc-np52u-x66oi-dgbn5-kpai5-rhlxc-kfuig-otx4l-4grpf-eroem-gae","好好好，我上车你们就出",10771652627859456],["zw452-oy2m6-btb5x-jdeni-y6yvf-f42yt-qkzvz-xmnrm-kh2gh-bmfzr-7qe","重生我在noodl暴富",10636774253609504],["lfwei-hyfc2-bbgn6-lwtxr-nfc24-f6b3a-liznr-mxcgx-yr2zb-hzpnt-cqe","lfwei-hyfc2",10587290780190504],["evkog-isste-7v67n-u3o6u-6q5cc-2eqq3-u3zpm-dmxx7-iaezx-tsukl-yae","evkog-isste",10587290770190504],["cjkby-n4hdr-wsh6q-twtdi-biqdu-hml26-l3c6k-tdbwx-7l7t7-qortn-3qe","cjkby-n4hdr",10547910018106192],["v4je6-aohg4-h7wxr-qq4rp-bbvog-45er3-z3uth-mh5mn-bquwb-nyz7w-6qe","v4je6-aohg4",10297916523769308],["2z7s6-j7s6i-bldhs-tsnqk-qwqdg-qof2t-p74hb-bz5mk-qzl6i-r3hpk-iae","2z7s6-j7s6i",10279206297746524],["zxrc3-vtzj4-6emhp-4p4wd-v3xom-bf44z-mw3d4-w3zdu-gul7j-nxjzc-5qe","zxrcn-3tzj4",10200000000000000],["tmxqi-f4gt3-uji2h-o4mvr-b3cnu-glbsk-57ens-mb4eb-7hxtt-6noax-gae","tmxqi-f4gt3",10025100000000000],["btone-rfhri-rsdzd-c7vqs-ud745-efvmq-6ansm-xubmt-6lfzl-cbirb-xae","⭕老韭菜",10015148469261172],["neet3-i6iao-4vdiv-ka3mp-c7ztu-ntlyl-5jaqs-mj2qj-ehilt-okqpg-rae","sj2vs-5tvdf",9655019902454652],["y5nfm-3yzql-znpoe-oyjbn-uzagu-gzelg-xkayl-uficu-onkbp-uwsfg-7ae","y5nfn-2yzql",9450000000050000],["xs4og-sca3q-mz4xc-daxgj-6dg6h-jdcml-7jjhu-aiomn-2d364-gusj7-qqe","xs4og-sca3q",9434972951157120],["en35r-xry24-hwzir-m4h4y-nya7p-wnyby-b2gep-fmjsi-anmhq-iia2t-vqe","en35r-xry24",9181242304170756],["kjxsx-hr2gp-zv76a-kqwns-mrfnc-sgoas-flb6s-mbqw5-idia3-gzx6o-oae","NOODLA10",9123430130964796],["ln2s4-ka7p2-5krup-cj63s-qxs4x-yi4bh-avzqi-nhhsf-6t7ki-k7h6h-iae","东北一华语社区YY",9099557021829962],["cvsos-4eqec-wrozj-lgb7k-cc4pq-rklmg-kes4c-5qida-kvm7k-axv3r-zae","5qida-kvm7k",9000000000000000],["mhynn-nuezz-tzbht-qxfc3-jbrt3-hapge-k7o4l-27d6l-tffjb-exypf-iae","mhynn-nuezz",8864773184547286],["rjjan-s33br-ciqxc-jdat6-v4rxn-pz6jy-77mtk-4illv-64tiq-wpqlj-kqe","SuZheOwO",8847538726935725],["h3vsi-jiqwp-m6wxa-po6qw-7r2ur-bvkdi-jd5sd-ww6py-7mzcj-y6omw-2qe","h3vsi-jiqwp",8762853059672518],["4adoh-okcb7-6j6uv-42lte-uprzd-tjhlt-vzvtg-p23gg-3ce7d-vcrny-3ae","Return to _peak;og",8467462468064640],["2pae7-6gzvs-ynl5t-w5rib-qlyda-lmzlk-mv3mp-q32eu-avtye-uwlpd-wqe","2pae7-6gzvs",8445842968887804],["dwu3y-7iplv-mv42c-p632y-itiyp-phep7-qayt7-sdc4g-fnvlf-oypnv-eae","dwu3n-5iplv",8400000000000000],["ueesr-ohpug-uohrd-sfdxc-shk6o-l6ci4-cqaop-b3nn2-ddqoh-7ijlp-mae","swk",8156936813453326],["d2ct4-pxjxv-3ynw4-4bqej-my6aa-rf7od-xnr7n-cazo4-5grrr-tjs7l-7ae","d2ct4-pxjxv",8089170383738713],["4q222-fuw2w-ndg2o-jfucv-oemeo-ueelp-ibq47-zwoob-qkqwu-khohl-6qe","4q222-fuw2w",8044928229313522],["g7ec7-a7gan-ekuho-ykjjl-paxp3-rcv5t-zpa3c-6y34t-dwyf7-myxvg-tqe","KONGJIAN",7968773650854043],["3wiaq-chtcf-lalvh-xxb2p-vvcqu-2eu5s-dbjtj-kwq4z-ihnoa-t73hl-pae","39ghi-chtcf",7899300385581799],["4mydm-mgh2a-ewel7-xww3o-qakol-iozlr-xfgou-uo2jk-kyhd6-ps6ua-eqe","4mydm-mgh2a",7686594388188619],["434yg-hticm-zblxf-6scpa-6mccd-kqsea-jxsa3-lhpkj-fuw62-pvyki-zqe","A9社区王大富",7657673960079449],["geyzo-bvbz6-fvejd-fdtcg-6vvde-tmky4-wqsuj-3fel2-kzamq-mfyfm-mqe","geyzo-bvbz6",7633097189216100],["wi3va-4qemr-uermj-bm7nx-znnjz-6bkbu-ngugn-f2hm2-mz44x-uhpqa-aqe","wi3va-4qemr",7572422695367914],["24ltl-nttqa-e6jxw-h4hxe-72aqc-5zxbt-q5i3t-3l2qy-4s5ji-2zy6h-mae","A9-大东",7508435187272694],["fiiic-nonxb-xj5qf-5wrqu-6s6tv-c2o3e-sn5bv-bwb34-d5enh-coqbf-fqe","fiiic-nonxb",7394038850426886],["jyw3z-rgdk6-oj5yu-g5bpd-ryyu4-sbfda-tz3nr-wcxhz-22svs-3jyqs-4ae","jyw3z-rgdk6",7236059534030580],["prokm-drcxy-puod2-om5tg-dhmyt-vnlwo-i37k2-7mzft-i5hpl-kk7kf-sqe","sdhghkfdd",7035250111130977],["kmich-ponrd-u2hua-pxta4-c4n46-a6so4-j74gc-2pwn7-mc6wc-cbqvo-4ae","kmich-ponrd",7019815177134242],["nd6b4-hbbg3-fbukz-c4mkg-vxcg4-scxqb-t5km7-lv4qt-zjpf2-2im4s-4qe","nd6b4-hbbg3",7002224675794759],["eynlx-hyu2q-w4s45-hdd2j-rgirs-mjjcw-tllhy-f5zcn-4uj2d-m5qnq-wae","eynlx-hyu2q",6924298281246324],["3b67g-4b5cc-rf4fd-ici2y-yxhc7-aarlz-huhbg-gxobn-kukch-vnswm-sqe","3b67g-4b5cc",6830635149011475],["tbcyg-ix6vu-kg4jd-sq55h-fazqy-5xpa3-7up37-pgvjl-cccum-x6h73-2qe","温州一哥",6636280423497398],["fhilf-cchdu-u7gwa-4jesx-rscup-jjc4a-oeeuf-ck424-pu5na-4yfmu-fqe","鲍勃勃起",6574684521315461],["s4qbe-4swwh-iiodj-ddxl2-5svj5-af6fj-skaru-5346o-trqfj-vnlez-wqe","s4qbe-4swwh",6449325976232675],["pectj-jfgap-bdh2d-shhfu-perca-stdrs-igwmk-nu2oo-275ah-fdsxe-qae","pectj-jfgap",6439925220326492],["5nqwk-4kh2a-2vl54-qj5mu-uwk7u-hwxnp-4tb4a-wm3sy-i4sh2-lhgrw-uae","5nqwk-4kh2a",6344345140631681],["n3ibc-67q2p-x7cgv-2rq5x-dafo5-766id-rjosd-mf43z-c5iz6-wfm7v-zae","n3ibc-67q2p",6236627780112763],["vcxia-kzlty-s6cpe-po2cm-phd5o-crzhb-5kpcd-hsqsq-js6n4-ahbfz-4qe","vcxia-kzlty",6229302603384612],["uccc6-ieolt-74kvr-p2d5k-c3zmm-qlk6x-wgx7s-bt3qx-gc53e-slsg2-wae","（老范)uccc6-ieolt",6190006019781857],["l6mia-bslre-vs6ur-d3nmn-lqpui-3keok-b3opv-2hgwz-wklti-y627j-aqe","奥丁人生v2.277367181",6153528001741183],["hi5ft-go2ao-uexgd-43lot-p7utl-5lghs-ip55x-b3rys-dxpia-bdw2h-aae","hi5ft-go2ao",6064229363862419],["w7ncf-nw3vc-5duk3-xeo7f-x4ptn-kzqpp-7tep3-e2tyb-gthau-6roxm-sae","w7ncf-nw3vc",6029521154059080],["xae4e-qenp2-qnc7j-jc62k-fqqk2-qjbp5-2qpy3-gboza-yy7ak-pd2n6-zqe","jdhk",5896093006530791],["5sh6c-ssofh-xsihr-vknfe-hvaeo-j4e3s-si5cn-2kkoc-s66zr-qmmb2-fqe","5sh6c-ssofh",5657338104115209],["seh2g-6j3a6-bjkfj-uaz4u-z2iao-n7jon-r5woc-vkynu-bptbi-ikivb-kqe","seh2g-6j3a6",5520851427409401],["bqf46-xwqs6-jffrl-aub5g-x7vjk-wupai-fayfi-2aj3j-vey2s-gkcqm-oae","赚取大饼",5440599079239999],["xmzer-6f4mr-xamy4-5fj23-yxn63-ze2u2-boczj-3m45f-k5u6a-pcx5b-2qe","xmzer-6f4mr",5396305460423352],["5hbkz-lgomw-isyan-5wo6j-wlgtj-u3ns4-apakm-rchsx-yrt2q-til3s-4ae","5hbkz-lgomw",5222912436698629],["33qop-ouw67-kk2sf-qa7ce-b5of2-pqx3s-u6abv-65mok-zl3dn-i3hvy-oae","33qop-ouw67",5218125768491690],["teiga-eekdg-m7iqa-46jba-pyayq-jcaxl-wfmqs-3hygv-ge4iw-4e56d-6qe","teiga-eekdg",5020244277430221],["fbqe2-bznls-iujbk-2phpv-tl2ex-zltxt-e23oh-qrhr6-oxwja-744ig-xae","fbqe2-bznls",5004192731218802],["oailj-72f3a-723ra-njhwr-vxmvn-btxfp-cd5km-jsrnv-uvdau-tpuel-7qe","+-×÷卍卍$$$￥￥￥",5000000000000000],["v2iop-n5ffe-bljwo-odoy6-jg4gr-6k32j-akwlt-oyztv-xsvc3-nnjd4-2ae","SELL AND RUN",5000000000000000],["r73ze-ohhtq-2dbfb-howlb-chfrg-sknvt-75s4l-mvubd-ljwbz-yb63i-dqe","沉梦昂志丶",4916266543976808],["5blss-rviug-ewabt-xhexx-xrtlq-f7lzy-cd52r-yr6j5-op2lb-wmknd-3ae","5blss-rviug",4879136520219390],["6kgac-6ircy-yauy7-g7fku-ctzka-iltfb-aq5rv-qq2dg-aunzf-znjiu-qae","6kgac-6ircy",4847900796577899],["rmok2-zru4f-dpofj-jxodg-oap5x-lp75z-sjvs5-v3uvg-upjat-jupu5-oqe","奥丁之子交流啊1054028650",4800831842526947],["6rxwe-tg42v-qsr7w-cvq7n-xdj6t-amzik-uagkv-eemkk-lluwx-wwfev-mqe","Citadel11",4794575619534194],["zsqfo-4u2ze-gqj2v-x23gm-h3iph-vkioz-nxzbv-t7c2l-qtklx-yf23m-oqe","zsqfo-4u2ze",4720516437353519],["7kef6-3st4f-4jsus-dv5bh-enm3e-cpptr-2sgau-pceke-5s5mr-onr3v-oae","7kef6-3st4f",4699710338262711],["mefxs-zus3a-pv42w-6vpw4-7k2dm-xg7df-5z3mx-tykxl-atw63-mfjkj-cqe","NOODLNb",4671182496747660],["xggyc-ayaeh-dihrj-s4qba-wwlmv-ecef4-dgibk-hlx4i-ik7lz-z2z7c-eae","xggyc-ayaeh",4531282968524341],["ex7kh-sk4dl-x6k25-dcfda-pfiqv-y7pnb-ba2bm-jj5dq-cqht2-4w6dx-zae","ex7kh-sk4dl",4401900846996540],["j43w7-rpyaz-cgo4e-luo7z-khvte-quhfv-fykbs-zwoab-jqiec-kcgxg-aqe","睡醒打老公",4379359754415393],["ac3ip-h4jo7-ac75i-uznlf-mdnbc-zyue5-muxy7-dl3ol-ror2h-3yjm4-bqe","ac3ip-h4jo7",4290437910193291],["wbudh-galyi-eoycq-qqjp4-havlf-4cyab-xulqv-ygat3-cjx4h-d4xvm-oqe","wbudh-galyi",4259656534515563],["6lzel-gvluo-nq7jm-kgmmk-cocjp-vsle5-4aect-z6zja-6equs-wjxqw-fqe","6lzel-gvluo",4243975063670197],["bpsl5-tv5xo-asszl-7jx52-vg3jx-fae3z-gvbko-i4c6v-3ofcp-jlzqr-tae","bpsl5-tv5xo",4206308907179628],["3cozn-57ruc-6ey7c-el2pb-ur3yi-ic57f-km6xx-xy6mz-g3naa-2ijc3-zae","3cozn-57ruc",4037762250449270],["gw4na-kgftg-pvipi-wvrg4-2vy2r-njfeq-exnlj-lm56x-gkray-yqqse-yqe","大拳头",4037208821560111],["yizpo-kgaly-ofylm-ondid-zroai-zxsn3-vmnb5-cur24-ypigd-4bnqm-xqe","yizpo-kgaly",4011295863957204],["h7tdx-5ej7d-4rtqk-6lkd3-owytc-dkzpg-a4byr-xyhpb-2gzef-bqqwy-vqe","MusKn",3953462850396839],["zegdu-obbuu-anbgq-lptwt-rrim7-7y2j6-rwr5g-o42vi-diboo-nwhsw-aqe","BTC创造者中本聪",3945809982551100],["ynork-fkaoo-fmjn6-hwx6t-ttlyb-eopbo-2hs4f-ge23q-ioxph-7pyjh-6ae","翻身社区",3758157898291237],["4ella-dyk4q-mrxg2-a6god-sw7gz-lpyxl-tcjpu-xczac-bomza-bxsve-yae","远离垃圾人，小人",3748457531181138],["n4fha-3jiiv-qyrhz-6kwqd-m5f4v-xie5g-ipwel-4ztue-nvw3h-6nzqd-gqe","罗理馨",3541337668620521],["njyx3-wd43w-xokdw-nuyxq-wmnng-5fzvd-2wrhg-qmdz7-hlxw7-kdjmu-bae","njyx3-wd43w",3448766146558774],["octmj-alxco-jcrvu-6rdf3-jr55o-jdyxz-5vrtk-733bl-qx6sd-7yg26-gae","octmj-alxco",3323056111573348],["k6oqy-msub4-4zpji-j4l6h-xeq4n-u6uby-uwa36-exhsy-pj5p7-wmp2g-2ae","云南社区张总",3245692529188030],["ugwyg-oyuku-22w57-qej5i-xzrfl-acvvz-vcp7w-2xf4u-h77ii-kvuss-sae","ugwyg-oyuku",3239428347486874],["dp73f-bj7pv-hyqyy-emzvu-3dyji-3pr2i-rl2zc-uegds-w5y7d-jpevi-3qe","sdfghhhjjj",3196184722834595],["owdm6-2ow7h-hmaxd-onav5-r7mga-zoqrg-proh2-rjgnk-oi2pu-iziku-nqe","云南社区梁总",3149108024540394],["2jqtt-yy22p-sax5h-f4ts5-k7hwg-y5ubw-z66fp-ggsrz-55eyd-kqvzw-nae","2jqtt-yy22p",3069687701177833],["ephwl-s5w3y-7g2jf-dsm4c-iwn7b-lro7z-34e47-ljjkq-bthgb-txbkj-kqe","ephwl-s5w3y",3000000000000000],["gywhd-nwu74-3pfao-ndciy-bdwqn-4nhet-5bco4-egqgl-o2xim-oz3a5-yae","gywhd-nwu74",2946907690140808],["xmobm-ycbrg-qy3wo-q6ylt-sbweg-46zqy-gslb4-daaut-37qz4-4jdvt-eqe","ynsqsd0888",2923950999363023],["dz5fp-yabxv-kni3a-ckwx4-s3j4q-maiok-tb7hs-ojduf-j34zl-goayl-2qe","dz5fp-yabxv",2907275309313623],["2wjjv-fukjm-ssh5z-yvf5d-akuld-doxvb-ita3t-tvf2q-33lwn-kzghm-gae","2wjjv-fukjm",2896635028507855],["xunul-vhl2y-dfv5s-zycah-6lale-c7stg-tfvhy-iyu4g-4zjav-m37df-vqe","xunul-vhl2y",2809389194083553],["tavgs-wkcdh-c2jb3-jf5v5-azhbm-wd6bs-do53v-z5h6v-p7bxb-m3bwe-jqe","profile13",2789029363940339],["o67mf-pj4y4-eoxao-cepv4-yvivn-xq6qn-4cueh-hxwcc-zko2t-45qmv-uae","拒绝pvp",2716822089061974],["sw2ea-gjnq3-46w4a-4l4lz-xypnr-vyrfx-qq7ne-3lhac-kvtua-qkw7z-7ae","sw2ea-gjnq3",2684960704026722],["c6rbp-bis2q-r7ir6-7bewo-bznok-cqq46-xoofq-2hkz2-7cmhv-3kzmt-aae","A9星辰大海",2586025791033007],["jas65-wipx7-oxhng-lg2f2-cj5gf-7n7bm-y4jvj-xexl5-zlogc-ji227-zqe","jas65-wipx",2575659938350609],["u2hdt-37mwp-xsznv-5vhgs-mzrhe-bnbw2-chiud-vncjk-pzdcg-wfkrm-7qe","u2hdt-37mwp",2492033769861909],["dmaor-zutaz-zu44e-tgjf2-r5nbc-762hk-f52eg-gt2ej-is5vn-t4ito-4qe","dmaor-zutaz",2473304613901029],["ze63k-2rixo-cfhdi-vnu3u-mrepm-lmasg-dqedv-k4i37-m3z6f-g5jm6-vqe","柏燃资本",2453341301315455],["dx7d2-km47l-xtuia-fcayg-cp4o3-luu5z-xhemk-cacrz-p66ur-cqyp4-wae","dx7d2-km47l",2361985522072220],["s35go-ahbti-u3diz-cmjrw-hagxe-iiup5-vb5jb-n7ld5-uxxqp-5boau-uqe","s35go-ahbti",2356277811949570],["rmpbj-avuhu-a34xk-n3z5c-g4fnf-zmdhl-gpcq2-z375b-ooxsb-7zdt6-qae","三角形",2149261633942498],["tjnix-z7sxu-z7kcc-54t5v-cl74u-p3ih5-cvekq-n2iv5-pcqd5-ldqlw-zae","奥丁再次崛起",2108554459942287],["irlkm-aphhw-fjbmt-2kxry-to6rk-wexw4-hh7zv-lemps-fux6h-q3vjl-cqe","irlkm-aphhw",2044265444106054],["ohefz-77klw-44dwo-krru7-wvhph-wotbz-ztljf-cfq45-lksov-aa66w-aqe","FUDIN.ON",2000000000000000],["wehvm-akvsp-4nwiw-tytab-awmzj-252a5-i7x7z-stqk3-xrn7w-rwgwe-vae","奥丁奥丁🐮",1978689279748547],["xo5s5-t7hoz-cy26p-dnzcl-lpvo2-ipwn3-7hc55-fqc53-cdaiv-jsgeb-gae","静等风来，我们是来翻身的",1956681180842799],["kf5jv-czgwi-34nyv-mepuh-bectv-x7ods-ezqoz-la6o2-omxpq-qimkz-eae","大司马他哥",1948418467291461],["mv7ir-eiwao-xejkn-qwgtm-ifd66-saj4i-2kpwm-ucf52-crsrb-khjcc-cae","CCHY",1945137952212578],["7ndwg-5rg7i-j46dk-soepf-tqjx7-gbdqu-ukhpw-23qn2-2azd5-nav7s-kqe","7ndwg-5rg7i长长久久",1944066315398279],["tb34s-ufeqt-7ybn4-x73u5-lw2ig-frhft-xjsbb-ggaai-4ti2u-ag7z3-yae","tb34s-ufeqt",1904515258970457],["fjfww-fzfrx-milep-7v7k4-dyupc-tpla4-o4cti-nl5ga-bepsq-z65i7-dae","夏日黄昏小赢家",1903541642909760],["7wnw4-nxdai-z2lcs-hjmrh-ewfs7-e3px4-tgbr5-ldneb-6syfs-7auen-4ae","7wnw4-nxdai",1812033582146187],["kuec4-kkvgy-2kyll-kweac-xu2cr-bpifj-3yhrx-dhnpy-bpyyy-qhua2-tae","kuec4-kkvgy",1791788506758213],["h3i4b-s7sps-hc6jr-4wiq7-elg5z-7t3rw-bqmgs-ozdih-j2qgm-7plmp-hqe","阿童木ATOM",1772837224383033],["d3vnd-ilusw-ndmrg-xliwn-lykqb-n6kg5-scprr-z3a6h-mpkr7-ttryl-eae","滑头洋d3vnd-ilusw",1715003385298866],["q3wyh-leon2-ul3ma-k33ue-ekkge-kkpvl-iu4j6-jrzxd-mxege-qqww3-nqe","-leon2-",1694855439525884],["pvfba-i6obl-jo2sx-jbtv2-4gx4c-t5ik3-xocu3-o3vn2-zt2f4-gd6xq-7ae","pvfba-i6obl",1628542874613145],["lnaei-aufgn-m2mdn-f3quz-cyfgj-fum7x-psfvn-wc5bs-rocce-6xonr-dae","我是财神",1544190752177784],["yfhlu-2h5z2-whujg-dpuzv-yj4uz-dbiwe-albsi-s4n4z-t5ydw-ycy47-sqe","chantaiman",1527375560152176],["ldhrd-ksllv-pt65v-fkker-gcn7m-2ee2o-5a6xu-cpzo5-6daqc-ilmji-lqe","ldhrd-ksllv",1503276728313012],["3r567-g3glt-ai7wc-wt35c-bnw4a-4drwa-jr5xy-6ljxr-wxweq-s4cro-yae","Pollo_Poco",1500000000000000],["kh2w6-w6khd-a2fb5-dfsj4-xcyc4-lvbdr-saffc-7zebg-ar6sd-aq7ss-zae","傻逼DEV亏本离场",1436364591892128],["32mxh-qa4nc-4ktqc-2knkk-zhist-gk7ak-7hhq7-ozwrw-uya3b-ljy3p-fqe","32mxh-qa4nc",1412750679009668],["vvdda-ddkev-vmdmu-2i35a-r6cny-vs5mm-npony-kk6tc-bcoc5-unzmm-5ae","club～茵子",1406560543125003],["pg26z-247ev-j5o5z-zcxdm-pox2r-zqxyy-l2epy-vic3p-f4lea-ydsq4-sqe","pg26z-247ev",1391001989782122],["xb3tp-uzuv2-fyyru-alfa6-lkcqq-fwwwq-gnuce-yv3ym-5i3qk-kw235-sae","xb3tp-uzuv2",1390597866989347],["3etre-ko2rp-unh6c-pudac-cm6ej-es5nf-57tzw-axp7o-a6nzy-d3rwj-yae","3etre-ko2rp",1201583085035712],["4dyzn-27i2n-cmqoj-cswhn-yay4s-aizpg-o2rtr-xba5o-qyfyd-rjqak-eqe","好运连连yy",1182054708808989],["f4xyb-2d7jv-ynu44-tjl6s-g7bcy-butes-e4ofj-pqnf2-2plno-v6hwm-3qe","暴富奥丁",1168421905759312],["24ql2-sttdf-zspsw-2bt5m-vcxfy-y45mg-pa4nt-bmeia-koq4v-roamm-lqe","Taishan9511",1164643732687659],["fq23f-hddu4-lrq62-kifrh-ync7p-owrgr-mzziw-bcett-ae75w-7syrd-mae","fq23f-hddu4",1148746033083660],["ztfyc-ttp6x-cmwe2-uafng-hczbh-cug4m-dvikc-6hdwi-clmhu-tkw32-qae","深圳进取社区",1138222890595739],["yrbxf-jcaaq-htjyh-ht4op-fl4ux-zxoce-b77ky-lgrjo-73omk-rwq5m-7qe","yrbxf-jcaaq",1097427069589344],["bxgx2-kayhy-rnxxh-awill-46fr3-3ne5e-pestw-kxmlm-srghu-rtlab-nqe","bxgx2-kayhy",1044218479253583],["qihe4-gpd65-c7yeg-i2ohm-7mtcs-c2aip-xkqud-gw2n5-wyy7b-23je5-3qe","qihe4-gpd65",1039650778263482],["l5oqb-mvcx4-wj6fl-4nhca-vpsp5-g3jcy-67eit-gu33c-bebxr-6x32y-5qe","km@g",1000000000000000],["mtw4p-yptv5-umseu-o32d4-lfynm-lz7pz-cp2om-zpk44-k5g3x-jc6x7-mae","ldlddfkdkdjkdkd",1000000000000000],["mbq3p-p7boc-kqmwf-kqv5s-oikbd-ycs36-etq2x-kb2o3-lykpb-ajjot-cqe","mbq3p-p7boc",985842592466776],["iwh73-mcd4g-xx2hq-hvyzt-jth5f-s4hbx-oum6j-wkpkq-3pfgy-2kshg-3ae","TJ铁军",933835598333628],["5mk5j-mmypt-myl3g-kqyra-zhjwa-wp2db-z6pav-t2r64-psmpi-g2ae5-sae","5mk5j-mmyp99",904659006218255],["jdmpo-fvid5-cngw2-kn3tf-so7gp-dhw34-i3j7s-m3wdu-ooag3-ik47u-oae","jdmpo-fvid5",801987178876691],["xkrhh-e74gj-guef3-lvz2e-h5xbx-naa7b-jgqcp-2lnlh-btpmb-4fpbv-kae","sameffff",792932536506621],["qqxun-e5jnr-rbtmx-owg4n-rv33a-wl3ft-seclp-fqluf-276ip-di3cp-uqe","qqxun-e5jnr",764502767289799],["kpsxt-w7yd4-7qbfx-iu5ou-uc5wm-blzxq-hxien-6q6zx-xwcwf-zru6n-uae","BоbBоdily",750000000000000],["znzuz-ozxl4-3i4b7-kqv2n-exyuf-6i4cb-xwsbq-gcv3e-mhela-57qq7-tqe","znzuz-ozxl4",622778741308889],["om4qb-i53ak-kbogy-bzu5f-fgzne-d7qhd-fmqls-52xjp-vsod6-6svwf-cqe","om4qb-i53ak",616415654393936],["ls37y-ipuxp-mocax-qqed3-jwwyn-bv6zq-gb5r4-ciaws-fadak-bi5pk-zqe","7y-3hla3-x64cs-rae77778888",588039194181526],["wzs3l-mabjv-cbekv-deu4z-fwdxq-7hlsk-vqnoo-hklfb-3sxyh-3h7nl-cae","王牌对王牌",587112317430768],["vivhz-gusaa-7md2p-goqre-njzku-tfw4w-ebow7-kr6ui-cpscs-hpvra-eae","vivhz-gusaa",556814782713311],["5bv35-xy7y5-rblqi-gjqbt-3fjqy-ujuq5-milfb-q4x4p-cjdwz-wn7d4-4qe","5bv35-xy7y5",555658536243304],["xw2vl-ih4bx-ogqst-2mvwz-dyrhw-ckiv4-5bwqm-foxjj-5duac-g3i6t-jae","xw2vl-ih4bx",554222007412593],["nfjkc-oyrld-mweew-ok7pn-5vnr2-inlwn-eadz2-jqkhi-tap2b-ugddi-xqe","nfjkc-oyrld",542090226984791],["5c5ya-4wenv-qhhrt-xfffi-c3h3z-quxc5-2zcse-3dtn7-ydjlw-eduv3-kae","5c5ya-4wenv",523390262825718],["v4wl2-ww5rm-nrs3e-cgrcd-5tesm-pak7o-vhvij-f62gg-lbbdp-uyu36-rae","opptyyu",515131199404813],["5zby7-p2a5e-atks5-e672u-xovrb-hydxh-fy6ki-shjvb-5ihiy-sq3jp-mqe","嗯来嗯去",433358310696614],["i2ym3-rwlgy-e6zi7-eruq5-ii44x-lzikt-l4nec-b4jtd-sblzb-vgtim-fqe","fubfhhv-5",409349512341295],["vks3y-zmrba-shuv6-bipit-kwdu3-plpaq-gxfup-wqzbx-4zizc-ohmuz-zae","vks3y铁军",398186963834624],["cg73j-ujh3b-jdyut-pnsvv-p64b7-fgk2w-yudlu-e6cem-eczfm-ulipe-4ae","爱你不是两三天",396905570239631],["hb3bt-z6ahw-az5dv-6txkj-3npbs-kbjuf-3mhue-xt3i2-jz3f6-ywb5u-dae","hb3bt-z6ahw",360027596162305],["m5n6n-5celo-omtni-k76bp-nracu-b7j6g-kxw7x-bcxsm-tz4at-pcyfc-xqe","王来财",351910523549303],["ahmns-v7gml-2yckz-6fl5a-fwkkv-jal3a-qbqav-naecy-cdwrp-cg2jm-cae","ahmns-v7gm",340655443709622],["x6bqq-5yqt6-qi3rn-f7ipa-pximm-ixuan-33uuf-zxt5k-kr5t2-dvpd4-cqe","Y",300000000000000],["zho24-4out6-srkdg-q6ntr-ydo4s-l4x4k-nstsu-byqi7-5bjvi-3beuw-6ae","byqi7-5bjvi",261348049157540],["mmo3m-yzodu-da7l7-u2iia-ax7dx-blg6i-63yda-2zhlg-gc3td-nxnrl-cae","mmo3m-yzodu",253929292055428],["32ml5-fsofe-rxdvq-uqien-cizls-wo56e-mp63m-x5dqv-2ptws-fkucc-qqe","32ml5-fsofe",245307651728208],["zd2bk-jezz6-zugva-wuk4l-hzk2r-bwz5w-shubt-2icol-n4eu4-lgkqw-3qe","GJZL",234756259404186],["kcw2m-ln7be-fnv3g-a2ocd-yof63-6rw7u-njm53-z6dan-mbrco-uki4v-3ae","kcw2m-ln7be",233459927938067],["6s4ts-k7c4d-vp42z-mqsdd-ayjnh-qyym2-v36zf-ygybg-bsx5p-ozquo-qqe","LLOOTT",222775042073074],["d2uel-nwaa7-3kfh2-56ffv-t7oaz-eghhk-bkzam-w5xmv-xngwr-7k4xc-iae","d2uel-nwaa7",222211347893003],["fb3tt-udv3f-gdpxq-gsjtt-jdbzv-zyukb-yt2n7-yyvkb-opgm7-czbkd-2qe","💧LOCKED🔒 ⏱️: 9/18/2026 09wq3",210000000000000],["c53er-7erem-bjhhl-2h2g4-nkjip-an6mp-cb6ku-fw2zd-bfods-xtgcf-3ae","ODINFUNY",209059987487017],["k3c5d-7pmau-v5hb4-a4ms4-s7ph5-ssl2p-5ugux-roe5p-renbv-f6ozu-pae","lskdkjdjfvv",200000000000000],["pk5mg-d2amq-46qmr-l2vsf-mxd6q-wiup6-4wqbj-uaw6v-cyusw-bhh5p-pae","pk5mg-d2amq",196365432027511],["wreuf-goj2i-mqeuz-prdc5-t7hdn-gxeq4-b2j2t-mlqsl-hsxsx-2y6qa-mqe","TABCDEFG",195424948780422],["o6bzh-j6qk5-prlgi-2wcy5-cobdl-mhkdq-4nsh2-ox44y-nghvu-52q7p-cqe","o6bzh-j6qk5",188633350976161],["4fgqm-3vtif-7fo5k-rkykl-bovrn-kl6pc-hrpgd-gkvl2-jrxgl-fcmg6-dqe","麻了阿",166740486722404],["6ehae-qpmis-gvl5c-j7liu-5twje-zwy7q-mjqp3-rpnic-jlp5c-og4rg-sae","6ehae-qpmis",162668583941943],["pioph-6gakx-qxitg-4pyn5-cqpag-cjwrr-pau56-vh4bq-a6wju-dlxd3-6ae","pioph-6gakx",158202446166794],["asg25-5e4sk-owa2e-hxasx-6dwcy-36q6d-as7ex-2cehb-w2nlv-g5re6-xae","asg25-5e4sk",156712281578121],["imkl2-k3mxh-65yfn-c6czl-sdegz-dskwj-r4yaz-o7urs-7bc3w-cfsap-jae","imkl2-k3mxh",121754390742695],["okdej-pzpni-cptuj-wxzvm-4j3wv-ljutf-s5ekd-7idnm-ttcbq-n62qv-bqe","okdej-pzpni",120569415880808],["yqcrk-kjq32-sje35-ncetv-vdys2-yvpgm-c2dhm-g5ipw-hzfzh-4pyaf-mqe","yqcrk-kjq32",117981864786004],["vv5jb-7sm7u-vn3nq-6nflf-dghis-fd7ji-cx764-xunni-zosog-eqvpw-oae","bob 🐦‍🔥",100000000000000],["ych6v-flpxa-uf5wo-mr2rb-5kf3j-3vpzs-gwlwm-l4gtt-mtyjv-pnlh6-jqe","ych6v-flpxa",95458987189200],["erbup-h4uab-sgfam-jluiz-qdgor-7tguc-5vodv-go5ly-wi5km-icbih-mqe","erbup-h4uab",89081247932115],["zqtdp-kumla-dn5xz-cmbmj-lffre-ytild-uw5sz-haxli-5xcf4-cnglo-wqe","zqtdp-kumla",86622849272965],["25afx-ls3dt-ic2wb-lz63t-wc5dd-alj4h-h3o2t-h3coe-fatt2-flwmv-jae","嚯嚯嚯",64770510592326],["jyoxl-nffn7-bz6z2-sv34a-unshd-jnzkx-iusdc-4g6up-2kd7z-eybdx-wqe","jyoxl-nffn7",63980861582777],["ywvrt-sugyr-ksbsa-fuscn-juy2c-igefb-rp3l2-3jmmz-7kkfy-loixy-gqe","Lkrcfedh",61598385000531],["piua5-oxgpp-irtk7-n7mk6-zjqsq-cq5vm-fdkni-llne2-hbuho-hzbjk-3ae","piua5-oxgpp",60227748356088],["726es-trilu-eyo3y-mx52s-jvcg6-ibukb-gz7lj-ncg7k-lweuc-qmdir-eqe","726es-trilu",59425444102471],["tjii4-nubea-svdli-5ufwx-dz7jx-c43wd-bo3bb-vdf6q-gkc4x-lrjtk-eqe","A9–0033",59333036289971],["t4i76-cdcd7-zs55j-mn4wo-ukvxs-brqvd-b4tvo-tftk7-ymkkr-lvqwg-hqe","Taproot Wizards",56984679783185],["iwbpd-72idp-xsqma-wyo3a-gve47-ag73x-bvucs-pb7mh-etavb-6w33o-fae","iwbpd-72idp",50000000000000],["nazkg-3ns5h-u6acg-ajsid-ghzfh-prvvb-osfqm-qpdsm-dj5mp-b5zp5-zae","asudiejdjjdjywz",45683614226195],["g2lvx-pm7ux-777cf-dq5sc-trlmi-zzdpj-zo2il-ej6pw-re3nj-lv6yz-6qe","g2lvx-pm7ux",43568429123469],["bfcjl-wu2xk-37qcf-phrh7-7222a-yn2or-fvzlk-kedus-i3frg-vie2t-6ae","oskdkdkd",36389640756694],["wgsn7-5ec4q-angct-hcq22-wbszx-6gt7p-4sros-ucfq2-fkmtz-6wjf5-eqe","wgsn7-5ec4q",34821079650835],["ofygo-6e5x7-zb5xw-t5mri-z6qwo-w4pqh-kltag-hdutr-dfzfz-jyxsu-sqe","NINJADNB",32026634692298],["bu6eu-2etck-vkutd-p3qhs-n2cjq-qd7sx-cjjb3-sr2dz-d4w2s-5zwis-tqe","bu6eu-2etck",30612387728751],["choka-ijurm-bltlt-fkc6q-2pba6-v32va-ixfi2-eq6p5-s2c2s-tgv3q-cqe","choka-ijurm",29638254384104],["5ha5t-cafy7-div3n-u4n3w-tl6bd-k56n6-zvb7l-2fih2-v2mon-35wjv-jae","5ha5t-cafy7",28371996368821],["w3swu-7y5h3-3xakg-yrjq7-vcckp-iaroy-crvdg-grfsf-vrx5d-wrfmc-lae","w3swu-7y5h3",28000000000000],["rwefe-ej5h7-eivf5-or3pd-n2kgf-a754a-znb7t-7owc2-wy5dp-fu7nw-hae","rwefe-ej5h7",27612532164075],["j33qk-766vs-v237x-33kmq-dy7gc-qaeyq-nwmfu-dwesi-3l3qk-modmv-qqe","泥头车",26206339535638],["jikjw-s7elw-rbgmr-oxzhn-y72ez-hryox-vwshg-5lu3v-pbwh3-4jpgh-kqe","runesbaby",23791201511989],["5vvkx-vuqgh-kqtuq-i2r5v-3wcac-yo5vf-6ml35-ph2gn-cuv2g-dvwih-yqe","5vvkx-vuqgh",23319342629653],["y2rsh-427au-thvvi-bkcuj-j3iln-ebr3q-kv7jl-kbhei-gv6wh-a4zjp-hqe","🐲长期建设NOODL奥丁第一个币557302630",22132940511405],["kmusq-kwphw-iqmjf-gwolx-oizy2-dlaas-n2aud-fyvhb-xrtza-3nrti-6qe","kmusq-kwphw",21843334177905],["45bnz-iijx5-rkv3w-ioo72-gxoxd-zlqsl-gzyxn-nta27-a2cb7-7ne23-mqe","45bnz-iijx5",21613765590786],["hpwyg-b3jki-mhtwq-2bnq6-y2t7g-yxkxp-qtuzb-qqcmq-4jncn-lcx2d-gqe","hpwyg-b3jki",19966640758387],["vqru6-m4nt5-ac7zr-i2ul5-7x77p-7zham-ko2y6-4rwwm-x5dls-ujslw-tae","vqru6-m4nt5",19730196350306],["47gns-e4yr2-ixpww-esno6-hy4a2-fjzjn-dvsbb-nmw76-eqp3r-6asha-mae","47gns-e4yr2",19414827508659],["4mj5e-pjl5d-vyyxm-5c5kx-lekby-uz5wk-gq5bc-ic6nt-vfp5p-3noxm-fae","RANCID_",18819922285537],["bqrfv-der7o-cam5x-vzguy-rqd4o-lqteq-cchoo-ek7bg-njjpy-ro4ha-dqe","bqrfv-der7o",14874650175637],["wugn7-dipqa-w6tcv-hkrs3-rlkzz-u6jx5-lvmlj-bnzyb-foswk-zqikz-7qe","UFYC",14296406513175],["lua5h-hde7u-bp34w-ls2te-sfpdu-yunsx-ocigz-vg572-64zvp-ahn7a-eae","lua5h-hde7u",14003229993917],["wumzn-5qgyu-2upp2-dinum-vlis4-q773k-my33s-pxnq7-3mxwl-o2whu-fae","HIHO",13452270737775],["ocz7d-vtsig-dt34k-qie5p-qttqt-kmqxx-w7xa3-3sa7b-gkn3k-y7mjv-rae","ocz7d-vtsig",12377402057964],["mxf6m-bdclz-y6f3p-vgpse-vpuft-3lw5y-wrzvc-pzion-ryvwn-2cbi7-nqe","cydcyrwan",11972309544103],["fxmsy-kckaa-g7e2p-n2gf5-xixm2-mjjmf-nuvop-mveer-y52iy-h6z67-fqe","fsdsf-9ooul",11192148894026],["l7b7u-4rnai-2m56b-nnpgo-57vik-qwqdn-al6ph-afm3i-r53wq-uvtaw-rqe","l7b7u-4rnai-",11169547694525],["mti5t-m7yqe-24cf3-jcpiw-lendz-yrvt6-yjokz-3npfv-chtxn-gwews-jae","mti5t-m7yqe",10043333281485],["mh73o-wanyl-lzfu2-s5rxb-z735y-a5sqj-uymti-ndidc-2ewhl-mavik-tae","odin v2",9025261697522],["uf6zp-p6zxj-oem66-usia3-w7mhy-fedcn-4rapy-6u3vb-f3rhb-pohqi-kae","Lcwsbzlwccc",5555931550657],["qmvmk-tiaaa-aaaai-axyqa-cai","",3400000000000],["7ouya-c254m-ptrqr-yxfto-nrvwt-uya22-bfnbc-sxcrp-kg34q-o66xc-fqe","奥丁平台必胜",138911897970],["cin5m-jmmll-ssqr5-y267n-rhf6z-meag4-fuigi-6s4qu-e2hfe-dkuly-4ae","cin5m-jmmll",10000000],["dz3dn-fozxn-ik3jn-efxom-mhw6c-22cix-7yx2o-k6fny-53buy-ruwb5-6qe","ddd",10000000],["h7lba-a66rt-nrzk3-luiyv-rqzjc-ipmdp-yx7h5-bfc6w-cs3iw-2mfn2-eae","假宝玉",10000000],["kbftb-6nsvt-4zpio-s3bpb-xgvvp-f5k64-k3pgk-oeshk-swl67-sdq4d-sae","kbftb-6nsvt",10000000],["kjueh-m56km-oju5q-o2fr7-nc2ua-xe3an-xbsje-ojjcn-omsxm-7pvct-7qe","kjueh-m56km",10000000],["l4fqe-ddsys-degzo-6ebto-j5icp-mgey7-5x2e6-t2auh-wcldf-6oxt4-jqe","DNB",10000000],["lt6am-jo5n3-nx5eq-glx72-njtgi-huvkv-tvz5u-jhp3m-hipzr-6wuyg-oqe","V2第一个代币面条，坚定持有",10000000],["ro25c-3tspr-fx5i5-igcqu-kmpja-nthsl-wwhlz-r4ys2-nhary-a36xq-tqe","wei 777",10000000],["tlmt7-5vq2c-suwmp-3qibc-4x6u2-jrh4s-i7rwi-kr6ay-2hoff-npp2r-sae","一个太阳🌞",10000000],["5lyzt-jlw33-2yqgc-kphx3-lsuqa-d6cps-xqej3-d4bnr-wvumc-hki2d-nae","gdjks-jdjs",100000],["c7myr-57hnh-si6hr-lwlz2-w6w6q-og62s-rd73s-q4moh-og5ue-axb6o-wae","c7myr-57hnh",100000],["f2czo-7756m-mgheh-2yepy-hywcm-cgyfr-vfnie-hj6yg-pzshe-wwxn4-2qe","浮云游子意",100000],["fc67b-5yw3b-l5wsm-sbk4a-tbzhs-mi7h7-fq7ji-uzqjl-sjxak-iac3z-bae","fc67b-5yw3b",100000],["h2j4r-jzng5-mn6ti-vpnrg-53rnv-piu7p-lenh6-hbbce-wgbma-mhkcn-lqe","h2j4r-jzng5",100000],["o2yix-r7a3p-7nj4g-pnvfm-k6kax-mkija-4tztk-3dqje-6jboj-ovmil-pae","o2yix-r7a3p",100000],["wtq5u-fwd42-erkbc-z6une-dzgui-qrhkb-3li3n-d5xok-cvgr3-tja6h-bqe","爱情终究一场空",100000],["yjrup-kl72e-ajki2-xxivj-qia3o-4dbd5-ag4gk-5ttcl-rymn4-fggcq-fae","NewHi",100000],["5omjy-hmqds-bpxrj-2km45-6qz5d-hg25s-cp4yb-lek5l-fpfsv-whvmo-eqe","5omjy-hmqds",1]];
+
+/* ================= i18n ================= */
+const I18N={
+en:{
+  navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navDefi:'Defi',navCom:'Community',
+  linkToken:'Odin.Fun ↗',
+  title:'NOODL UNIVERSE',
+  sub:'One bowl of noodles is one galaxy. Every odin.fun address ever made floats in this soup: the legacy era settled into grey dust, wallets still holding tokens burn cyan, and the ones holding NOODL burn gold.',
+  stLegacy:'LEGACY ADDRESSES',stTotal:'ALL OF ODIN',stActive:'STILL HOLDING',stNoodl:'NOODL STARS',
+  keyGray:'legacy dust — an address from legacy.odin.fun',
+  keyLit:'lit — still holds tokens on odin.fun today',
+  keyGold:'gold — holds NOODL right now (hover it)',
+  hint:'drag to orbit · scroll to zoom<br>click a gold star to meet its holder',
+  foot:'Census snapshot {ts} · every count is real · gold stars refresh live',
+  tipOpen:'click to open their odin.fun page',
+  tipHeld:'{n} NOODL held',
+  nogl:'This browser has no WebGL —<br>showing a still of the universe instead.'
+},
+zh:{
+  navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navDefi:'Defi',navCom:'加入社区',
+  linkToken:'Odin.Fun ↗',
+  title:'NOODL 宇宙',
+  sub:'一碗面就是一个星系。odin.fun 有史以来的每一个地址都漂在这碗汤里：legacy 时代沉成灰色星尘，今天仍在场上持币的亮成青星，捧着 NOODL 的燃成金色。',
+  stLegacy:'LEGACY 地址',stTotal:'奥丁全体',stActive:'仍持币',stNoodl:'NOODL 金星',
+  keyGray:'星尘 —— legacy.odin.fun 的一个历史地址',
+  keyLit:'点亮 —— 今天在 odin.fun 仍持有代币',
+  keyGold:'金星 —— 此刻正持有 NOODL（悬停看看）',
+  hint:'拖拽旋转 · 滚轮缩放<br>点一颗金星，认识它的持有人',
+  foot:'普查快照 {ts} · 每个数字都是真的 · 金星实时刷新',
+  tipOpen:'点击打开 ta 的 odin.fun 主页',
+  tipHeld:'持有 {n} 枚 NOODL',
+  nogl:'当前浏览器没有 WebGL —— 改为展示宇宙的静态一帧。'
+}};
+let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
+if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
+function ui(){return I18N[lang];}
+function fmtN(n){return n.toLocaleString('en-US');}
+function applyLang(){
+  const u=ui();
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const v=u[el.dataset.i];if(typeof v!=='string')return;
+    if(el.dataset.i==='hint'||el.dataset.i==='nogl')el.innerHTML=v;
+    else el.textContent=v.replace('{ts}',UD.ts);
+  });
+  $('#langBtn').textContent=lang==='zh'?'EN':'中文';
+}
+$('#langBtn').addEventListener('click',()=>{
+  lang=lang==='zh'?'en':'zh';
+  try{localStorage.setItem('noodl_lang',lang);}catch(e){}
+  applyLang();
+});
+
+/* ================= seeded dust ================= */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hashStr(s){let h=5381;for(let i=0;i<s.length;i++)h=(h*33)^s.charCodeAt(i);return h>>>0;}
+
+/* ================= the bowl, laid out in points =================
+   World units: rim radius 100, y up. Everything is one additive point
+   cloud — the bowl itself is spun from the same starlight as the sky. */
+const R=100,ARMS=4,TWIST=3.4*Math.PI; /* each arm winds 1.7 turns */
+function armPoint(rnd,t){
+  /* a spot on one of the four noodle arms at progress t (0 core, 1 rim) */
+  const arm=(rnd()*ARMS)|0;
+  const g1=(rnd()+rnd()+rnd())/1.5-1, g2=(rnd()+rnd()+rnd())/1.5-1, g3=(rnd()+rnd()+rnd())/1.5-1;
+  const r=8+t*(R-24)+g1*(4.5+t*4);
+  const th=t*TWIST+arm*(Math.PI*2/ARMS)+g2*(0.10+0.05*(1-t));
+  return [Math.cos(th)*r, -4.2+g3*(1.7+1.4*(1-t*0.5)), Math.sin(th)*r];
+}
+function buildStatic(){
+  const G=UD.v1, A=Math.max(0,UD.active);
+  const N_BOWL=15000,N_RIM=8000,N_BLUE=2600,N_SOUP=12000,N_CORE=15000,N_SKY=3000,N_FOOT=2200;
+  const total=G+A+N_BOWL+N_RIM+N_BLUE+N_SOUP+N_CORE+N_SKY+N_FOOT;
+  const buf=new ArrayBuffer(total*24);
+  const F=new Float32Array(buf),B=new Uint8Array(buf);
+  let n=0;
+  function put(x,y,z,s,r,g,b,a,h){
+    const o=n*6,ob=n*24+16;
+    F[o]=x;F[o+1]=y;F[o+2]=z;F[o+3]=s;
+    B[ob]=r;B[ob+1]=g;B[ob+2]=b;B[ob+3]=a;
+    F[o+5]=h;
+    n++;
+  }
+  const rnd=mulberry32(20260827);
+  /* legacy dust — every one of them; a sixth drifts loose between the arms */
+  for(let i=0;i<G;i++){
+    let p;
+    if(rnd()<0.15){
+      const a=rnd()*Math.PI*2, rr=8+Math.pow(rnd(),0.8)*(R-24);
+      p=[Math.cos(a)*rr,-4.2+((rnd()+rnd()+rnd())/1.5-1)*2.2,Math.sin(a)*rr];
+    }else p=armPoint(rnd,Math.pow(rnd(),0.74));
+    put(p[0],p[1],p[2],0.68+rnd()*0.4, 80,84,96, 28, rnd());
+  }
+  /* the living, lit cyan */
+  for(let i=0;i<A;i++){
+    const p=armPoint(rnd,Math.pow(rnd(),0.74));
+    put(p[0],p[1]+((rnd()-0.5)*1.2),p[2],1.35+rnd()*0.75, 0,229,229, 165, rnd());
+  }
+  /* golden core — the swirl the noodles wind out of */
+  for(let i=0;i<N_CORE;i++){
+    const a=rnd()*Math.PI*2, rr=Math.pow(rnd(),1.6)*10.5, yy=-4+((rnd()+rnd())-1)*3;
+    const heat=1-rr/11;
+    put(Math.cos(a)*rr,yy,Math.sin(a)*rr,0.8+rnd()*0.9,
+      252, Math.round(160+60*heat), Math.round(40+40*heat), 120, rnd());
+  }
+  /* soup — a dark blue hush under everything */
+  for(let i=0;i<N_SOUP;i++){
+    const a=rnd()*Math.PI*2, rr=Math.sqrt(rnd())*(R-8);
+    put(Math.cos(a)*rr,-6.5-2.5*(1-(rr/R)*(rr/R))+((rnd()-0.5)*1.6),Math.sin(a)*rr,
+      1.1, 22,64,111, 46, rnd());
+  }
+  /* bowl wall — cream shell falling away below the rim */
+  for(let i=0;i<N_BOWL;i++){
+    const yy=-Math.pow(rnd(),1.12)*54-0.5;
+    const pr=Math.sqrt(Math.max(0.02,1-((yy+6)/62)*((yy+6)/62)));
+    const a=rnd()*Math.PI*2, rr=pr*R*(0.985+rnd()*0.02);
+    const sh=1+yy/95;
+    put(Math.cos(a)*rr,yy,Math.sin(a)*rr,0.85,
+      Math.round(233*sh),Math.round(217*sh),Math.round(192*sh), 62, rnd());
+  }
+  /* rim — the bright lip that says "bowl" */
+  for(let i=0;i<N_RIM;i++){
+    const a=rnd()*Math.PI*2;
+    const g=(rnd()+rnd())-1;
+    put(Math.cos(a)*(R+g*1.9),((rnd()+rnd())-1)*1.5,Math.sin(a)*(R+g*1.9),
+      1.05, 240,226,203, 105, rnd());
+  }
+  /* one thin blue accent ring just inside the lip */
+  for(let i=0;i<N_BLUE;i++){
+    const a=rnd()*Math.PI*2;
+    put(Math.cos(a)*(R-5+((rnd()-0.5)*1.4)),-1+((rnd()-0.5)*1.1),Math.sin(a)*(R-5+((rnd()-0.5)*1.4)),
+      0.95, 63,127,217, 92, rnd());
+  }
+  /* the foot the bowl stands on */
+  for(let i=0;i<N_FOOT;i++){
+    const a=rnd()*Math.PI*2, rr=34+rnd()*4;
+    put(Math.cos(a)*rr,-55-rnd()*5,Math.sin(a)*rr,0.9, 196,180,156, 52, rnd());
+  }
+  /* far stars, so turning the bowl turns the sky */
+  for(let i=0;i<N_SKY;i++){
+    const u=rnd()*2-1, a=rnd()*Math.PI*2, s=Math.sqrt(1-u*u);
+    const cold=rnd()<0.3;
+    put(Math.cos(a)*s*520,u*520,Math.sin(a)*s*520,2.2+rnd()*2,
+      cold?150:255,cold?230:255,cold?255:245, 90, rnd());
+  }
+  return {buf,count:n};
+}
+
+/* ================= the gold stars + planets (dynamic) ================= */
+const gold={list:[],px:[],pos:[],hash:[],buf:null,count:0,max:1};
+function goldPrep(){
+  /* rank decides the orbit: whales sit close to the core */
+  gold.pos.length=gold.hash.length=gold.px.length=gold.list.length;
+  gold.max=gold.list.length?(gold.list[0][2]||1):1;
+  for(let i=0;i<gold.list.length;i++){
+    const h=hashStr(gold.list[i][0]);
+    const t=0.06+0.82*Math.pow((i+0.5)/gold.list.length,0.62);
+    const th=t*TWIST+(h%ARMS)*(Math.PI*2/ARMS)+((h>>>4&255)/255-0.5)*0.14;
+    const r=8+t*(R-24)+((h>>>12&255)/255-0.5)*5;
+    gold.hash[i]=(h&1023)/1023;
+    gold.pos[i]=[Math.cos(th)*r,-3.2+((h>>>20&255)/255-0.5)*2.6,Math.sin(th)*r];
+  }
+}
+const PLANETS=[
+  {r:36,sp:0.11,a0:0.7,c:[55,214,195],s:5.2},
+  {r:57,sp:0.074,a0:2.6,c:[252,209,79],s:6.2},
+  {r:74,sp:0.052,a0:4.4,c:[239,149,48],s:5.6},
+  {r:90,sp:0.038,a0:5.6,c:[122,168,255],s:4.6}
+];
+const RINGN=46;
+function buildDyn(time){
+  const NG=gold.list.length, NP=PLANETS.length*(2+RINGN);
+  const buf=new ArrayBuffer((NG+NP)*24);
+  const F=new Float32Array(buf),B=new Uint8Array(buf);
+  let n=0;
+  function put(x,y,z,s,r,g,b,a,h){
+    const o=n*6,ob=n*24+16;
+    F[o]=x;F[o+1]=y;F[o+2]=z;F[o+3]=s;
+    B[ob]=r;B[ob+1]=g;B[ob+2]=b;B[ob+3]=a;F[o+5]=h;n++;
+  }
+  for(let i=0;i<NG;i++){
+    const p=gold.pos[i],w=Math.pow(gold.list[i][2]/gold.max,0.4);
+    put(p[0],p[1],p[2],2.1+4.6*w,
+      252,Math.round(172+50*w),Math.round(140-90*w),225,gold.hash[i]);
+  }
+  for(const pl of PLANETS){
+    const a=pl.a0+time*pl.sp;
+    const x=Math.cos(a)*pl.r,z=Math.sin(a)*pl.r,y=-1.5;
+    put(x,y,z,pl.s,pl.c[0],pl.c[1],pl.c[2],210,0.35);
+    /* a hot core, or the additive haze reads as a hole in the dust */
+    put(x,y,z,pl.s*0.5,Math.min(255,pl.c[0]+95),Math.min(255,pl.c[1]+95),Math.min(255,pl.c[2]+95),255,0.35);
+    for(let k=0;k<RINGN;k++){ /* the white ring the logo planets wear */
+      const b=k/RINGN*Math.PI*2, rr=pl.s*0.95;
+      put(x+Math.cos(b)*rr,y+Math.sin(b)*rr*0.38,z+Math.sin(b)*rr*0.75,
+        0.62,255,255,255,120,(k/RINGN));
+    }
+  }
+  return {buf,count:n};
+}
+
+/* ================= webgl ================= */
+const cv=$('#uv');
+let gl=null;
+try{gl=cv.getContext('webgl',{antialias:false,alpha:false,depth:false,preserveDrawingBuffer:false})
+  ||cv.getContext('experimental-webgl');}catch(e){}
+const motionOK=!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
+let dpr=1,W=0,H=0;
+const cam={yaw:0.65,pitch:0.94,dist:265,auto:true,idle:0};
+let prog=null,uM=null,uT=null,uPx=null,statBuf=null,statN=0,dynBuf=null,dynN=0;
+
+function shader(type,src){
+  const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+  return s;
+}
+function glInit(){
+  const vs=shader(gl.VERTEX_SHADER,
+    'attribute vec3 aP;attribute float aS;attribute vec4 aC;attribute float aH;'+
+    'uniform mat4 uM;uniform float uT;uniform float uPx;varying vec4 vC;'+
+    'void main(){vec4 p=uM*vec4(aP,1.0);gl_Position=p;'+
+    'float w=max(p.w,0.001);'+
+    'gl_PointSize=clamp(aS*uPx/w,0.75,64.0);'+
+    'float tw=0.74+0.26*sin(uT*(0.5+aH*1.9)+aH*47.0);'+
+    'vC=vec4(aC.rgb,aC.a*tw);}');
+  const fs=shader(gl.FRAGMENT_SHADER,
+    'precision mediump float;varying vec4 vC;'+
+    'void main(){vec2 d=gl_PointCoord-vec2(0.5);float r2=dot(d,d)*4.0;'+
+    'if(r2>1.0)discard;float a=1.0-r2;a*=a;'+
+    'gl_FragColor=vec4(vC.rgb*vC.a*a,1.0);}');
+  prog=gl.createProgram();
+  gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);
+  gl.useProgram(prog);
+  uM=gl.getUniformLocation(prog,'uM');
+  uT=gl.getUniformLocation(prog,'uT');
+  uPx=gl.getUniformLocation(prog,'uPx');
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.ONE,gl.ONE); /* premultiplied additive */
+  gl.disable(gl.DEPTH_TEST);
+  gl.clearColor(0.024,0.027,0.047,1);
+}
+function bindAttribs(){
+  const aP=gl.getAttribLocation(prog,'aP'),aS=gl.getAttribLocation(prog,'aS'),
+        aC=gl.getAttribLocation(prog,'aC'),aH=gl.getAttribLocation(prog,'aH');
+  gl.enableVertexAttribArray(aP);gl.vertexAttribPointer(aP,3,gl.FLOAT,false,24,0);
+  gl.enableVertexAttribArray(aS);gl.vertexAttribPointer(aS,1,gl.FLOAT,false,24,12);
+  gl.enableVertexAttribArray(aC);gl.vertexAttribPointer(aC,4,gl.UNSIGNED_BYTE,true,24,16);
+  gl.enableVertexAttribArray(aH);gl.vertexAttribPointer(aH,1,gl.FLOAT,false,24,20);
+}
+function upStatic(){
+  const s=buildStatic();
+  statBuf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,statBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,s.buf,gl.STATIC_DRAW);
+  statN=s.count;
+}
+function upDyn(time){
+  const d=buildDyn(time);
+  if(!dynBuf)dynBuf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,dynBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,d.buf,gl.DYNAMIC_DRAW);
+  dynN=d.count;
+}
+
+/* ---- matrices, by hand ---- */
+const FOV=55*Math.PI/180;
+let MVP=new Float32Array(16);
+function calcMVP(){
+  const cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch),cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw);
+  const ex=cam.dist*cp*sy, ey=cam.dist*sp, ez=cam.dist*cp*cy;
+  const cx=0,cyy=-14,cz=0;                 /* look a touch below the rim */
+  let zx=ex-cx,zy=ey-cyy,zz=ez-cz;
+  const zl=Math.hypot(zx,zy,zz);zx/=zl;zy/=zl;zz/=zl;
+  /* x = up cross z, with up=(0,1,0) */
+  let xx=zz,xy=0,xz=-zx;
+  const xl=Math.hypot(xx,xy,xz)||1;xx/=xl;xy/=xl;xz/=xl;
+  const yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
+  const f=1/Math.tan(FOV/2),asp=W/Math.max(1,H),near=4,far=1600;
+  const a=f/asp,b=f,c=(far+near)/(near-far),d=(2*far*near)/(near-far);
+  /* column major: proj * view */
+  const tx=-(xx*ex+xy*ey+xz*ez),ty=-(yx*ex+yy*ey+yz*ez),tz=-(zx*ex+zy*ey+zz*ez);
+  MVP[0]=a*xx; MVP[1]=b*yx; MVP[2]=c*zx;  MVP[3]=-zx;
+  MVP[4]=a*xy; MVP[5]=b*yy; MVP[6]=c*zy;  MVP[7]=-zy;
+  MVP[8]=a*xz; MVP[9]=b*yz; MVP[10]=c*zz; MVP[11]=-zz;
+  MVP[12]=a*tx;MVP[13]=b*ty;MVP[14]=c*tz+d;MVP[15]=-tz;
+  return {ex,ey,ez};
+}
+function project(p){
+  /* same matrix on the CPU, for picking gold stars */
+  const x=p[0],y=p[1],z=p[2];
+  const cx=MVP[0]*x+MVP[4]*y+MVP[8]*z+MVP[12];
+  const cyy=MVP[1]*x+MVP[5]*y+MVP[9]*z+MVP[13];
+  const w=MVP[3]*x+MVP[7]*y+MVP[11]*z+MVP[15];
+  if(w<=0.001)return null;
+  return [(cx/w*0.5+0.5)*W/dpr,(0.5-cyy/w*0.5)*H/dpr,w];
+}
+
+/* ================= frame ================= */
+let t0=performance.now(),raf=0,lastDyn=-1;
+function frame(now){
+  raf=requestAnimationFrame(frame);
+  const t=(now-t0)/1000;
+  if(cam.auto&&motionOK)cam.yaw+=0.0022;
+  calcMVP();
+  if(motionOK||lastDyn<0){upDyn(motionOK?t:0);lastDyn=t;}
+  gl.viewport(0,0,W,H);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.uniformMatrix4fv(uM,false,MVP);
+  gl.uniform1f(uT,motionOK?t:0);
+  gl.uniform1f(uPx,(H*0.5)/Math.tan(FOV/2));
+  gl.bindBuffer(gl.ARRAY_BUFFER,statBuf);bindAttribs();
+  gl.drawArrays(gl.POINTS,0,statN);
+  gl.bindBuffer(gl.ARRAY_BUFFER,dynBuf);bindAttribs();
+  gl.drawArrays(gl.POINTS,0,dynN);
+  /* keep the pick map fresh */
+  for(let i=0;i<gold.list.length;i++)gold.px[i]=project(gold.pos[i]);
+}
+
+/* ================= hands on the bowl ================= */
+let drag=null,pinch0=0;
+cv.addEventListener('pointerdown',e=>{
+  cv.setPointerCapture(e.pointerId);
+  drag={x:e.clientX,y:e.clientY,moved:false};
+  cam.auto=false;cv.classList.add('grabbing');
+});
+cv.addEventListener('pointermove',e=>{
+  if(drag&&(e.buttons&1||e.pointerType==='touch')){
+    const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+    if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;
+    cam.yaw+=dx*0.0052;
+    cam.pitch=Math.min(1.38,Math.max(0.10,cam.pitch+dy*0.004));
+    drag.x=e.clientX;drag.y=e.clientY;
+  }else pick(e.clientX,e.clientY,false);
+});
+cv.addEventListener('pointerup',e=>{
+  cv.classList.remove('grabbing');
+  const wasTap=drag&&!drag.moved;
+  drag=null;
+  clearTimeout(cam.idleT);cam.idleT=setTimeout(()=>{cam.auto=true;},4000);
+  if(wasTap)pick(e.clientX,e.clientY,true);
+});
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  cam.dist=Math.min(430,Math.max(135,cam.dist*(e.deltaY>0?1.07:0.935)));
+},{passive:false});
+cv.addEventListener('touchmove',e=>{
+  if(e.touches.length===2){
+    e.preventDefault();
+    drag=null; /* two fingers zoom; one-finger orbit stands down */
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                       e.touches[0].clientY-e.touches[1].clientY);
+    if(pinch0)cam.dist=Math.min(430,Math.max(135,cam.dist*pinch0/d));
+    pinch0=d;
+  }
+},{passive:false});
+cv.addEventListener('touchend',()=>{pinch0=0;});
+cv.addEventListener('pointerleave',()=>{tip.style.display='none';cv.classList.remove('aim');tipI=-1;});
+
+/* ---- meeting a holder ---- */
+const tip=$('#tip');
+let tipI=-1;
+function fmtTok(v){
+  const t=v/1e11;
+  return t>=1e6?(t/1e6).toFixed(2)+'M':t>=1e3?(t/1e3).toFixed(1)+'K':t.toFixed(0);
+}
+function pick(px,py,open){
+  let best=-1,bd=18*18;
+  for(let i=0;i<gold.px.length;i++){
+    const p=gold.px[i];if(!p)continue;
+    const dx=p[0]-px,dy=p[1]-py,d=dx*dx+dy*dy;
+    if(d<bd){bd=d;best=i;}
+  }
+  if(best<0){tip.style.display='none';cv.classList.remove('aim');tipI=-1;return;}
+  cv.classList.add('aim');
+  const row=gold.list[best];
+  if(open){
+    if(tipI===best||!('ontouchstart' in window)){
+      window.open('https://odin.fun/user/'+encodeURIComponent(row[0]),'_blank','noopener');
+      return;
+    }
+  }
+  tipI=best;
+  tip.querySelector('b').textContent=row[1]||row[0].slice(0,5)+'…'+row[0].slice(-3);
+  tip.querySelector('span').textContent=ui().tipHeld.replace('{n}',fmtTok(row[2]));
+  tip.style.display='block';
+  const stw=$('#stage').clientWidth;
+  tip.style.left=Math.min(stw-260,px+14)+'px';
+  tip.style.top=Math.max(8,py-14)+'px';
+}
+
+/* ================= the chopsticks in the corner ================= */
+function drawSticks(){
+  const c=$('#sticks'),g=c.getContext('2d');
+  g.clearRect(0,0,300,300);
+  g.lineCap='round';
+  for(const [x0,y0,x1,y1,w] of [[298,-8,150,208,11],[302,34,186,232,11]]){
+    g.strokeStyle='#8a5a34';g.lineWidth=w;
+    g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke();
+    g.strokeStyle='#b8804e';g.lineWidth=w*0.45;
+    g.beginPath();g.moveTo(x0-2,y0);g.lineTo(x1-2,y1);g.stroke();
+  }
+  /* one noodle strand, caught mid-lift */
+  g.strokeStyle='#fcd14f';g.lineWidth=4.5;
+  g.beginPath();g.moveTo(158,214);
+  g.bezierCurveTo(120,258,178,278,142,300);
+  g.stroke();
+  g.strokeStyle='rgba(255,236,170,.75)';g.lineWidth=1.8;
+  g.beginPath();g.moveTo(157,216);
+  g.bezierCurveTo(121,257,177,276,143,298);
+  g.stroke();
+}
+
+/* ================= plumbing ================= */
+function fit(){
+  const st=$('#stage');
+  dpr=Math.min(2,window.devicePixelRatio||1);
+  W=Math.max(1,Math.round(st.clientWidth*dpr));
+  H=Math.max(1,Math.round(st.clientHeight*dpr));
+  cv.width=W;cv.height=H;
+}
+window.addEventListener('resize',fit);
+
+function paintStats(){
+  $('#nLegacy').textContent=fmtN(UD.v1);
+  $('#nTotal').textContent=fmtN(UD.v2);
+  $('#nActive').textContent=UD.active?fmtN(UD.active):'—';
+  $('#nNoodl').textContent=gold.list.length?fmtN(gold.list.length):'—';
+}
+
+/* gold stars live from the well; baked list as the fallback */
+async function api(path){
+  try{
+    const r=await fetch('https://api.odin.fun/v2'+path,{cache:'no-store'});
+    if(r.ok)return await r.json();
+  }catch(e){}
+  try{
+    const r=await fetch('/api/odin'+path,{cache:'no-store'});
+    if(r.ok)return await r.json();
+  }catch(e){}
+  return null;
+}
+async function pullGold(){
+  const rows=[];
+  let want=Infinity;
+  for(let p=1;rows.length<want&&p<9;p++){
+    const j=await api('/token/hjrg/owners?limit=500&page='+p);
+    if(!j||!j.data)break;
+    want=j.count;
+    for(const r of j.data)if(r.balance>0)rows.push([r.user,r.user_username||'',r.balance]);
+    if(!j.data.length)break;
+  }
+  if(rows.length>50){
+    rows.sort((a,b)=>b[2]-a[2]);
+    gold.list=rows;
+    goldPrep();
+    $('#livTag').hidden=false;
+  }
+  paintStats();
+}
+
+/* ================= 2d still, when webgl is missing ================= */
+function flatStill(){
+  $('#uv').hidden=true;
+  const c=$('#flat');c.hidden=false;
+  const st=$('#stage');
+  c.width=st.clientWidth;c.height=st.clientHeight;
+  const g=c.getContext('2d');
+  g.fillStyle='#06070c';g.fillRect(0,0,c.width,c.height);
+  const rnd=mulberry32(7),cx=c.width/2,cyy=c.height/2,S=Math.min(c.width,c.height)/240;
+  function dot(x,z,col,r){
+    g.fillStyle=col;
+    g.beginPath();g.arc(cx+x*S,cyy+z*S*0.62,r,0,Math.PI*2);g.fill();
+  }
+  g.strokeStyle='rgba(240,226,203,.5)';g.lineWidth=2;
+  g.beginPath();g.ellipse(cx,cyy,R*S,R*S*0.62,0,0,Math.PI*2);g.stroke();
+  for(let i=0;i<9000;i++){const p=armPoint(rnd,Math.pow(rnd(),0.74));dot(p[0],p[2],'rgba(86,90,104,.5)',0.8);}
+  for(let i=0;i<1400;i++){const p=armPoint(rnd,Math.pow(rnd(),0.74));dot(p[0],p[2],'rgba(0,229,229,.8)',1.1);}
+  for(let i=0;i<gold.list.length;i++){const p=gold.pos[i];dot(p[0],p[2],'#fcd14f',2.2);}
+  $('#nogl').style.display='block';
+}
+
+/* ================= boot ================= */
+applyLang();
+drawSticks();
+paintStats();
+if(UD_NOODL.length){gold.list=UD_NOODL.slice();goldPrep();paintStats();}
+if(gl){
+  fit();
+  glInit();
+  upStatic();
+  upDyn(0);
+  raf=requestAnimationFrame(frame);
+}else{
+  flatStill();
+}
+pullGold().then(()=>{if(!gl)flatStill();});
+window.__uv={gold,cam,UD,pick:(x,y,o)=>pick(x,y,o)};
+</script>
+</body>
+</html>
