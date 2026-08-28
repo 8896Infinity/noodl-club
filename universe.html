@@ -281,8 +281,12 @@ en:{
   stLegacy:'V1 ADDRESSES',stTotal:'ALL OF ODIN',stActive:'STILL HOLDING · V2',stNoodl:'NOODL STARS',
   keyGray:'V1 dust — an address from odin.fun V1',
   keyLit:'lit — still holds tokens on odin.fun V2 today',
-  keyGold:'gold — holds NOODL right now (hover it)',
-  hint:'drag to orbit · scroll to zoom<br>click a gold star to meet its holder',
+  keyGold:'gold — holds NOODL; the spinning suns are pool chefs, sized by their stake',
+  hint:'drag to orbit · scroll to zoom<br>click ANY world — even the dust — to open its dossier',
+  poolName:'NOODL staking vault',
+  poolSoon:'the locked NOODL pool lives here — details coming soon',
+  dustFinding:'asking the V1 register who lives on this mote…',
+  dustNone:'the V1 register has no page for this mote — try its neighbour',
   foot:'Census snapshot {ts} · every count is real · gold stars refresh live',
   tipOpen:'click to open the dossier',
   tipHeld:'{n} NOODL held',
@@ -330,8 +334,12 @@ zh:{
   stLegacy:'V1 地址',stTotal:'奥丁全体',stActive:'V2 仍持币',stNoodl:'NOODL 金星',
   keyGray:'星尘 —— odin.fun V1 的一个历史地址',
   keyLit:'点亮 —— 今天在 odin.fun V2 仍持有代币',
-  keyGold:'金星 —— 此刻正持有 NOODL（悬停看看）',
-  hint:'拖拽旋转 · 滚轮缩放<br>点一颗金星，认识它的持有人',
+  keyGold:'金星 —— 此刻正持有 NOODL；一直自转的是加池 Chef，池子越大星越大',
+  hint:'拖拽旋转 · 滚轮缩放<br>点击任意星球 —— 连星尘也有档案',
+  poolName:'NOODL 锁仓质押池',
+  poolSoon:'NOODL 锁仓质押池就在这里 —— 点击查看功能暂未开放',
+  dustFinding:'正在调取这颗星尘的 V1 户籍…',
+  dustNone:'V1 户籍里没有这颗星尘的记录 —— 试试它旁边那颗',
   foot:'普查快照 {ts} · 每个数字都是真的 · 金星实时刷新',
   tipOpen:'点击查看 ta 的档案',
   tipHeld:'持有 {n} 枚 NOODL',
@@ -427,13 +435,17 @@ function buildStatic(){
     n++;
   }
   const rnd=mulberry32(20260827);
-  /* legacy dust — every one of them; a sixth drifts loose between the arms */
+  /* legacy dust — every one of them; a sixth drifts loose between the arms.
+     The i-th mote IS the i-th citizen of /v1/users: click one, and the
+     archive is asked who lives there. */
+  DUST.pos=new Float32Array(G*3);
   for(let i=0;i<G;i++){
     let p;
     if(rnd()<0.15){
       const a=rnd()*Math.PI*2, rr=8+Math.pow(rnd(),0.8)*(R-24);
       p=[Math.cos(a)*rr,-4.2+((rnd()+rnd()+rnd())/1.5-1)*2.2,Math.sin(a)*rr];
     }else p=armPoint(rnd,Math.pow(rnd(),0.74));
+    DUST.pos[i*3]=p[0];DUST.pos[i*3+1]=p[1];DUST.pos[i*3+2]=p[2];
     put(p[0],p[1],p[2],0.68+rnd()*0.4, 80,84,96, 28, 1+rnd()*0.9); /* rock */
   }
   /* the living, lit cyan — every one a real, clickable address */
@@ -519,6 +531,7 @@ function hashPos(p){
   return [Math.cos(th)*r,-4+((h>>>24&127)/127-0.5)*2.8,Math.sin(th)*r];
 }
 const CHEF={list:UD_CHEFS.slice(),set:new Set(UD_CHEFS.map(c=>c[0]))};
+const DUST={pos:null,cache:new Map()};
 const GHOSTS=[];
 const REG={list:[],map:new Map()};
 let dynDirty=false;
@@ -538,7 +551,7 @@ function regBuild(){
   for(const c of CHEF.list)
     reg({p:c[0],kind:'chef',pos:hashPos(c[0]),name:c[1],chef:true});
   for(const p of UD_ACT)reg({p,kind:'cyan',pos:hashPos(p)});
-  for(const g2 of GHOSTS)reg({p:g2.p,kind:'ghost',pos:g2.pos});
+  for(const g2 of GHOSTS)reg({p:g2.p,kind:'ghost',pos:g2.pos,name:g2.name});
   dynDirty=true;
 }
 function ensureStar(p){
@@ -574,19 +587,28 @@ function buildDyn(time){
     F[o]=x;F[o+1]=y;F[o+2]=z;F[o+3]=s;
     B[ob]=r;B[ob+1]=g;B[ob+2]=b;B[ob+3]=a;F[o+5]=h;n++;
   }
+  /* the pool decides how big a chef burns */
+  const lpMap=new Map(CHEF.list.map(c=>[c[0],c[2]||0]));
+  const lpMax=CHEF.list.length?Math.max(1,CHEF.list[0][2]||1):1;
   for(let i=0;i<NG;i++){
     const p=gold.pos[i],w=Math.pow(gold.list[i][2]/gold.max,0.4);
-    let s=2.1+4.6*w;
-    /* the ones stirring the pool breathe — you can spot a chef from orbit */
-    if(CHEF.set.has(gold.list[i][0]))s*=1+0.32*Math.sin(time*2.6+gold.hash[i]*40);
+    let s=2.1+4.6*w, kind=3;
+    if(lpMap.has(gold.list[i][0])){
+      /* a chef: sized by their share of the pool, spinning even when
+         the rest of the sky stands still (kind 4) */
+      kind=4;
+      s=3.2+5.4*Math.sqrt((lpMap.get(gold.list[i][0])||1)/lpMax);
+      s*=1+0.14*Math.sin(time*2.6+gold.hash[i]*40);
+    }
     put(p[0],p[1],p[2],s,
-      252,Math.round(172+50*w),Math.round(140-90*w),225,3+gold.hash[i]*0.9); /* burning sun */
+      252,Math.round(172+50*w),Math.round(140-90*w),225,kind+gold.hash[i]*0.9);
   }
   const gset=new Set(gold.list.map(r=>r[0]));
   for(const c of CHEF.list){
     if(gset.has(c[0]))continue;
     const p=hashPos(c[0]),h=(hashStr(c[0])&1023)/1023;
-    put(p[0],p[1],p[2],(3.1+0.9*Math.sin(time*2.6+h*40)),255,236,190,225,3+h*0.9);
+    const s=(3.2+5.4*Math.sqrt((c[2]||1)/lpMax))*(1+0.14*Math.sin(time*2.6+h*40));
+    put(p[0],p[1],p[2],s,255,236,190,225,4+h*0.9);
   }
   for(const g2 of GHOSTS){
     const h=(hashStr(g2.p)&1023)/1023;
@@ -669,34 +691,57 @@ function glInit(){
     'float m=smoothstep(15.0,30.0,vPx);'+
     'vec2 sp=d+vec2(vSd*57.0,vSd*91.0);'+
     'if(vK>2.5){'+
-      'if(r2>1.6)discard;'+
+      /* a burning sun: layered fire crawling over the surface, a corona of
+         tongues; the chefs (kind 4) visibly spin even when the sky stands still */
+      'if(r2>1.55)discard;'+
+      'vec2 q=d;'+
+      'if(vK>3.5){float an=uT*0.65;float ca=cos(an);float sa=sin(an);'+
+        'q=vec2(ca*d.x-sa*d.y,sa*d.x+ca*d.y);}'+
+      'vec2 sq=q+vec2(vSd*57.0,vSd*91.0);'+
+      'float fl=vn(sq*6.0+vec2(0.0,-uT*0.30))'+
+        '+0.55*vn(sq*12.0+vec2(uT*0.22,uT*0.4))'+
+        '+0.3*vn(sq*22.0-vec2(uT*0.6,0.0));'+
+      'fl*=0.54;'+
       'float heat=1.0-clamp(r2,0.0,1.0);'+
-      'float boil=vn(sp*9.0+uT*0.22)+0.5*vn(sp*19.0-uT*0.31);'+
-      'vec3 sc=mix(vec3(0.98,0.32,0.05),vec3(1.0,0.8,0.3),heat);'+
-      'sc=mix(sc,vec3(1.0,0.97,0.82),smoothstep(0.6,1.0,heat));'+
-      'sc*=0.72+0.28*boil;'+
-      'float body=1.0-smoothstep(0.86,0.98,r2);'+
-      'float halo=smoothstep(1.55,0.8,r2)*0.26;'+
-      'vec3 col=sc*body+vec3(1.0,0.62,0.18)*halo*(1.0-body);'+
-      'gl_FragColor=vec4(mix(glow,col*vF,m),1.0);return;}'+
+      'float e=heat*(0.5+0.85*fl);'+
+      'vec3 col=vec3(0.55,0.07,0.02)*smoothstep(0.0,0.22,e)'+
+        '+vec3(1.0,0.5,0.1)*smoothstep(0.16,0.55,e)'+
+        '+vec3(1.0,0.93,0.62)*smoothstep(0.5,0.9,e);'+
+      'float ang=atan(q.y,q.x);'+
+      'float tongue=vn(vec2(ang*2.4+vSd*23.0,uT*0.45))*0.6'+
+        '+vn(vec2(ang*4.8+vSd*57.0,-uT*0.7))*0.4;'+
+      'float cor=smoothstep(1.55,0.78,r2)*(0.18+0.5*tongue*tongue);'+
+      'float body=1.0-smoothstep(0.82,0.98,r2);'+
+      'vec3 fin=col*body+vec3(1.0,0.45,0.08)*cor*(1.0-body);'+
+      'gl_FragColor=vec4(mix(glow,fin*vF,m),1.0);return;}'+
     'if(r2>1.0)discard;'+
     'float edge=1.0-smoothstep(0.88,1.0,r2);'+
     'float nz=sqrt(max(0.0,1.0-r2));'+
     'vec3 n=normalize(vec3(d.x*2.0,-d.y*2.0,nz));'+
     'vec3 L=normalize(vec3(-0.55,0.5,0.72));'+
     'float diff=max(dot(n,L),0.0);'+
-    'float n1=vn(sp*6.0);'+
-    'float n2=vn(sp*13.0);'+
     'vec3 col;'+
     'if(vK>1.5){'+
-      'vec3 base=mix(vec3(0.04,0.34,0.62),vec3(0.15,0.6,0.42),smoothstep(0.5,0.62,n1));'+
-      'base=mix(base,vec3(0.85,0.92,0.95),smoothstep(0.64,0.82,n2)*0.5);'+
-      'float spec=pow(max(dot(reflect(-L,n),vec3(0.0,0.0,1.0)),0.0),26.0)*0.55;'+
-      'col=base*(0.22+0.95*diff)+vec3(spec);'+
+      /* an ocean world: still continents, water that visibly flows, drifting
+         cloud, a breath of atmosphere at the limb */
+      'float cont=smoothstep(0.5,0.6,vn(sp*5.0));'+
+      'float wa=vn(sp*11.0+vec2(uT*0.10,uT*0.045));'+
+      'float wb=vn(sp*19.0-vec2(uT*0.16,0.0));'+
+      'vec3 sea=mix(vec3(0.02,0.24,0.52),vec3(0.06,0.52,0.78),0.25+0.6*(wa*0.7+wb*0.3));'+
+      'vec3 land=mix(vec3(0.10,0.46,0.28),vec3(0.34,0.52,0.24),vn(sp*9.0));'+
+      'vec3 base=mix(sea,land,cont);'+
+      'float cloud=smoothstep(0.6,0.8,vn(sp*8.0+vec2(uT*0.05,0.0)));'+
+      'base=mix(base,vec3(0.92,0.95,0.97),cloud*0.55);'+
+      'float spec=pow(max(dot(reflect(-L,n),vec3(0.0,0.0,1.0)),0.0),24.0)*(1.0-cont)*(0.35+0.45*wb);'+
+      'float atm=pow(1.0-nz,2.4);'+
+      'col=base*(0.2+0.95*diff)+vec3(spec)+vec3(0.25,0.55,1.0)*atm*0.45;'+
     '}else{'+
-      'vec3 base=vec3(0.34,0.34,0.39)*(0.6+0.4*n1);'+
-      'base*=1.0-0.38*smoothstep(0.6,0.78,n2);'+
-      'col=base*(0.22+0.95*diff);}'+
+      /* bare rock: warm-grey stone, craters whose rims catch the light */
+      'float n1=vn(sp*6.0);float n2=vn(sp*13.0);'+
+      'vec3 base=mix(vec3(0.33,0.32,0.36),vec3(0.42,0.36,0.29),vn(sp*3.5))*(0.6+0.4*n1);'+
+      'base*=1.0-0.42*smoothstep(0.6,0.75,n2);'+
+      'base+=vec3(0.22)*smoothstep(0.73,0.78,n2);'+
+      'col=base*(0.2+0.95*diff);}'+
     'gl_FragColor=vec4(mix(glow,col*edge*vF,m),1.0);}');
   prog=gl.createProgram();
   gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);
@@ -824,10 +869,59 @@ cv.addEventListener('pointerup',e=>{
   if(!wasTap)return;
   const xy=evXY(e);
   const hit=pickReg(xy[0],xy[1],18);
-  if(hit)openPanel(hit.p);
-  else if(!$('#panel').hidden)closePanel();
+  if(hit){openPanel(hit.p);return;}
+  if(nearVault(xy[0],xy[1])){uvsMsg('',ui().poolSoon,3600);return;}
+  const di=pickDust(xy[0],xy[1],12);
+  if(di>=0){openDust(di);return;}
+  if(!$('#panel').hidden)closePanel();
   else toggleSpin();
 });
+/* the golden heart of the bowl is the NOODL staking vault */
+function nearVault(px,py){
+  const c=project([0,-4,0]);
+  if(!c)return false;
+  const rpx=Math.max(26,10.5*((H*0.5)/Math.tan(FOV/2))/dpr/c[2]);
+  const dx=c[0]-px,dy=c[1]-py;
+  return dx*dx+dy*dy<rpx*rpx;
+}
+/* any mote of dust answers to a page of the V1 register */
+function pickDust(px,py,rad){
+  if(!DUST.pos)return -1;
+  let best=-1,bd=rad*rad;
+  const P=DUST.pos;
+  for(let i=0;i<P.length;i+=3){
+    const x=P[i],y=P[i+1],z=P[i+2];
+    const w=MVP[3]*x+MVP[7]*y+MVP[11]*z+MVP[15];
+    if(w<=0.001)continue;
+    const sx=((MVP[0]*x+MVP[4]*y+MVP[8]*z+MVP[12])/w*0.5+0.5)*W/dpr-px;
+    const sy=((0.5-(MVP[1]*x+MVP[5]*y+MVP[9]*z+MVP[13])/w*0.5))*H/dpr-py;
+    const dd=sx*sx+sy*sy;
+    if(dd<bd){bd=dd;best=i/3;}
+  }
+  return best;
+}
+async function openDust(i){
+  uvsMsg('',ui().dustFinding);
+  const page=Math.floor(i/100)+1;
+  let rows=DUST.cache.get(page);
+  if(!rows){
+    const j=await apiV1('/users?limit=100&page='+page+'&env=production');
+    rows=(j&&j.data)||null;
+    if(rows)DUST.cache.set(page,rows);
+  }
+  const row=rows&&rows[i%100];
+  if(!row||!row.principal){uvsMsg('err',ui().dustNone,3000);return;}
+  const p=row.principal;
+  if(!REG.map.has(p)){
+    /* pin the ghost on the very dot that was clicked */
+    GHOSTS.push({p,pos:[DUST.pos[i*3],DUST.pos[i*3+1],DUST.pos[i*3+2]],name:row.username});
+    regBuild();
+  }
+  const o=REG.map.get(p);
+  if(o&&!o.name)o.name=row.username;
+  uvsMsg('','');
+  openPanel(p);
+}
 cv.addEventListener('wheel',e=>{
   e.preventDefault();
   cam.tw=null;
@@ -871,7 +965,19 @@ function pickReg(px,py,rad){
 }
 function hoverAt(px,py){
   const o=pickReg(px,py,15);
-  if(!o){tip.style.display='none';cv.classList.remove('aim');return;}
+  if(!o){
+    if(nearVault(px,py)){
+      cv.classList.add('aim');
+      const u=ui();
+      tip.querySelector('b').textContent=u.poolName;
+      tip.querySelector('span').textContent=u.poolSoon;
+      tip.style.display='block';
+      tip.style.left=Math.min($('#stage').clientWidth-260,px+14)+'px';
+      tip.style.top=Math.max(8,py-14)+'px';
+      return;
+    }
+    tip.style.display='none';cv.classList.remove('aim');return;
+  }
   cv.classList.add('aim');
   const u=ui();
   tip.querySelector('b').textContent=o.name||shortP(o.p);
@@ -1446,7 +1552,8 @@ pullChefs();
   $('#uq').value=q;
   setTimeout(searchGo,400);
 })();
-window.__uv={gold,cam,UD,REG,CHEF,PANEL,REL,openPanel,closePanel,searchGo,
+window.__uv={gold,cam,UD,REG,CHEF,PANEL,REL,DUST,openPanel,closePanel,searchGo,
+  openDust,pickDust,nearVault,
   project:p=>project((REG.map.get(p)||{pos:[0,0,0]}).pos)};
 </script>
 </body>
