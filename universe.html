@@ -113,6 +113,7 @@ a{color:inherit}
 .trow{display:flex;align-items:baseline;gap:7px;font-size:11px;font-variant-numeric:tabular-nums;
   padding:3.5px 0;border-bottom:1px solid var(--line-soft)}
 .trow:last-child{border-bottom:0}
+.trow .tlogo{width:15px;height:15px;border-radius:50%;flex:none;background:#232329;align-self:center}
 .trow b{flex:none;min-width:56px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px}
 .trow i{flex:1;font-style:normal;color:var(--dim);font-size:10px;text-align:right;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
@@ -433,26 +434,26 @@ function buildStatic(){
       const a=rnd()*Math.PI*2, rr=8+Math.pow(rnd(),0.8)*(R-24);
       p=[Math.cos(a)*rr,-4.2+((rnd()+rnd()+rnd())/1.5-1)*2.2,Math.sin(a)*rr];
     }else p=armPoint(rnd,Math.pow(rnd(),0.74));
-    put(p[0],p[1],p[2],0.68+rnd()*0.4, 80,84,96, 28, rnd());
+    put(p[0],p[1],p[2],0.68+rnd()*0.4, 80,84,96, 28, 1+rnd()*0.9); /* rock */
   }
   /* the living, lit cyan — every one a real, clickable address */
   for(let i=0;i<A;i++){
     const h=hashStr(UD_ACT[i]);
     const p=hashPos(UD_ACT[i]);
-    put(p[0],p[1],p[2],1.35+((h>>>6&255)/255)*0.75, 0,229,229, 165, (h&1023)/1023);
+    put(p[0],p[1],p[2],1.35+((h>>>6&255)/255)*0.75, 0,229,229, 165, 2+((h&1023)/1023)*0.9); /* ocean */
   }
   /* golden core — the swirl the noodles wind out of */
   for(let i=0;i<N_CORE;i++){
     const a=rnd()*Math.PI*2, rr=Math.pow(rnd(),1.6)*10.5, yy=-4+((rnd()+rnd())-1)*3;
     const heat=1-rr/11;
     put(Math.cos(a)*rr,yy,Math.sin(a)*rr,0.8+rnd()*0.9,
-      252, Math.round(160+60*heat), Math.round(40+40*heat), 120, rnd());
+      252, Math.round(160+60*heat), Math.round(40+40*heat), 120, rnd()*0.9);
   }
   /* soup — a dark blue hush under everything */
   for(let i=0;i<N_SOUP;i++){
     const a=rnd()*Math.PI*2, rr=Math.sqrt(rnd())*(R-8);
     put(Math.cos(a)*rr,-6.5-2.5*(1-(rr/R)*(rr/R))+((rnd()-0.5)*1.6),Math.sin(a)*rr,
-      1.1, 22,64,111, 46, rnd());
+      1.1, 22,64,111, 46, rnd()*0.9);
   }
   /* bowl wall — cream shell falling away below the rim */
   for(let i=0;i<N_BOWL;i++){
@@ -461,32 +462,32 @@ function buildStatic(){
     const a=rnd()*Math.PI*2, rr=pr*R*(0.985+rnd()*0.02);
     const sh=1+yy/95;
     put(Math.cos(a)*rr,yy,Math.sin(a)*rr,0.85,
-      Math.round(233*sh),Math.round(217*sh),Math.round(192*sh), 62, rnd());
+      Math.round(233*sh),Math.round(217*sh),Math.round(192*sh), 62, rnd()*0.9);
   }
   /* rim — the bright lip that says "bowl" */
   for(let i=0;i<N_RIM;i++){
     const a=rnd()*Math.PI*2;
     const g=(rnd()+rnd())-1;
     put(Math.cos(a)*(R+g*1.9),((rnd()+rnd())-1)*1.5,Math.sin(a)*(R+g*1.9),
-      1.05, 240,226,203, 105, rnd());
+      1.05, 240,226,203, 105, rnd()*0.9);
   }
   /* one thin blue accent ring just inside the lip */
   for(let i=0;i<N_BLUE;i++){
     const a=rnd()*Math.PI*2;
     put(Math.cos(a)*(R-5+((rnd()-0.5)*1.4)),-1+((rnd()-0.5)*1.1),Math.sin(a)*(R-5+((rnd()-0.5)*1.4)),
-      0.95, 63,127,217, 92, rnd());
+      0.95, 63,127,217, 92, rnd()*0.9);
   }
   /* the foot the bowl stands on */
   for(let i=0;i<N_FOOT;i++){
     const a=rnd()*Math.PI*2, rr=34+rnd()*4;
-    put(Math.cos(a)*rr,-55-rnd()*5,Math.sin(a)*rr,0.9, 196,180,156, 52, rnd());
+    put(Math.cos(a)*rr,-55-rnd()*5,Math.sin(a)*rr,0.9, 196,180,156, 52, rnd()*0.9);
   }
   /* far stars, so turning the bowl turns the sky */
   for(let i=0;i<N_SKY;i++){
     const u=rnd()*2-1, a=rnd()*Math.PI*2, s=Math.sqrt(1-u*u);
     const cold=rnd()<0.3;
     put(Math.cos(a)*s*520,u*520,Math.sin(a)*s*520,2.2+rnd()*2,
-      cold?150:255,cold?230:255,cold?255:245, 90, rnd());
+      cold?150:255,cold?230:255,cold?255:245, 90, rnd()*0.9);
   }
   return {buf,count:n};
 }
@@ -556,10 +557,10 @@ function toggleSpin(){
   uvsMsg('',ui()[spinOn?'spinOn':'spinOff'],1800);
 }
 const PLANETS=[
-  {r:36,sp:0.11,a0:0.7,c:[55,214,195],s:5.2},
-  {r:57,sp:0.074,a0:2.6,c:[252,209,79],s:6.2},
-  {r:74,sp:0.052,a0:4.4,c:[239,149,48],s:5.6},
-  {r:90,sp:0.038,a0:5.6,c:[122,168,255],s:4.6}
+  {r:36,sp:0.11,a0:0.7,c:[55,214,195],s:5.2,k:2},   /* teal ocean */
+  {r:57,sp:0.074,a0:2.6,c:[252,209,79],s:6.2,k:3},  /* small gold sun */
+  {r:74,sp:0.052,a0:4.4,c:[239,149,48],s:5.6,k:1},  /* baked rock */
+  {r:90,sp:0.038,a0:5.6,c:[122,168,255],s:4.6,k:2}  /* blue ocean */
 ];
 const RINGN=46;
 function buildDyn(time){
@@ -579,28 +580,28 @@ function buildDyn(time){
     /* the ones stirring the pool breathe — you can spot a chef from orbit */
     if(CHEF.set.has(gold.list[i][0]))s*=1+0.32*Math.sin(time*2.6+gold.hash[i]*40);
     put(p[0],p[1],p[2],s,
-      252,Math.round(172+50*w),Math.round(140-90*w),225,gold.hash[i]);
+      252,Math.round(172+50*w),Math.round(140-90*w),225,3+gold.hash[i]*0.9); /* burning sun */
   }
   const gset=new Set(gold.list.map(r=>r[0]));
   for(const c of CHEF.list){
     if(gset.has(c[0]))continue;
     const p=hashPos(c[0]),h=(hashStr(c[0])&1023)/1023;
-    put(p[0],p[1],p[2],(3.1+0.9*Math.sin(time*2.6+h*40)),255,236,190,225,h);
+    put(p[0],p[1],p[2],(3.1+0.9*Math.sin(time*2.6+h*40)),255,236,190,225,3+h*0.9);
   }
   for(const g2 of GHOSTS){
     const h=(hashStr(g2.p)&1023)/1023;
-    put(g2.pos[0],g2.pos[1],g2.pos[2],2.4,151,133,240,210,h);
+    put(g2.pos[0],g2.pos[1],g2.pos[2],2.4,151,133,240,210,h*0.9);
   }
   for(const pl of PLANETS){
     const a=pl.a0+time*pl.sp;
     const x=Math.cos(a)*pl.r,z=Math.sin(a)*pl.r,y=-1.5;
-    put(x,y,z,pl.s,pl.c[0],pl.c[1],pl.c[2],210,0.35);
+    put(x,y,z,pl.s,pl.c[0],pl.c[1],pl.c[2],210,pl.k+0.35);
     /* a hot core, or the additive haze reads as a hole in the dust */
     put(x,y,z,pl.s*0.5,Math.min(255,pl.c[0]+95),Math.min(255,pl.c[1]+95),Math.min(255,pl.c[2]+95),255,0.35);
     for(let k=0;k<RINGN;k++){ /* the white ring the logo planets wear */
       const b=k/RINGN*Math.PI*2, rr=pl.s*0.95;
       put(x+Math.cos(b)*rr,y+Math.sin(b)*rr*0.38,z+Math.sin(b)*rr*0.75,
-        0.62,255,255,255,120,(k/RINGN));
+        0.62,255,255,255,120,(k/RINGN)*0.9);
     }
   }
   return {buf,count:n};
@@ -613,33 +614,97 @@ try{gl=cv.getContext('webgl',{antialias:false,alpha:false,depth:false,preserveDr
   ||cv.getContext('experimental-webgl');}catch(e){}
 const motionOK=!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
 let dpr=1,W=0,H=0;
-const cam={yaw:0.65,pitch:0.94,dist:265,auto:true,idle:0};
-let prog=null,uM=null,uT=null,uPx=null,statBuf=null,statN=0,dynBuf=null,dynN=0;
+/* zoom runs from "nose against a star" to "the whole universe is a dot" */
+const ZMIN=16,ZMAX=2600,ZHOME=265;
+const cam={yaw:0.65,pitch:0.94,dist:ZHOME,auto:true,idle:0,tx:0,ty:-14,tz:0};
+let prog=null,uM=null,uT=null,uPx=null,uFog=null,statBuf=null,statN=0,dynBuf=null,dynN=0;
 
 function shader(type,src){
   const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
   return s;
 }
 function glInit(){
+  /* aH carries two things at once: floor() is the world's KIND
+     (0 dust/soft glow, 1 rock, 2 ocean, 3 burning sun), fract() its phase */
   const vs=shader(gl.VERTEX_SHADER,
     'attribute vec3 aP;attribute float aS;attribute vec4 aC;attribute float aH;'+
-    'uniform mat4 uM;uniform float uT;uniform float uPx;varying vec4 vC;'+
+    'uniform mat4 uM;uniform float uT;uniform float uPx;uniform float uFog;'+
+    'varying vec4 vC;varying float vK;varying float vPx;varying float vSd;varying float vF;'+
     'void main(){vec4 p=uM*vec4(aP,1.0);gl_Position=p;'+
     'float w=max(p.w,0.001);'+
-    'gl_PointSize=clamp(aS*uPx/w,0.75,64.0);'+
-    'float tw=0.74+0.26*sin(uT*(0.5+aH*1.9)+aH*47.0);'+
-    'vC=vec4(aC.rgb,aC.a*tw);}');
+    'float px=clamp(aS*uPx/w,0.75,200.0);'+
+    'gl_PointSize=px;'+
+    'float k=floor(aH+0.001);float ph=fract(aH);'+
+    'float tw=0.74+0.26*sin(uT*(0.5+ph*1.9)+ph*47.0);'+
+    /* deep in the dust the far shore fades out, or a hundred thousand
+       overlapping motes burn the frame to white; the far sky is exempt */
+    'float sky=step(400.0,length(aP));'+
+    'float fade=mix(1.0-smoothstep(uFog*1.5,uFog*3.2,w),1.0,sky);'+
+    /* and the dust itself thins as you come close — four hundred thousand
+       rocks shoulder to shoulder read as a wall, not as worlds */
+    'if(k>0.5&&k<1.5){'+
+      'float dz=min(uFog/235.0,1.0);'+
+      'float dens=max(0.01,dz*dz*dz);'+
+      'float rk=fract(ph*997.13);'+
+      'fade*=smoothstep(rk-0.06,rk+0.06,dens);'+
+      'px=min(px,52.0);gl_PointSize=px;}'+
+    'if(fade<0.004)gl_Position=vec4(2.0,2.0,2.0,1.0);'+
+    'vC=vec4(aC.rgb,aC.a*tw*fade);vK=k;vPx=px;vSd=ph;vF=fade;}');
+  /* far away every world is a mote of light; come close and the grey ones
+     turn to cratered stone, the blue ones to oceans, the gold ones to fire */
   const fs=shader(gl.FRAGMENT_SHADER,
-    'precision mediump float;varying vec4 vC;'+
-    'void main(){vec2 d=gl_PointCoord-vec2(0.5);float r2=dot(d,d)*4.0;'+
-    'if(r2>1.0)discard;float a=1.0-r2;a*=a;'+
-    'gl_FragColor=vec4(vC.rgb*vC.a*a,1.0);}');
+    'precision mediump float;'+
+    'varying vec4 vC;varying float vK;varying float vPx;varying float vSd;varying float vF;'+
+    'uniform highp float uT;'+ /* must match the vertex stage's precision */
+    'float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}'+
+    'float vn(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);'+
+    'float a=h21(i);float b=h21(i+vec2(1.0,0.0));float c=h21(i+vec2(0.0,1.0));float d2=h21(i+vec2(1.0,1.0));'+
+    'return mix(mix(a,b,f.x),mix(c,d2,f.x),f.y);}'+
+    'void main(){'+
+    'vec2 d=gl_PointCoord-vec2(0.5);'+
+    'float r2=dot(d,d)*4.0;'+
+    'float soft=1.0-clamp(r2,0.0,1.0);soft*=soft;'+
+    'vec3 glow=vC.rgb*vC.a*soft;'+
+    'if(vK<0.5||vPx<15.0){if(r2>1.0)discard;gl_FragColor=vec4(glow,1.0);return;}'+
+    'float m=smoothstep(15.0,30.0,vPx);'+
+    'vec2 sp=d+vec2(vSd*57.0,vSd*91.0);'+
+    'if(vK>2.5){'+
+      'if(r2>1.6)discard;'+
+      'float heat=1.0-clamp(r2,0.0,1.0);'+
+      'float boil=vn(sp*9.0+uT*0.22)+0.5*vn(sp*19.0-uT*0.31);'+
+      'vec3 sc=mix(vec3(0.98,0.32,0.05),vec3(1.0,0.8,0.3),heat);'+
+      'sc=mix(sc,vec3(1.0,0.97,0.82),smoothstep(0.6,1.0,heat));'+
+      'sc*=0.72+0.28*boil;'+
+      'float body=1.0-smoothstep(0.86,0.98,r2);'+
+      'float halo=smoothstep(1.55,0.8,r2)*0.26;'+
+      'vec3 col=sc*body+vec3(1.0,0.62,0.18)*halo*(1.0-body);'+
+      'gl_FragColor=vec4(mix(glow,col*vF,m),1.0);return;}'+
+    'if(r2>1.0)discard;'+
+    'float edge=1.0-smoothstep(0.88,1.0,r2);'+
+    'float nz=sqrt(max(0.0,1.0-r2));'+
+    'vec3 n=normalize(vec3(d.x*2.0,-d.y*2.0,nz));'+
+    'vec3 L=normalize(vec3(-0.55,0.5,0.72));'+
+    'float diff=max(dot(n,L),0.0);'+
+    'float n1=vn(sp*6.0);'+
+    'float n2=vn(sp*13.0);'+
+    'vec3 col;'+
+    'if(vK>1.5){'+
+      'vec3 base=mix(vec3(0.04,0.34,0.62),vec3(0.15,0.6,0.42),smoothstep(0.5,0.62,n1));'+
+      'base=mix(base,vec3(0.85,0.92,0.95),smoothstep(0.64,0.82,n2)*0.5);'+
+      'float spec=pow(max(dot(reflect(-L,n),vec3(0.0,0.0,1.0)),0.0),26.0)*0.55;'+
+      'col=base*(0.22+0.95*diff)+vec3(spec);'+
+    '}else{'+
+      'vec3 base=vec3(0.34,0.34,0.39)*(0.6+0.4*n1);'+
+      'base*=1.0-0.38*smoothstep(0.6,0.78,n2);'+
+      'col=base*(0.22+0.95*diff);}'+
+    'gl_FragColor=vec4(mix(glow,col*edge*vF,m),1.0);}');
   prog=gl.createProgram();
   gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);
   gl.useProgram(prog);
   uM=gl.getUniformLocation(prog,'uM');
   uT=gl.getUniformLocation(prog,'uT');
   uPx=gl.getUniformLocation(prog,'uPx');
+  uFog=gl.getUniformLocation(prog,'uFog');
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE,gl.ONE); /* premultiplied additive */
   gl.disable(gl.DEPTH_TEST);
@@ -673,15 +738,16 @@ const FOV=55*Math.PI/180;
 let MVP=new Float32Array(16);
 function calcMVP(){
   const cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch),cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw);
-  const ex=cam.dist*cp*sy, ey=cam.dist*sp, ez=cam.dist*cp*cy;
-  const cx=0,cyy=-14,cz=0;                 /* look a touch below the rim */
+  /* the camera orbits whatever it is looking at — the bowl, or one star */
+  const cx=cam.tx,cyy=cam.ty,cz=cam.tz;
+  const ex=cx+cam.dist*cp*sy, ey=cyy+cam.dist*sp, ez=cz+cam.dist*cp*cy;
   let zx=ex-cx,zy=ey-cyy,zz=ez-cz;
   const zl=Math.hypot(zx,zy,zz);zx/=zl;zy/=zl;zz/=zl;
   /* x = up cross z, with up=(0,1,0) */
   let xx=zz,xy=0,xz=-zx;
   const xl=Math.hypot(xx,xy,xz)||1;xx/=xl;xy/=xl;xz/=xl;
   const yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
-  const f=1/Math.tan(FOV/2),asp=W/Math.max(1,H),near=4,far=1600;
+  const f=1/Math.tan(FOV/2),asp=W/Math.max(1,H),near=2,far=6000;
   const a=f/asp,b=f,c=(far+near)/(near-far),d=(2*far*near)/(near-far);
   /* column major: proj * view */
   const tx=-(xx*ex+xy*ey+xz*ez),ty=-(yx*ex+yy*ey+yz*ez),tz=-(zx*ex+zy*ey+zz*ez);
@@ -708,7 +774,12 @@ function frame(now){
   const t=(now-t0)/1000;
   if(cam.tw){
     const k=Math.min(1,(now-cam.tw.t0)/cam.tw.dur);
-    cam.yaw=cam.tw.y0+(cam.tw.y1-cam.tw.y0)*(1-Math.pow(1-k,3));
+    const e2=1-Math.pow(1-k,3);
+    cam.yaw=cam.tw.y0+(cam.tw.y1-cam.tw.y0)*e2;
+    cam.dist=cam.tw.d0+(cam.tw.d1-cam.tw.d0)*e2;
+    cam.tx=cam.tw.f0[0]+(cam.tw.f1[0]-cam.tw.f0[0])*e2;
+    cam.ty=cam.tw.f0[1]+(cam.tw.f1[1]-cam.tw.f0[1])*e2;
+    cam.tz=cam.tw.f0[2]+(cam.tw.f1[2]-cam.tw.f0[2])*e2;
     if(k>=1)cam.tw=null;
   }else if(cam.auto&&motionOK&&spinOn)cam.yaw+=SPIN;
   calcMVP();
@@ -718,6 +789,7 @@ function frame(now){
   gl.uniformMatrix4fv(uM,false,MVP);
   gl.uniform1f(uT,motionOK?t:0);
   gl.uniform1f(uPx,(H*0.5)/Math.tan(FOV/2));
+  gl.uniform1f(uFog,cam.dist);
   gl.bindBuffer(gl.ARRAY_BUFFER,statBuf);bindAttribs();
   gl.drawArrays(gl.POINTS,0,statN);
   gl.bindBuffer(gl.ARRAY_BUFFER,dynBuf);bindAttribs();
@@ -758,7 +830,8 @@ cv.addEventListener('pointerup',e=>{
 });
 cv.addEventListener('wheel',e=>{
   e.preventDefault();
-  cam.dist=Math.min(430,Math.max(135,cam.dist*(e.deltaY>0?1.07:0.935)));
+  cam.tw=null;
+  cam.dist=Math.min(ZMAX,Math.max(ZMIN,cam.dist*(e.deltaY>0?1.12:0.893)));
 },{passive:false});
 cv.addEventListener('touchmove',e=>{
   if(e.touches.length===2){
@@ -766,7 +839,7 @@ cv.addEventListener('touchmove',e=>{
     drag=null; /* two fingers zoom; one-finger orbit stands down */
     const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
                        e.touches[0].clientY-e.touches[1].clientY);
-    if(pinch0)cam.dist=Math.min(430,Math.max(135,cam.dist*pinch0/d));
+    if(pinch0){cam.tw=null;cam.dist=Math.min(ZMAX,Math.max(ZMIN,cam.dist*pinch0/d));}
     pinch0=d;
   }
 },{passive:false});
@@ -811,13 +884,24 @@ function hoverAt(px,py){
   tip.style.top=Math.max(8,py-14)+'px';
 }
 function focusStar(pos){
+  /* fly in until the star fills the stage; afterwards the whole universe
+     keeps turning — around IT */
   let cur=cam.yaw%(Math.PI*2);if(cur<0)cur+=Math.PI*2;
-  const ty=Math.atan2(pos[0],pos[2]);
-  let d=ty-cur;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;
+  const ta=Math.atan2(pos[0],pos[2]);
+  let d=ta-cur;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;
   cam.yaw=cur;
-  cam.tw={y0:cur,y1:cur+d,t0:performance.now(),dur:motionOK?820:1};
-  cam.auto=false;
-  clearTimeout(cam.idleT);cam.idleT=setTimeout(()=>{cam.auto=true;},6000);
+  /* the view keeps its size — only the centre of the world changes */
+  cam.tw={t0:performance.now(),dur:motionOK?950:1,
+    y0:cur,y1:cur+d,
+    d0:cam.dist,d1:cam.dist,
+    f0:[cam.tx,cam.ty,cam.tz],f1:[pos[0],pos[1],pos[2]]};
+  cam.auto=true;
+}
+function focusHome(){
+  cam.tw={t0:performance.now(),dur:motionOK?950:1,
+    y0:cam.yaw,y1:cam.yaw,
+    d0:cam.dist,d1:cam.dist,
+    f0:[cam.tx,cam.ty,cam.tz],f1:[0,-14,0]};
 }
 
 /* ================= the trails, inked over the sky ================= */
@@ -1088,7 +1172,7 @@ async function loadActivity(st){
     const avg=a.bA>0?a.bB/a.bA:null;
     const covered=avg==null?0:Math.min(a.sA,a.bA);
     const rz=(a.sB-(avg==null?0:covered*avg))/MS*btcUsd;
-    sold.push({tk:a.tk,rz,noCost:avg==null||a.sA>a.bA*1.001});
+    sold.push({tk:a.tk,id:k,rz,noCost:avg==null||a.sA>a.bA*1.001});
     tot+=rz;
   }
   sold.sort((x,y)=>Math.abs(y.rz)-Math.abs(x.rz));
@@ -1122,6 +1206,7 @@ async function loadLegacy(st){
     raw=raw.concat(r.data);page++;
   }
   const rows=raw.map(mapTok(btcUsd)).filter(t=>t.amt>0);
+  rows.forEach(x=>{x.v1=true;});
   st.legacy=rows;
   st.legacyCount=rows.length;
   st.legacyPart=raw.length<count; /* the Σ only covers what was fetched */
@@ -1157,14 +1242,22 @@ function closePanel(){
   $('#panel').hidden=true;
   PANEL.cur=null;
   REL.p=null;REL.edges=[];
+  focusHome();
 }
 $('#pnX').addEventListener('click',closePanel);
 function copyText(t,el){
   try{navigator.clipboard.writeText(t);}catch(e){}
   if(el){const old=el.textContent;el.textContent=ui().copied;setTimeout(()=>{el.textContent=old;},900);}
 }
+function tlogo(id,v1){
+  /* the coin's own face: v2 through the api, v1 straight off the image host */
+  if(!id)return '';
+  const src=v1?'https://images.odin.fun/token/'+encodeURIComponent(id)
+             :'https://api.odin.fun/v2/token/'+encodeURIComponent(id)+'/image';
+  return '<img class="tlogo" src="'+src+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">';
+}
 function trowHtml(t){
-  return '<div class="trow"><b>'+esc(t.ticker)+'</b>'
+  return '<div class="trow">'+tlogo(t.id,t.v1)+'<b>'+esc(t.ticker)+'</b>'
     +'<i>'+esc(fmtTok(t.amt*MS))+' · '+fUsdP(t.costUsd)+' → '+fUsdP(t.curUsd)+'</i>'
     +'<em class="'+cls(t.pnl)+'">'+fSign(t.pnl)+(t.pct==null?'':' · '+(t.pct>0?'+':'')+t.pct.toFixed(0)+'%')+'</em></div>';
 }
@@ -1214,7 +1307,7 @@ function renderPanel(){
   if(!st.soldDone)h+='<div class="pn-load">'+esc(u.sLoading)+'</div>';
   else if(!(st.sold||[]).length)h+='<div class="pn-note">'+esc(u.soldNone)+'</div>';
   else{
-    h+=st.sold.slice(0,5).map(s2=>'<div class="trow"><b>'+esc(s2.tk)+'</b><i>'+(s2.noCost?'≈':'')+'</i>'
+    h+=st.sold.slice(0,5).map(s2=>'<div class="trow">'+tlogo(s2.id)+'<b>'+esc(s2.tk)+'</b><i>'+(s2.noCost?'≈':'')+'</i>'
       +'<em class="'+cls(s2.rz)+'">'+fSign(s2.rz)+'</em></div>').join('');
     h+='<div class="pn-sum"><span>Σ'+(st.sold.some(x=>x.noCost)?' ≈':'')+'</span><span class="'+cls(st.soldTot)+'">'+fSign(st.soldTot)+'</span></div>';
     h+='<div class="pn-note">'+esc(u.soldNote.replace('{n}',st.actScanned||0))+'</div>';
@@ -1353,7 +1446,7 @@ pullChefs();
   $('#uq').value=q;
   setTimeout(searchGo,400);
 })();
-window.__uv={gold,cam,UD,REG,CHEF,PANEL,REL,openPanel,searchGo,
+window.__uv={gold,cam,UD,REG,CHEF,PANEL,REL,openPanel,closePanel,searchGo,
   project:p=>project((REG.map.get(p)||{pos:[0,0,0]}).pos)};
 </script>
 </body>
