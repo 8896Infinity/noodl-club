@@ -355,7 +355,7 @@ en:{
   flIdx:'odin has indexed bitcoin up to block {a}; the network is at {b} — {n} behind.',
   flIdxOk:'odin has indexed bitcoin up to block {a} — level with the network.',
   flWitOne:'left your odin balance {ago} ago',
-  flWitNote:'Odin does not publish the on-chain leg of a withdrawal, so nobody can trace it from your account alone. Paste the address you withdrew TO into the search box above and this page will read that address straight off the chain.',
+  flWitNote:'Odin\'s payouts were measured landing on-chain about an hour to an hour and a half after the balance is debited, and odin does not publish that transaction — nobody can trace it from the account alone. Paste the address you withdrew TO into the search box above and this page will read it straight off the chain.',
   flNet:'≈ {v} will land in the balance — odin keeps a flat {f}',
   flNoneDep:'nothing waiting at the deposit address',
   secAddr:'BITCOIN ADDRESS',
@@ -434,7 +434,7 @@ zh:{
   flIdx:'odin 的比特币索引已到区块 {a}，全网在 {b} —— 落后 {n} 块。',
   flIdxOk:'odin 的比特币索引已到区块 {a}，与全网齐平。',
   flWitOne:'{ago}前从 odin 余额扣出',
-  flWitNote:'odin 不公开提现那一笔链上交易，光凭账号谁也追不到。把你的**收款地址**粘进上面的搜索框，这一页会直接去链上替你看。',
+  flWitNote:'实测 odin 的提现要在扣款后一小时到一个半小时才落到链上，而且 odin 不公开那一笔交易 —— 光凭账号谁也追不到。把你的收款地址粘进上面的搜索框，这一页会直接去链上替你看。',
   flNet:'到账约 {v} —— odin 固定收 {f} 手续费',
   flNoneDep:'充值地址上没有等着的钱',
   secAddr:'比特币地址',
@@ -1647,7 +1647,12 @@ async function loadFlight(st){
   }
   for(const x of (utxo||[])){
     if(credited.has(x.txid+':'+x.vout))continue;   /* already in the account */
-    f.dep.push({txid:x.txid,sats:Number(x.value)||0,conf:Number(x.confirmations)||0});
+    const sats=Number(x.value)||0;
+    if(sats<=DEP_FEE)continue;                     /* deposit addresses collect
+        546-sat dust and spam. Anything at or below the flat fee can never turn
+        into a credit, so it is not money in flight — and left in, it would sit
+        there forever telling people their deposit is stuck. */
+    f.dep.push({txid:x.txid,sats,conf:Number(x.confirmations)||0});
   }
   for(const x of ((pd&&pd.data)||[])){             /* odin's own list, if it ever speaks */
     const id=String(x.txid||'');
