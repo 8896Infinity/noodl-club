@@ -356,6 +356,13 @@ en:{
   flIdxOk:'odin has indexed bitcoin up to block {a} — level with the network.',
   flWitOne:'left your odin balance {ago} ago',
   flWitNote:'Odin\'s payouts were measured landing on-chain about an hour to an hour and a half after the balance is debited, and odin does not publish that transaction — nobody can trace it from the account alone. Paste the address you withdrew TO into the search box above and this page will read it straight off the chain.',
+  flWait:'confirmed {n}\u00d7 on mainnet · waiting for odin to index it and credit it',
+  flBehind:'. Odin\'s bitcoin index only reaches block {a} and this payment is in {b} — it has to catch up first.',
+  flPast:'. Odin\'s index is already past block {b} and it still has not been credited — if it stays like this past an hour, take the txid to odin support.',
+  flSeenMem:'odin has already seen this one while it sits in the mempool — it will be credited once it gets its first confirmation',
+  flSeen:'odin has picked this one up ({n} confirmations) and is crediting it — normally within a minute',
+  flSwept:'odin has already moved this money out of the deposit address ({n} confirmations) and STILL has not credited it. Take this txid to odin support.',
+  flOn:'{ago} ago on-chain',
   flNet:'≈ {v} will land in the balance — odin keeps a flat {f}',
   flNoneDep:'nothing waiting at the deposit address',
   secAddr:'BITCOIN ADDRESS',
@@ -435,6 +442,13 @@ zh:{
   flIdxOk:'odin 的比特币索引已到区块 {a}，与全网齐平。',
   flWitOne:'{ago}前从 odin 余额扣出',
   flWitNote:'实测 odin 的提现要在扣款后一小时到一个半小时才落到链上，而且 odin 不公开那一笔交易 —— 光凭账号谁也追不到。把你的收款地址粘进上面的搜索框，这一页会直接去链上替你看。',
+  flWait:'主网已确认 {n} 次 · 正在等待 odin 检索入账',
+  flBehind:'。odin 的比特币索引才走到 {a} 区块，这笔在 {b} —— 得等它追上来。',
+  flPast:'。odin 的索引早已越过 {b} 区块却仍未入账 —— 再等一小时还这样，就拿这个 txid 去找 odin 官方。',
+  flSeenMem:'odin 已经看到这笔了 —— 它还在内存池里等第一个确认，确认后就会入账',
+  flSeen:'odin 已经检索到这笔（主网 {n} 次确认），正在入账 —— 通常一分钟内到账',
+  flSwept:'odin 已经把这笔钱从充值地址转走了（主网 {n} 次确认），账上却仍然没有入账记录。拿这个 txid 去找 odin 官方。',
+  flOn:'{ago}前上链',
   flNet:'到账约 {v} —— odin 固定收 {f} 手续费',
   flNoneDep:'充值地址上没有等着的钱',
   secAddr:'比特币地址',
@@ -1578,6 +1592,11 @@ function fAgo(ms){
   return lang==='zh'?Math.floor(h/24)+' 天':Math.floor(h/24)+' d';
 }
 const DEP_FEE=2010;   /* sats; flat across all 60 of the most recent deposits */
+const FLIGHT_DAYS=7;  /* how far back a payment can be and still count as "in
+   flight". The v2 ledger starts at the V2 launch (~2026-06), so a deposit
+   address that has been alive since V1 carries payments v2 has never heard of;
+   reading its whole history accuses odin of eating money it credited a year
+   ago. Anything older than this window is history, not money in the air. */
 const BTC_RE=/^(bc1[ac-hj-np-z02-9]{11,84}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/;
 function parseAddr(v){
   v=(v||'').trim().replace(/\s+/g,'').replace(/^bitcoin:/i,'').split('?')[0];
@@ -1632,34 +1651,69 @@ async function loadFlight(st){
                                   numbers on screen until the new ones land */
   const who=(st.user&&st.user.btc_deposit_address)?st.user:await api('/user/'+st.p);
   f.addr=(who&&who.btc_deposit_address)||'';
-  const [utxo,acts,pd,pw,tip]=await Promise.all([
+  const [utxo,chain,acts,txr,pd,pw,tip]=await Promise.all([
     f.addr?utxoOf(f.addr):Promise.resolve(null),
-    api('/user/'+st.p+'/activity?action_in=deposit,withdraw&limit=60'),
+    f.addr?mpApi('/address/'+encodeURIComponent(f.addr)+'/txs'):Promise.resolve(null),
+    api('/user/'+st.p+'/activity?action_in=deposit,withdraw&limit=100'),
+    api('/user/'+st.p+'/transactions?limit=100&sort=created_time%3Adesc'),
     api('/user/'+st.p+'/pending/deposit'),
     api('/user/'+st.p+'/pending/withdraw'),
     chainTip()
   ]);
-  /* a deposit odin has counted shows up in the activity feed as txid:vout */
+  f.tip=tip;
+  /* what odin has actually paid out: the activity feed carries txid:vout */
   const credited=new Set(),wits=[];
+  let oldest=0;
   for(const r of ((acts&&acts.data)||[])){
-    if(r.action==='DEPOSIT'&&r.data)credited.add(String(r.data));
-    else if(r.action==='WITHDRAW')wits.push({t:Date.parse(r.time)||0,sats:Math.round((Number(r.amount_btc)||0)/1000)});
+    if(r.action==='DEPOSIT'&&r.data){
+      credited.add(String(r.data));
+      const ms=Date.parse(r.time)||0;
+      if(ms&&(!oldest||ms<oldest))oldest=ms;
+    }else if(r.action==='WITHDRAW')wits.push({t:Date.parse(r.time)||0,sats:Math.round((Number(r.amount_btc)||0)/1000)});
   }
-  for(const x of (utxo||[])){
-    if(credited.has(x.txid+':'+x.vout))continue;   /* already in the account */
-    const sats=Number(x.value)||0;
-    if(sats<=DEP_FEE)continue;                     /* deposit addresses collect
-        546-sat dust and spam. Anything at or below the flat fee can never turn
-        into a credit, so it is not money in flight — and left in, it would sit
-        there forever telling people their deposit is stuck. */
-    f.dep.push({txid:x.txid,sats,conf:Number(x.confirmations)||0});
+  const whole=!!acts&&(!acts.count||acts.count<=((acts.data||[]).length));
+  /* a ledger row appears at the first confirmation, about a minute before the
+     balance moves — "odin has seen it" and "odin has paid it" are different news */
+  const seen=new Set();
+  for(const r of ((txr&&txr.data)||[]))if(r&&r.transaction&&r.transaction.id)seen.add(String(r.transaction.id));
+  const unspent=new Set();
+  for(const x of (utxo||[]))unspent.add(x.txid+':'+x.vout);
+  /* EVERY payment into the deposit address, spent or not. A deposit odin has
+     already swept into its own custody but never credited leaves no utxo
+     behind — and that is precisely the case worth shouting about. Reading only
+     the utxo set makes exactly that person's money invisible. */
+  const rows=[];
+  if(Array.isArray(chain)){
+    for(const c of chain){
+      const on=!!(c.status&&c.status.confirmed);
+      const h=on?Number(c.status.block_height)||0:0;
+      const conf=on?Math.max(1,(tip.btc||h)-h+1):0;
+      (c.vout||[]).forEach((o,i)=>{
+        if(o.scriptpubkey_address!==f.addr)return;
+        rows.push({txid:c.txid,vout:i,sats:Number(o.value)||0,conf,h,
+          ts:on?(Number(c.status.block_time)||0)*1000:0});
+      });
+    }
+  }else for(const x of (utxo||[]))   /* no explorer: the unspent ones still show */
+    rows.push({txid:x.txid,vout:x.vout,sats:Number(x.value)||0,conf:Number(x.confirmations)||0,h:0,ts:0});
+  /* without the activity feed we cannot tell paid from unpaid, and a false
+     "your money is stuck" is worse than saying nothing at all */
+  if(acts)for(const d of rows){
+    const key=d.txid+':'+d.vout;
+    if(credited.has(key))continue;
+    if(d.sats<=DEP_FEE)continue;                   /* 546-sat dust never credits */
+    if(d.ts&&Date.now()-d.ts>FLIGHT_DAYS*864e5)continue;  /* history, not flight */
+    if(!whole&&oldest&&d.ts&&d.ts<oldest)continue; /* older than the window we can vouch for */
+    d.seen=seen.has(key);
+    d.swept=!!utxo&&d.conf>0&&!unspent.has(key);
+    f.dep.push(d);
   }
   for(const x of ((pd&&pd.data)||[])){             /* odin's own list, if it ever speaks */
     const id=String(x.txid||'');
     if(!id||f.dep.some(d=>d.txid===id))continue;
-    f.dep.push({txid:id,sats:Math.round((Number(x.amount)||0)/1000),conf:0});
+    f.dep.push({txid:id,vout:0,sats:Math.round((Number(x.amount)||0)/1000),conf:0,h:0,ts:0});
   }
-  f.dep.sort((a,b)=>a.conf-b.conf||b.sats-a.sats);
+  f.dep.sort((a,b)=>depSev(b)-depSev(a)||b.sats-a.sats);
   f.depMore=Math.max(0,f.dep.length-6);
   f.dep=f.dep.slice(0,6);
   for(const x of ((pw&&pw.data)||[])){
@@ -1668,9 +1722,28 @@ async function loadFlight(st){
   }
   wits.sort((a,b)=>b.t-a.t);
   f.lastWit=wits[0]||null;
-  f.tip=tip;
   f.done=true;
   st.flight=f;
+}
+/* loudest first: money odin took and never paid out beats money still in the air */
+function depSev(d){
+  if(d.swept)return 3;
+  if(d.conf>=3&&!d.seen)return 2;
+  if(d.conf>=1)return 1;
+  return 0;
+}
+function depLine(d,f){
+  const u=ui(),n=fmtN(d.conf);
+  if(d.swept)return {t:u.flSwept.replace('{n}',n),warn:true};
+  /* odin writes a ledger row the moment it sees the transaction, mempool
+     included — knowing it has been noticed is the whole point of the panel */
+  if(d.seen)return {t:d.conf===0?u.flSeenMem:u.flSeen.replace('{n}',n),warn:false};
+  if(d.conf===0)return {t:u.flMem,warn:false};
+  const odin=f.tip&&f.tip.odin;
+  if(odin&&d.h&&odin<d.h)
+    return {t:u.flWait.replace('{n}',n)+u.flBehind.replace('{a}',fmtN(odin)).replace('{b}',fmtN(d.h)),warn:false};
+  if(d.conf<=2)return {t:u.flWait.replace('{n}',n),warn:false};
+  return {t:u.flWait.replace('{n}',n)+u.flPast.replace('{b}',fmtN(d.h)),warn:true};
 }
 function idxLine(tip){
   if(!tip||!tip.odin)return '';
@@ -1693,12 +1766,13 @@ function flightHtml(st){
   let h='<div class="fl-sec'+(hot?'':' calm')+'"><div class="fl-h"><h3>'+esc(u.secFlight)+'</h3>'
     +'<button type="button" data-flrefresh="1">'+esc(u.flAgain)+'</button></div>';
   for(const d of f.dep){
-    const late=d.conf>=2;
-    const line=d.conf===0?u.flMem:(late?u.flLate:u.flJust).replace('{n}',d.conf);
+    const L=depLine(d,f);
+    const age=d.ts?u.flOn.replace('{ago}',fAgo(Date.now()-d.ts)):'';
+    const usd=BTCUSD?fUsd(d.sats/1e8*BTCUSD):'';
     h+='<div class="fl-row"><div class="fl-top"><span class="fl-tag in">'+esc(u.flDep)+'</span>'
-      +'<b>'+esc(fSats(d.sats))+'</b><em>'+esc(BTCUSD?fUsd(d.sats/1e8*BTCUSD):'')+'</em>'
+      +'<b>'+esc(fSats(d.sats))+'</b><em>'+esc(usd+(usd&&age?' · ':'')+age)+'</em>'
       +txLink(d.txid,u.flTx)+'</div>'
-      +'<div class="fl-st'+(late?' warn':'')+'">'+esc(line)+'</div>'
+      +'<div class="fl-st'+(L.warn?' warn':'')+'">'+esc(L.t)+'</div>'
       +(d.sats>DEP_FEE?'<div class="fl-net">'+esc(u.flNet.replace('{v}',fSats(d.sats-DEP_FEE)).replace('{f}',fSats(DEP_FEE)))+'</div>':'')
       +'</div>';
   }
@@ -1914,7 +1988,7 @@ pullChefs();
   setTimeout(searchGo,400);
 })();
 window.__uv={gold,cam,UD,REG,CHEF,PANEL,REL,DUST,openPanel,closePanel,searchGo,
-  parseAddr,loadFlight,loadAddr,openAddrPanel,chainTip,utxoOf,get ADDR(){return ADDR;},
+  parseAddr,loadFlight,loadAddr,openAddrPanel,chainTip,utxoOf,depLine,depSev,get ADDR(){return ADDR;},
   openDust,pickDust,nearVault,
   project:p=>project((REG.map.get(p)||{pos:[0,0,0]}).pos)};
 </script>
