@@ -140,6 +140,33 @@ a{color:inherit}
   border:1px solid rgba(0,255,255,.4);border-radius:7px;padding:8px 4px}
 .pn-act a:hover,.pn-act button:hover{background:rgba(0,255,255,.12)}
 .pn-load{font-size:10.5px;color:var(--dim);padding:4px 0}
+/* ---- money in flight: the only panel that shouts ---- */
+.fl-sec{margin-top:2px;margin-bottom:12px;border:1px solid rgba(252,209,79,.34);border-radius:9px;
+  background:rgba(252,209,79,.055);padding:8px 9px}
+.fl-sec.calm{border-color:var(--line);background:rgba(255,255,255,.02)}
+.fl-h{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.fl-h h3{flex:1;min-width:0;font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--noodle-y)}
+.fl-sec.calm .fl-h h3{color:var(--dim)}
+.fl-h button{flex:none;font-family:inherit;font-size:9.5px;color:var(--text-2);background:transparent;
+  border:1px solid var(--line);border-radius:5px;padding:2px 7px;cursor:pointer}
+.fl-h button:hover{color:var(--cyan);border-color:var(--cyan)}
+.fl-h button[disabled]{opacity:.5;cursor:wait}
+.fl-row{padding:5px 0;border-bottom:1px solid var(--line-soft)}
+.fl-row:last-of-type{border-bottom:0}
+.fl-top{display:flex;align-items:baseline;gap:7px;font-size:11.5px;font-variant-numeric:tabular-nums}
+.fl-tag{flex:none;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px}
+.fl-tag.in{color:var(--up);background:rgba(61,220,132,.12)}
+.fl-tag.out{color:var(--noodle-o);background:rgba(239,149,48,.14)}
+.fl-top b{flex:none;font-weight:700}
+.fl-top em{flex:1;min-width:0;font-style:normal;font-size:10px;color:var(--dim);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fl-top a{flex:none;font-size:9.5px;color:var(--cyan);text-decoration:none;opacity:.85}
+.fl-top a:hover{opacity:1;text-decoration:underline}
+.fl-st{margin-top:2px;font-size:10px;line-height:1.5;color:var(--text-2)}
+.fl-st.warn{color:var(--noodle-y)}
+.fl-net{margin-top:1px;font-size:9.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.fl-foot{margin-top:6px;font-size:9.5px;line-height:1.55;color:var(--dim)}
+.fl-foot b{color:var(--text-2);font-weight:600;font-variant-numeric:tabular-nums}
 @media (max-width:1200px){
   /* the dossier owns the right edge; the eye moves out of its way */
   .uvsearch{left:12px;transform:none;width:min(380px,calc(100% - 24px))}
@@ -293,7 +320,7 @@ en:{
   tipView:'an active address — click to inspect',
   tipGhost:'a related address — click to inspect',
   nogl:'This browser has no WebGL —<br>showing a still of the universe instead.',
-  searchPh:'X-ray any Odin account: user ID / profile link / username',
+  searchPh:'user ID · profile link · username · or a BTC address',
   searchGo:'X-ray',
   sFinding:'asking the universe…',
   sNone:'nobody answers to that name',
@@ -320,6 +347,32 @@ en:{
   relRefName:'invited by',
   relNone:'no transfers with other addresses on record',
   relNote:'green lines: tokens received · orange: sent — drawn in the sky',
+  secFlight:'MONEY IN FLIGHT',
+  flDep:'DEPOSIT',flWit:'WITHDRAW',flTx:'on-chain ↗',flAgain:'refresh',
+  flMem:'still in the mempool — waiting for its first confirmation. Nothing is lost; a thin fee just means a longer queue.',
+  flJust:'confirmed {n}× — odin normally credits it within a minute of the block',
+  flLate:'confirmed {n}× and odin has still not credited it. Odin only counts a deposit after it is mined, then its own indexer has to catch up.',
+  flIdx:'odin has indexed bitcoin up to block {a}; the network is at {b} — {n} behind.',
+  flIdxOk:'odin has indexed bitcoin up to block {a} — level with the network.',
+  flWitOne:'left your odin balance {ago} ago',
+  flWitNote:'Odin does not publish the on-chain leg of a withdrawal, so nobody can trace it from your account alone. Paste the address you withdrew TO into the search box above and this page will read that address straight off the chain.',
+  flNet:'≈ {v} will land in the balance — odin keeps a flat {f}',
+  flNoneDep:'nothing waiting at the deposit address',
+  secAddr:'BITCOIN ADDRESS',
+  aFlight:'MONEY IN FLIGHT',
+  aBal:'unspent at this address',
+  aIn:'INCOMING',aOut:'OUTGOING',
+  aWaiting:'in the mempool — unconfirmed',
+  aQuiet:'nothing unconfirmed at this address right now — whatever was sent here has either landed or has not been broadcast yet',
+  aOwner:'this address belongs to an odin.fun account',
+  aOpen:'open that dossier →',
+  aNoOwner:'no odin.fun account is registered to this address',
+  aMore:'+ {n} more unconfirmed transactions touch this address',
+  aExplore:'open on mempool.space ↗',
+  aFail:'could not reach a bitcoin node — try again in a moment',
+  aLoading:'reading the chain…',
+  sAddr:'a bitcoin address — reading the chain…',
+  kAddrKind:'BTC ADDRESS',
   viewOdin:'open on odin.fun ↗',
   copied:'copied',
   spinOff:'spin paused — click empty space to resume',
@@ -346,7 +399,7 @@ zh:{
   tipView:'一个仍在场上的地址 —— 点击透视',
   tipGhost:'一个关联地址 —— 点击透视',
   nogl:'当前浏览器没有 WebGL —— 改为展示宇宙的静态一帧。',
-  searchPh:'查户口：输入奥丁用户 ID / 主页链接 / 用户名',
+  searchPh:'查户口：奥丁 ID · 主页链接 · 用户名 · BTC 地址',
   searchGo:'透视',
   sFinding:'正在问询宇宙…',
   sNone:'没有人应答这个名字',
@@ -373,6 +426,32 @@ zh:{
   relRefName:'邀请人',
   relNone:'没有与其他地址的转账记录',
   relNote:'绿线：收到代币 · 橙线：转出 —— 已画进星空',
+  secFlight:'资金在途',
+  flDep:'充值',flWit:'提现',flTx:'看链上 ↗',flAgain:'刷新',
+  flMem:'还在内存池 —— 等第一个确认。钱没丢，手续费给低了就只是排队久一点。',
+  flJust:'已确认 {n} 次 —— odin 一般在上链后一分钟内入账',
+  flLate:'已确认 {n} 次，odin 仍未入账。odin 只认已打包的充值，之后还要它自己的索引器追上来。',
+  flIdx:'odin 的比特币索引已到区块 {a}，全网在 {b} —— 落后 {n} 块。',
+  flIdxOk:'odin 的比特币索引已到区块 {a}，与全网齐平。',
+  flWitOne:'{ago}前从 odin 余额扣出',
+  flWitNote:'odin 不公开提现那一笔链上交易，光凭账号谁也追不到。把你的**收款地址**粘进上面的搜索框，这一页会直接去链上替你看。',
+  flNet:'到账约 {v} —— odin 固定收 {f} 手续费',
+  flNoneDep:'充值地址上没有等着的钱',
+  secAddr:'比特币地址',
+  aFlight:'资金在途',
+  aBal:'该地址未花费余额',
+  aIn:'进',aOut:'出',
+  aWaiting:'在内存池里 —— 还没确认',
+  aQuiet:'这个地址此刻没有未确认的交易 —— 打给它的钱要么已经到了，要么还没广播出来',
+  aOwner:'这个地址属于一个 odin.fun 账号',
+  aOpen:'打开 ta 的档案 →',
+  aNoOwner:'没有 odin.fun 账号登记这个地址',
+  aMore:'还有 {n} 笔未确认交易碰到这个地址',
+  aExplore:'去 mempool.space 看 ↗',
+  aFail:'联系不上比特币节点 —— 过一会儿再试',
+  aLoading:'正在读链上数据…',
+  sAddr:'这是一个比特币地址 —— 正在读链上数据…',
+  kAddrKind:'BTC 地址',
   viewOdin:'打开 odin.fun 主页 ↗',
   copied:'已复制',
   spinOff:'已暂停旋转 —— 点空白处恢复',
@@ -396,7 +475,8 @@ function applyLang(){
   $('#sticks').setAttribute('aria-label',u.aSpin);
   $('#pnX').setAttribute('aria-label',u.aClose);
   $('#pnId').title=u.aCopy;
-  if(PANEL&&PANEL.cur)renderPanel();
+  if(ADDR)renderAddr();
+  else if(PANEL&&PANEL.cur)renderPanel();
 }
 $('#langBtn').addEventListener('click',()=>{
   lang=lang==='zh'?'en':'zh';
@@ -1146,6 +1226,7 @@ const MS=1e11;
 const PANEL={cur:null,cache:new Map()};
 const REL={p:null,edges:[]};
 let BTCUSD=0;
+let ADDR=null;   /* the panel can also hold a bare bitcoin address */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fUsd(v){
   const s=v<0?'−':'';v=Math.abs(Number(v)||0);
@@ -1320,6 +1401,7 @@ async function loadLegacy(st){
   st.legacyDone=true;
 }
 function openPanel(p){
+  ADDR=null;
   PANEL.cur=p;
   REL.p=p;REL.edges=[];
   let st=PANEL.cache.get(p);
@@ -1331,7 +1413,9 @@ function openPanel(p){
   focusStar(o.pos);
   renderPanel();
   if(st.edges)REL.edges=refEdges(st);
-  if(!fresh)return;
+  if(!fresh){ /* the dossier keeps, but money in flight does not */
+    loadFlight(st).then(()=>{if(PANEL.cur===st.p)renderPanel();}).catch(()=>{});
+    flightTick();return;}
   /* every load reports to one desk, and the desk only serves whoever is
      under the glass RIGHT NOW — late arrivals for other stars are ignored */
   const done=()=>{
@@ -1343,9 +1427,11 @@ function openPanel(p){
   loadDays(st).then(done).catch(()=>{st.daysDone=true;done();});
   loadActivity(st).then(done).catch(()=>{st.soldDone=true;done();});
   loadLegacy(st).then(done).catch(()=>{st.legacyDone=true;st.legacyErr=true;done();});
+  loadFlight(st).then(()=>{done();flightTick();}).catch(()=>{st.flight={done:true,dep:[],wit:[]};done();});
 }
 function closePanel(){
   $('#panel').hidden=true;
+  ADDR=null;flightStop();
   PANEL.cur=null;
   REL.p=null;REL.edges=[];
   focusHome();
@@ -1388,6 +1474,7 @@ function renderPanel(){
   $('#pnChips').innerHTML=chips.map(c=>'<span class="chip '+c[0]+'">'+esc(c[1])+'</span>').join('');
   /* body */
   let h='';
+  h+=flightHtml(st);
   h+='<div class="pn-sec"><h3>'+esc(u.secId)+'</h3><div class="kv">';
   h+='<span>'+esc(u.kJoined)+'</span><b>'+(st.user&&st.user.created_at?esc(String(st.user.created_at).slice(0,10)):'…')+'</b>';
   h+='<span>'+esc(u.kWallet)+'</span><b class="addr" data-copy="'+esc((st.user&&st.user.btc_wallet_address)||'')+'">'+esc(shortAddr(st.user&&st.user.btc_wallet_address))+'</b>';
@@ -1452,12 +1539,279 @@ function renderPanel(){
   $('#pnBody').innerHTML=h;
 }
 $('#pnBody').addEventListener('click',e=>{
+  const fr=e.target.closest?e.target.closest('[data-flrefresh]'):null;
+  if(fr){flightRefresh(fr);return;}
+  const op=e.target.closest?e.target.closest('[data-open]'):null;
+  if(op&&op.dataset.open){openPanel(op.dataset.open);return;}
   const r=e.target.closest?e.target.closest('.rrow'):null;
   if(r&&r.dataset.p){openPanel(r.dataset.p);return;}
   const a=e.target.closest?e.target.closest('.addr'):null;
   if(a&&a.dataset.copy)copyText(a.dataset.copy,a);
 });
-$('#pnId').addEventListener('click',()=>copyText(PANEL.cur||'',$('#pnId')));
+$('#pnId').addEventListener('click',()=>copyText((ADDR?ADDR.a:PANEL.cur)||'',$('#pnId')));
+async function flightRefresh(btn){
+  btn.disabled=true;
+  try{
+    if(ADDR){const m=ADDR;await loadAddr(m);if(ADDR===m)renderAddr();}
+    else if(PANEL.cur){const st=PANEL.cache.get(PANEL.cur);
+      if(st){await loadFlight(st);if(PANEL.cur===st.p)renderPanel();}}
+  }catch(e){}
+  fltN=0;flightTick();
+}
+
+/* ================= money in flight =================
+   Odin only writes a deposit down once it has been mined, so the window a
+   worried depositor cares about — broadcast, mempool, first confirmation,
+   odin's indexer catching up — is invisible from the account alone. It is
+   perfectly visible from the deposit ADDRESS, and odin's own /utxo endpoint
+   reports zero-confirmation outputs, so one call answers the question. */
+function fSats(v){
+  const b=(Number(v)||0)/1e8;
+  const t=b.toFixed(8).replace(/0+$/,'').replace(/\.$/,'');
+  return (t||'0')+' BTC';
+}
+function fAgo(ms){
+  const m=Math.max(0,Math.round(ms/60000));
+  if(m<60)return lang==='zh'?m+' 分钟':m+' min';
+  const h=Math.floor(m/60);
+  if(h<24)return lang==='zh'?h+' 小时':h+' h';
+  return lang==='zh'?Math.floor(h/24)+' 天':Math.floor(h/24)+' d';
+}
+const DEP_FEE=2010;   /* sats; flat across all 60 of the most recent deposits */
+const BTC_RE=/^(bc1[ac-hj-np-z02-9]{11,84}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/;
+function parseAddr(v){
+  v=(v||'').trim().replace(/\s+/g,'').replace(/^bitcoin:/i,'').split('?')[0];
+  if(/^BC1[AC-HJ-NP-Z02-9]+$/.test(v))v=v.toLowerCase();   /* bech32 may be shouted */
+  return BTC_RE.test(v)?v:null;
+}
+const EXPL=['https://mempool.space/api','https://blockstream.info/api'];
+async function mpApi(path){
+  /* the explorers are a courtesy source and must never be the reason a panel
+     breaks. Blockstream serves the same Esplora API byte for byte, so it is a
+     free failover. Keep every call a SIMPLE request — one custom header and
+     the preflight 404s. */
+  for(const base of EXPL){
+    try{
+      const r=await fetch(base+path,{cache:'no-store'});
+      if(!r.ok)continue;
+      return await r.json();
+    }catch(e){}
+  }
+  return null;
+}
+async function utxoOf(addr){
+  /* odin answers this for ANY bitcoin address, mempool outputs included — and
+     for an address with a long history it answers with megabytes. The search
+     box takes anything a visitor pastes, so the call gets a time limit and the
+     answer gets a ceiling. */
+  const path='/user/'+encodeURIComponent(addr)+'/utxo';
+  for(const base of ['https://api.odin.fun/v2','/api/odin']){
+    let t=0;
+    try{
+      const c=new AbortController();
+      t=setTimeout(()=>c.abort(),9000);
+      const r=await fetch(base+path,{cache:'no-store',signal:c.signal});
+      if(!r.ok){clearTimeout(t);continue;}
+      const j=await r.json();
+      clearTimeout(t);
+      if(Array.isArray(j))return j.length>400?j.slice(0,400):j;
+    }catch(e){clearTimeout(t);}
+  }
+  return null;                          /* a bad address is a 500, not an empty list */
+}
+let TIP={odin:0,btc:0,at:0};
+async function chainTip(){
+  if(TIP.at&&Date.now()-TIP.at<60000)return TIP;
+  const [st,h]=await Promise.all([api('/settings'),mpApi('/blocks/tip/height')]);
+  TIP={odin:Number(st&&st.last_indexed_block)||0,btc:Number(h)||0,at:Date.now()};
+  return TIP;
+}
+async function loadFlight(st){
+  const f={dep:[],wit:[],lastWit:null,tip:null,done:false};
+  if(!st.flight)st.flight=f;   /* first time only: a refresh keeps the old
+                                  numbers on screen until the new ones land */
+  const who=(st.user&&st.user.btc_deposit_address)?st.user:await api('/user/'+st.p);
+  f.addr=(who&&who.btc_deposit_address)||'';
+  const [utxo,acts,pd,pw,tip]=await Promise.all([
+    f.addr?utxoOf(f.addr):Promise.resolve(null),
+    api('/user/'+st.p+'/activity?action_in=deposit,withdraw&limit=60'),
+    api('/user/'+st.p+'/pending/deposit'),
+    api('/user/'+st.p+'/pending/withdraw'),
+    chainTip()
+  ]);
+  /* a deposit odin has counted shows up in the activity feed as txid:vout */
+  const credited=new Set(),wits=[];
+  for(const r of ((acts&&acts.data)||[])){
+    if(r.action==='DEPOSIT'&&r.data)credited.add(String(r.data));
+    else if(r.action==='WITHDRAW')wits.push({t:Date.parse(r.time)||0,sats:Math.round((Number(r.amount_btc)||0)/1000)});
+  }
+  for(const x of (utxo||[])){
+    if(credited.has(x.txid+':'+x.vout))continue;   /* already in the account */
+    f.dep.push({txid:x.txid,sats:Number(x.value)||0,conf:Number(x.confirmations)||0});
+  }
+  for(const x of ((pd&&pd.data)||[])){             /* odin's own list, if it ever speaks */
+    const id=String(x.txid||'');
+    if(!id||f.dep.some(d=>d.txid===id))continue;
+    f.dep.push({txid:id,sats:Math.round((Number(x.amount)||0)/1000),conf:0});
+  }
+  f.dep.sort((a,b)=>a.conf-b.conf||b.sats-a.sats);
+  f.depMore=Math.max(0,f.dep.length-6);
+  f.dep=f.dep.slice(0,6);
+  for(const x of ((pw&&pw.data)||[])){
+    const v=typeof x==='string'?x:((x&&(x.txid||x.id))||'');
+    if(v)f.wit.push({txid:/^[0-9a-f]{64}$/i.test(v)?v:'',sats:Number(x&&x.amount)?Math.round(Number(x.amount)/1000):0});
+  }
+  wits.sort((a,b)=>b.t-a.t);
+  f.lastWit=wits[0]||null;
+  f.tip=tip;
+  f.done=true;
+  st.flight=f;
+}
+function idxLine(tip){
+  if(!tip||!tip.odin)return '';
+  const u=ui();
+  if(!tip.btc)return '<div class="fl-foot">'+esc(u.flIdxOk.replace('{a}',fmtN(tip.odin)))+'</div>';
+  const n=tip.btc-tip.odin;
+  return '<div class="fl-foot">'+esc(n>1
+    ?u.flIdx.replace('{a}',fmtN(tip.odin)).replace('{b}',fmtN(tip.btc)).replace('{n}',fmtN(n))
+    :u.flIdxOk.replace('{a}',fmtN(tip.odin)))+'</div>';
+}
+function txLink(id,label){
+  return id?'<a href="https://mempool.space/tx/'+encodeURIComponent(id)+'" target="_blank" rel="noopener">'+esc(label)+'</a>':'';
+}
+function flightHtml(st){
+  const u=ui(),f=st.flight;
+  if(!f||!f.done)return '';                     /* stay silent until we know */
+  const lw=f.lastWit&&(Date.now()-f.lastWit.t)<12*3600e3?f.lastWit:null;
+  if(!f.dep.length&&!f.wit.length&&!lw)return '';   /* nothing in flight, nothing on screen */
+  const hot=f.dep.length||f.wit.length;
+  let h='<div class="fl-sec'+(hot?'':' calm')+'"><div class="fl-h"><h3>'+esc(u.secFlight)+'</h3>'
+    +'<button type="button" data-flrefresh="1">'+esc(u.flAgain)+'</button></div>';
+  for(const d of f.dep){
+    const late=d.conf>=2;
+    const line=d.conf===0?u.flMem:(late?u.flLate:u.flJust).replace('{n}',d.conf);
+    h+='<div class="fl-row"><div class="fl-top"><span class="fl-tag in">'+esc(u.flDep)+'</span>'
+      +'<b>'+esc(fSats(d.sats))+'</b><em>'+esc(BTCUSD?fUsd(d.sats/1e8*BTCUSD):'')+'</em>'
+      +txLink(d.txid,u.flTx)+'</div>'
+      +'<div class="fl-st'+(late?' warn':'')+'">'+esc(line)+'</div>'
+      +(d.sats>DEP_FEE?'<div class="fl-net">'+esc(u.flNet.replace('{v}',fSats(d.sats-DEP_FEE)).replace('{f}',fSats(DEP_FEE)))+'</div>':'')
+      +'</div>';
+  }
+  for(const w of f.wit){
+    h+='<div class="fl-row"><div class="fl-top"><span class="fl-tag out">'+esc(u.flWit)+'</span>'
+      +'<b>'+esc(w.sats?fSats(w.sats):'—')+'</b><em></em>'+txLink(w.txid,u.flTx)+'</div></div>';
+  }
+  if(!f.wit.length&&lw){
+    h+='<div class="fl-row"><div class="fl-top"><span class="fl-tag out">'+esc(u.flWit)+'</span>'
+      +'<b>'+esc(fSats(lw.sats))+'</b><em>'+esc(u.flWitOne.replace('{ago}',fAgo(Date.now()-lw.t)))+'</em></div>'
+      +'<div class="fl-st">'+esc(u.flWitNote.replace(/\*\*/g,''))+'</div></div>';
+  }
+  if(f.depMore)h+='<div class="fl-foot">'+esc(u.aMore.replace('{n}',fmtN(f.depMore)))+'</div>';
+  h+=idxLine(f.tip);
+  return h+'</div>';
+}
+/* ---- a bare bitcoin address gets its own, simpler dossier ---- */
+async function loadAddr(a){
+  /* one small call first: it carries the balance AND tells us how busy this
+     address is, which decides whether enumerating its outputs is sane */
+  const stats=await mpApi('/address/'+encodeURIComponent(a.a));
+  const busy=stats&&stats.chain_stats?Number(stats.chain_stats.tx_count)||0:null;
+  const [utxo,mem,tip,who]=await Promise.all([
+    (busy===null||busy<400)?utxoOf(a.a):Promise.resolve(null),
+    mpApi('/address/'+encodeURIComponent(a.a)+'/txs/mempool'),
+    chainTip(),
+    api('/users?search='+encodeURIComponent(a.a)+'&limit=1')
+  ]);
+  const rows=[];
+  if(Array.isArray(mem)){
+    /* the fullest picture: money arriving AND money leaving, still unconfirmed */
+    for(const t of mem){
+      let inn=0,out=0;
+      for(const o of (t.vout||[]))if(o.scriptpubkey_address===a.a)inn+=Number(o.value)||0;
+      for(const i of (t.vin||[]))if(i.prevout&&i.prevout.scriptpubkey_address===a.a)out+=Number(i.prevout.value)||0;
+      if(inn||out)rows.push({txid:t.txid,net:inn-out});
+    }
+  }else if(Array.isArray(utxo)){
+    for(const x of utxo)if((Number(x.confirmations)||0)===0)rows.push({txid:x.txid,net:Number(x.value)||0});
+  }
+  /* biggest money first, arriving before leaving — that is the order a
+     worried depositor reads in */
+  rows.sort((x,y)=>(y.net>0?1:0)-(x.net>0?1:0)||Math.abs(y.net)-Math.abs(x.net));
+  a.more=Math.max(0,rows.length-8);
+  a.flight=rows.slice(0,8);
+  const cs=stats&&stats.chain_stats,ms=stats&&stats.mempool_stats;
+  a.bal=cs?(Number(cs.funded_txo_sum)||0)-(Number(cs.spent_txo_sum)||0)
+          +(ms?(Number(ms.funded_txo_sum)||0)-(Number(ms.spent_txo_sum)||0):0)
+        :(Array.isArray(utxo)?utxo.reduce((q,x)=>q+(Number(x.value)||0),0):null);
+  a.tip=tip;
+  a.user=(who&&who.data&&who.data[0])||null;
+  a.err=(!stats&&utxo===null&&!Array.isArray(mem));
+  a.done=true;
+}
+function renderAddr(){
+  const a=ADDR;if(!a)return;
+  const u=ui();
+  $('#pnName').textContent=shortAddr(a.a);
+  $('#pnId').textContent=a.a;
+  const av=$('#pnAv');av.textContent='₿';av.className='pn-av';
+  $('#pnChips').innerHTML='<span class="chip dim">'+esc(u.kAddrKind)+'</span>'
+    +(a.user?'<span class="chip cyan">'+esc(a.user.username||shortP(a.user.principal))+'</span>':'');
+  let h='';
+  if(!a.done)h+='<div class="pn-sec"><div class="pn-load">'+esc(u.aLoading)+'</div></div>';
+  else if(a.err)h+='<div class="pn-sec"><div class="pn-note">'+esc(u.aFail)+'</div></div>';
+  else{
+    const hot=(a.flight||[]).length;
+    h+='<div class="fl-sec'+(hot?'':' calm')+'"><div class="fl-h"><h3>'+esc(u.aFlight)+'</h3>'
+      +'<button type="button" data-flrefresh="1">'+esc(u.flAgain)+'</button></div>';
+    if(!hot)h+='<div class="fl-st">'+esc(u.aQuiet)+'</div>';
+    else for(const r of a.flight){
+      const inb=r.net>=0;
+      h+='<div class="fl-row"><div class="fl-top"><span class="fl-tag '+(inb?'in':'out')+'">'
+        +esc(inb?u.aIn:u.aOut)+'</span><b>'+esc(fSats(Math.abs(r.net)))+'</b>'
+        +'<em>'+esc(BTCUSD?fUsd(Math.abs(r.net)/1e8*BTCUSD):'')+'</em>'+txLink(r.txid,u.flTx)+'</div>'
+        +'<div class="fl-st">'+esc(u.aWaiting)+'</div></div>';
+    }
+    if(a.more)h+='<div class="fl-foot">'+esc(u.aMore.replace('{n}',fmtN(a.more)))+'</div>';
+    h+=idxLine(a.tip)+'</div>';
+    h+='<div class="pn-sec"><h3>'+esc(u.secAddr)+'</h3><div class="kv">';
+    h+='<span>'+esc(u.aBal)+'</span><b>'+(a.bal==null?'—':esc(fSats(a.bal)))+'</b>';
+    h+='</div>';
+    h+='<div class="pn-note">'+esc(a.user?u.aOwner:u.aNoOwner)+'</div></div>';
+    h+='<div class="pn-act">';
+    if(a.user)h+='<button type="button" data-open="'+esc(a.user.principal)+'">'+esc(u.aOpen)+'</button>';
+    h+='<a href="https://mempool.space/address/'+encodeURIComponent(a.a)+'" target="_blank" rel="noopener">'+esc(u.aExplore)+'</a></div>';
+  }
+  $('#pnBody').innerHTML=h;
+}
+async function openAddrPanel(addr){
+  PANEL.cur=null;REL.p=null;REL.edges=[];
+  ADDR={a:addr};
+  $('#panel').hidden=false;
+  renderAddr();
+  const mine=ADDR;
+  try{await loadAddr(mine);}catch(e){mine.err=true;mine.done=true;}
+  if(ADDR===mine)renderAddr();
+  flightTick();
+}
+/* ---- money in flight is the one thing worth re-asking about ---- */
+let FLT=0,fltN=0;
+function flightStop(){clearTimeout(FLT);FLT=0;fltN=0;}
+function flightTick(){
+  clearTimeout(FLT);
+  if(fltN>25)return;                            /* an open tab is not a licence to poll forever */
+  FLT=setTimeout(async ()=>{
+    if($('#panel').hidden)return flightStop();
+    fltN++;
+    try{
+      if(ADDR){const m=ADDR;await loadAddr(m);if(ADDR===m)renderAddr();}
+      else if(PANEL.cur){
+        const st=PANEL.cache.get(PANEL.cur);
+        if(st){await loadFlight(st);if(PANEL.cur===st.p)renderPanel();}
+      }
+    }catch(e){}
+    flightTick();
+  },60000);
+}
 
 /* ================= the eye of the universe ================= */
 function parseId(v){
@@ -1480,7 +1834,9 @@ async function searchGo(){
   searchBusy=true;$('#uqGo').disabled=true;
   try{
     const id=parseId(q);
+    const ad=id?null:parseAddr(q);
     if(id){uvsMsg('','');foundStar(id);}
+    else if(ad){uvsMsg('',u.sAddr);await openAddrPanel(ad);uvsMsg('','');}
     else{
       uvsMsg('',u.sFinding);
       const r=await api('/users?search='+encodeURIComponent(q)+'&limit=8');
@@ -1553,6 +1909,7 @@ pullChefs();
   setTimeout(searchGo,400);
 })();
 window.__uv={gold,cam,UD,REG,CHEF,PANEL,REL,DUST,openPanel,closePanel,searchGo,
+  parseAddr,loadFlight,loadAddr,openAddrPanel,chainTip,utxoOf,get ADDR(){return ADDR;},
   openDust,pickDust,nearVault,
   project:p=>project((REG.map.get(p)||{pos:[0,0,0]}).pos)};
 </script>
