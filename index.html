@@ -603,8 +603,11 @@ footer a:hover{color:var(--cyan)}
   </div>
 </div>
 
-<script src="tweets.js"></script>
-<script src="tweets-ui.js"></script>
+<!-- Deferred: neither is needed until the chopsticks are clicked, and as
+     blocking scripts they held up applyLang(), which relabels the nav —
+     measured CLS 0.1992 for a Chinese visitor, a visible jump on load. -->
+<script src="tweets.js" defer></script>
+<script src="tweets-ui.js" defer></script>
 
 <noscript><p style="text-align:center;padding:20px">NOODL · Noodle Nova, enable JavaScript to see the living noodle galaxy. Token: <a href="https://odin.fun/token/hjrg">odin.fun/token/hjrg</a></p></noscript>
 
@@ -1083,7 +1086,11 @@ $('#xrayForm').addEventListener('submit',e=>{
 })();
 /* ================= #NOODL post dropdown (chopsticks) ================= */
 const feedEl=$('#feed'),chopEl=$('#chopsticks');
-const TW=window.NoodlTweets;
+/* The helpers are deferred now, so they have not run while this line is being
+   parsed. They do run before DOMContentLoaded, and nothing that reads TW is
+   reachable before a click, so binding it there is early enough. */
+let TW=null;
+addEventListener('DOMContentLoaded',()=>{TW=window.NoodlTweets;});
 let feedOrder=[],feedIdx=0;
 function feedOpen(){return feedEl.classList.contains('open');}
 function placeFeed(){
@@ -1213,7 +1220,11 @@ const ODIN=['https://api.odin.fun/v2','/api/odin'];
 let SNAP=null,SNAPMODE=false;
 async function loadSnap(){
   try{
-    const r=await fetch('data/snapshot.json',{cache:'no-store'});
+    /* NOT no-store: that skips the cache entirely and re-downloads 444 KB on
+       every page load. The file is rebuilt once a night and carries an ETag,
+       so the browser may reuse it — a stale-by-minutes snapshot is exactly
+       what this feature already promises. */
+    const r=await fetch('data/snapshot.json',{cache:'default'});
     if(!r.ok)return null;
     const j=await r.json();
     return (j&&j.v===1&&j.api&&j.at)?j:null;

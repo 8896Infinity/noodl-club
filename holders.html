@@ -447,7 +447,11 @@ let sort='bal',query='',S=null,tenure={},tenureDone=false,xfers=[];
 let SNAP=null,SNAPMODE=false;
 async function loadSnap(){
   try{
-    const r=await fetch('data/snapshot.json',{cache:'no-store'});
+    /* NOT no-store: that skips the cache entirely and re-downloads 444 KB on
+       every page load. The file is rebuilt once a night and carries an ETag,
+       so the browser may reuse it — a stale-by-minutes snapshot is exactly
+       what this feature already promises. */
+    const r=await fetch('data/snapshot.json',{cache:'default'});
     if(!r.ok)return null;
     const j=await r.json();
     return (j&&j.v===1&&j.api&&j.at)?j:null;
