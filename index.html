@@ -1200,6 +1200,19 @@ const $=s=>document.querySelector(s);
    mixing the two is the easiest way to be off by a factor of a thousand. */
 const MS=1e11, SAT=1e8, DAY=864e5, TOKEN='hjrg';
 const ODIN=['https://api.odin.fun/v2','/api/odin'];
+/* Last night's bake (tools/bake-daily.js). The report costs ~19 requests and
+   2.9 MB, all of it serial paging through the trade feed, so a cold reader
+   waited 12-18 seconds for a poster. It now opens from one file and says so;
+   Refresh goes to the network exactly as it always did. */
+let SNAP=null,SNAPMODE=false;
+async function loadSnap(){
+  try{
+    const r=await fetch('data/snapshot.json',{cache:'no-store'});
+    if(!r.ok)return null;
+    const j=await r.json();
+    return (j&&j.v===1&&j.api&&j.at)?j:null;
+  }catch(e){return null;}
+}
 
 const I18N={
  zh:{
@@ -1207,6 +1220,9 @@ const I18N={
   refresh:'刷新数据',loading:'正在读取 odin.fun…',
   drawing:'正在读取 odin.fun，生成日报海报…',failed:'海报没有生成，可以点「刷新数据」重试。',
   ready:t=>'数据抓取时间 '+t,
+  snapReady:t=>'数据读取于北京时间 '+t+'（每晚零点自动读取）',
+  snapOld:(t,n)=>'数据是北京时间 '+t+' 的 —— 已过期 '+n+' 天，每晚的自动读取没有跑',
+  goLive:'读取实时数据',
   err:'连不上 odin.fun 接口。它有频率限制，偶尔也会拦非浏览器流量，过一分钟再试。',
   alt:d=>'NOODL 日报，数据抓取时间 '+d
  },
@@ -1215,6 +1231,9 @@ const I18N={
   refresh:'Refresh',loading:'Reading odin.fun…',
   drawing:'Reading odin.fun and drawing the poster…',failed:'The poster was not drawn. Use Refresh to try again.',
   ready:t=>'captured '+t,
+  snapReady:t=>'read at '+t+' Beijing time (baked nightly at midnight)',
+  snapOld:(t,n)=>'read '+t+' Beijing time — '+n+'d old, the nightly read has not run since',
+  goLive:'Load live data',
   err:'Could not reach the odin.fun API. It rate-limits and occasionally blocks non-browser traffic; try again in a minute.',
   alt:d=>'NOODL daily report, captured '+d
  }
@@ -1270,6 +1289,7 @@ function fmtStamp(ms){
   return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+':'+z(d.getMinutes());
 }
 async function api(path){
+  if(SNAPMODE&&SNAP&&SNAP.api&&Object.prototype.hasOwnProperty.call(SNAP.api,path))return SNAP.api[path];
   let last;
   for(const base of ODIN){
     try{
@@ -1356,7 +1376,7 @@ async function load(){
   }
   trades.sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
 
-  const now=Date.now();
+  const now=(SNAPMODE&&SNAP)?SNAP.at:Date.now();
   const btcUsd=Number(cur.amount)||0;
   const price=Number(tok.price)||0;
   const supply=Number(tok.total_supply)/MS;
@@ -1455,8 +1475,14 @@ async function load(){
     },
     series:series
   };
-  $('#dStatus').textContent=ui.ready(fmtStamp(now));
+  /* a bake older than a day and a half means the nightly job stopped */
+  const stale=SNAPMODE&&(Date.now()-now)>36*3600e3;
+  $('#dStatus').textContent=!SNAPMODE?ui.ready(fmtStamp(now))
+    :stale?ui.snapOld(bjStamp(now),Math.floor((Date.now()-now)/864e5))
+    :ui.snapReady(bjStamp(now));
   $('#dAlt').textContent=ui.alt(fmtStamp(now));
+  $('#dReload').textContent=SNAPMODE?ui.goLive:ui.refresh;
+  $('#dReload').classList.toggle('primary',SNAPMODE);
   await loadLogo();
   await draw();
   $('#dSave').disabled=false;
@@ -1740,7 +1766,10 @@ $('#dCopy').addEventListener('click',async()=>{
     done(ui.copyOk);
   }catch(e){ console.error(e); done(ui.copyNo); }
 });
-$('#dReload').addEventListener('click',()=>{started=true;boot();});
+$('#dReload').addEventListener('click',()=>{
+  SNAPMODE=false;                 /* the button is the way out of the bake */
+  started=true;boot();
+});
 $('#dSave').addEventListener('click',()=>{
   const ui=I18N[lang],btn=$('#dSave'),was=btn.textContent;
   btn.textContent=ui.saving;btn.disabled=true;
@@ -1757,18 +1786,31 @@ $('#dSave').addEventListener('click',()=>{
 
 async function boot(){
   applyLang();
+  if(SNAPMODE&&!SNAP){
+    SNAP=await loadSnap();
+    SNAPMODE=!!SNAP;              /* no bake yet: go live, exactly as before */
+  }
   try{
     // canvas text falls back to a system font if this is skipped
     if(document.fonts&&document.fonts.ready)await document.fonts.ready;
   }catch(e){}
   try{ await load(); }
   catch(e){
+    if(SNAPMODE){                 /* a bad bake must not cost the reader the poster */
+      console.error(e);SNAPMODE=false;
+      try{ await load(); return; }catch(e2){ e=e2; }
+    }
     console.error(e);
     $('#dStatus').textContent='';$('#dPh').textContent=I18N[lang].failed;
     $('#dErr').innerHTML='<div class="daily-err">'+I18N[lang].err+'</div>';
   }
 }
 
+function bjStamp(ms){
+  /* the bake runs at midnight Beijing time, so that is the clock to quote */
+  const d=new Date(ms+8*3600e3),z=n=>String(n).padStart(2,'0');
+  return d.getUTCFullYear()+'-'+z(d.getUTCMonth()+1)+'-'+z(d.getUTCDate())+' '+z(d.getUTCHours())+':'+z(d.getUTCMinutes());
+}
 let started=false;
 /* The report costs a few dozen API calls, so it yields the network to the
    galaxy at the top of the page first. It starts when it scrolls into view, or
@@ -1776,7 +1818,7 @@ let started=false;
    the second one matters: IntersectionObserver never fires in a tab that is
    never painted (background loads, prerender), and a poster that silently
    never renders is worse than one that costs a few requests unseen. */
-const start=()=>{if(started)return;started=true;boot();};
+const start=()=>{if(started)return;started=true;SNAPMODE=true;boot();};
 applyLang();
 (function(){
   const box=$('#daily');
