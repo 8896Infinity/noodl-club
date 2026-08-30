@@ -1,0 +1,49 @@
+name: nightly snapshot
+
+# 00:00 Beijing time = 16:00 UTC. GitHub's scheduler is best-effort and often
+# runs a few minutes late on a busy hour, so the pages quote the timestamp the
+# bake actually recorded rather than the word "midnight".
+on:
+  schedule:
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly-snapshot
+  cancel-in-progress: false
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # The baker refuses to write a partial snapshot and exits non-zero, so a
+      # bad night leaves yesterday's file in place rather than publishing a hole.
+      - name: Bake
+        run: node tools/bake-daily.js data/snapshot.json
+
+      - name: Commit
+        run: |
+          if git diff --quiet -- data/snapshot.json; then
+            echo "snapshot unchanged, nothing to commit"
+            exit 0
+          fi
+          # THE TRAP: Vercel verifies the commit author before deploying, and on a
+          # Hobby account only the project owner may trigger one. A commit authored
+          # as github-actions[bot] lands on GitHub and is then silently never
+          # deployed. It must be the owner — and the GitHub noreply form, so the
+          # real address stays out of this public repo.
+          git config user.name  "8896Infinity"
+          git config user.email "132675725+8896Infinity@users.noreply.github.com"
+          git add data/snapshot.json
+          git commit -m "data: nightly snapshot ($(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M') Beijing)"
+          git push
