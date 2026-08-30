@@ -1,0 +1,51 @@
+name: fetch font
+
+# One-shot, run by hand. Work Sans used to come from fonts.googleapis.com on
+# every page through a render-blocking <link>. Measured from a Chinese
+# connection with that host unreachable: the first paint never happened — the
+# page just sat blank. Self-hosting removes Google from the critical path
+# entirely. Re-run this if the font ever needs updating.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  font:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # The variable face: one file covers weights 400-800, so five static
+      # weights collapse into ~50 KB. Latin subset only — every Chinese glyph
+      # on this site comes from the PingFang / YaHei fallback anyway, because
+      # Work Sans has no CJK.
+      - name: Download Work Sans (latin, variable 400-800)
+        run: |
+          set -e
+          mkdir -p fonts
+          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
+          curl -sS -A "$UA" \
+            'https://fonts.googleapis.com/css2?family=Work+Sans:wght@400..800&display=swap' -o /tmp/ws.css
+          # the last @font-face block is the latin subset (U+0000-00FF)
+          URL=$(grep -B3 'U+0000-00FF' /tmp/ws.css | grep -o 'https://fonts.gstatic.com[^)]*' | tail -1)
+          echo "latin subset: $URL"
+          curl -sS -A "$UA" "$URL" -o fonts/work-sans.woff2
+          # refuse anything that is not really a woff2
+          head -c 4 fonts/work-sans.woff2 | grep -q 'wOF2'
+          ls -l fonts/work-sans.woff2
+
+      - name: Commit
+        run: |
+          git add fonts/work-sans.woff2
+          if git diff --cached --quiet -- fonts/work-sans.woff2; then
+            echo "font unchanged"
+            exit 0
+          fi
+          # Vercel verifies the commit author and only the owner may deploy
+          git config user.name  "8896Infinity"
+          git config user.email "132675725+8896Infinity@users.noreply.github.com"
+          git commit -m "fonts: self-host Work Sans so Google is off the critical path"
+          git push
