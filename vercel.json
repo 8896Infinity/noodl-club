@@ -4,14 +4,12 @@
   ],
   "headers": [
     {
-      "//": "Vercel's default for static files is max-age=0, must-revalidate — every page navigation spends a round trip revalidating the font, and from China one round trip is 0.6-1.5s. The face never changes; 30 days of silence costs nothing and a swap still propagates within a month (rename the file to force it sooner).",
       "source": "/fonts/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=2592000" }
       ]
     },
     {
-      "//": "The snapshot is rebuilt once a night, so a few minutes of staleness is meaningless — but revalidating a 434 KB file on every page view is not. stale-while-revalidate keeps the next visit instant while a fresh copy lands in the background.",
       "source": "/data/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=86400" }
