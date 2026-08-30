@@ -55,7 +55,7 @@ a{color:inherit}
 #lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #sticks{position:absolute;top:0;right:0;width:150px;height:150px;cursor:pointer;opacity:.85;transition:opacity .2s}
 #sticks:hover{opacity:1}
-#sticks.rest{opacity:.4}
+#sticks.rest{opacity:.62}
 /* ---- the eye of the universe: search ---- */
 .uvsearch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:min(430px,calc(100% - 24px));z-index:6}
 .uvs-in{display:flex;gap:7px}
@@ -309,7 +309,7 @@ en:{
   keyGray:'V1 dust — an address from odin.fun V1',
   keyLit:'lit — still holds tokens on odin.fun V2 today',
   keyGold:'gold — holds NOODL; the spinning suns are pool chefs, sized by their stake',
-  hint:'drag to orbit · scroll to zoom<br>click ANY world — even the dust — to open its dossier',
+  hint:'drag to orbit · scroll to zoom<br>click ANY world — even the dust — to open its dossier<br>tap the chopsticks to set the galaxy spinning',
   poolName:'NOODL staking vault',
   poolSoon:'the locked NOODL pool lives here — details coming soon',
   dustFinding:'asking the V1 register who lives on this mote…',
@@ -382,8 +382,8 @@ en:{
   kAddrKind:'BTC ADDRESS',
   viewOdin:'open on odin.fun ↗',
   copied:'copied',
-  spinOff:'spin paused — click empty space to resume',
-  spinOn:'spinning again',
+  spinOff:'the galaxy is still — tap the chopsticks to set it spinning',
+  spinOn:'spinning',
   aSpin:'pause or resume the spin',aClose:'close',aCopy:'copy'
 },
 zh:{
@@ -395,7 +395,7 @@ zh:{
   keyGray:'星尘 —— odin.fun V1 的一个历史地址',
   keyLit:'点亮 —— 今天在 odin.fun V2 仍持有代币',
   keyGold:'金星 —— 此刻正持有 NOODL；一直自转的是加池 Chef，池子越大星越大',
-  hint:'拖拽旋转 · 滚轮缩放<br>点击任意星球 —— 连星尘也有档案',
+  hint:'拖拽旋转 · 滚轮缩放<br>点击任意星球 —— 连星尘也有档案<br>点右上角的筷子，宇宙就转起来',
   poolName:'NOODL 锁仓质押池',
   poolSoon:'NOODL 锁仓质押池就在这里 —— 点击查看功能暂未开放',
   dustFinding:'正在调取这颗星尘的 V1 户籍…',
@@ -468,7 +468,7 @@ zh:{
   kAddrKind:'BTC 地址',
   viewOdin:'打开 odin.fun 主页 ↗',
   copied:'已复制',
-  spinOff:'已暂停旋转 —— 点空白处恢复',
+  spinOff:'宇宙静止 —— 点右上角的筷子让它转起来',
   spinOn:'转起来了',
   aSpin:'暂停/恢复旋转',aClose:'关闭',aCopy:'复制'
 }};
@@ -654,9 +654,11 @@ function ensureStar(p){
   regBuild();
   return REG.map.get(p);
 }
-/* the spin is a choice: chopsticks or empty sky toggles it, and it sticks */
+/* the spin is a choice, and the galaxy waits to be asked: it stands still
+   until someone picks up the chopsticks (or clicks the sky outside the bowl).
+   Only an explicit '1' turns it on, so a first visit is always calm. */
 const SPIN=0.00095;
-let spinOn=true;try{spinOn=localStorage.getItem('noodl_uv_spin')!=='0';}catch(e){}
+let spinOn=false;try{spinOn=localStorage.getItem('noodl_uv_spin')==='1';}catch(e){}
 function toggleSpin(){
   spinOn=!spinOn;
   try{localStorage.setItem('noodl_uv_spin',spinOn?'1':'0');}catch(e){}
