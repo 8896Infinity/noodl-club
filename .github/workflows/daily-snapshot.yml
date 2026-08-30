@@ -33,7 +33,11 @@ jobs:
 
       - name: Commit
         run: |
-          if git diff --quiet -- data/snapshot.json; then
+          # Stage FIRST, then compare the index. `git diff` alone is blind to an
+          # untracked file, so on the very first run it reports "no change" and
+          # the snapshot is silently never committed.
+          git add data/snapshot.json
+          if git diff --cached --quiet -- data/snapshot.json; then
             echo "snapshot unchanged, nothing to commit"
             exit 0
           fi
@@ -44,6 +48,5 @@ jobs:
           # real address stays out of this public repo.
           git config user.name  "8896Infinity"
           git config user.email "132675725+8896Infinity@users.noreply.github.com"
-          git add data/snapshot.json
           git commit -m "data: nightly snapshot ($(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M') Beijing)"
           git push
