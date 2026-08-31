@@ -215,6 +215,42 @@ table.cmp tr.self td{background:rgba(0,255,255,.05)}
 table.cmp tr.self td.asset,table.cmp tr.self td.x{color:var(--cyan)}
 table.cmp .era{font-size:10.5px;color:var(--dim);display:block;font-weight:400;margin-top:2px}
 .tblnote{font-size:11.5px!important;color:var(--dim)!important;line-height:1.7!important;margin-top:10px!important}
+/* One square is a fixed number of dollars, so the blocks are directly
+   comparable by eye — that is the whole reason this replaced a table. */
+.dots{margin:20px 0 10px;border:1px solid var(--line);border-radius:10px;
+  padding:15px 17px 6px;background:#141419}
+.dkeys{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding-bottom:11px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.dkey{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim)}
+.dkey.dright{margin-left:auto;color:var(--noodle-y);opacity:.8}
+.dcoin{padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.dcoin:last-child{border-bottom:0}
+.dhead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.dsym{font-weight:700;font-size:13px;color:var(--text);letter-spacing:.02em}
+.dmeta{font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.dmc{margin-left:auto;font-size:13px;font-weight:600;color:var(--text);
+  font-variant-numeric:tabular-nums}
+.dshare{font-size:12.5px;font-weight:600;color:var(--noodle-y);
+  font-variant-numeric:tabular-nums;min-width:82px;text-align:right}
+.dgrid{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.dsq{width:11px;height:11px;border-radius:2px;background:#5c5e6b;flex:none}
+/* colour carries one bit of information: is this coin on Bitcoin */
+.dcoin.btc .dsq,.dkey .dsq.btc{background:var(--noodle-o)}
+.dcoin.self{background:rgba(0,255,255,.05);margin:0 -17px;padding-left:17px;padding-right:17px}
+.dcoin.self .dsym,.dcoin.self .dshare{color:var(--cyan)}
+.dcoin.self .dsq{background:var(--cyan)}
+/* below one square there is nothing to draw, and saying so is the point */
+.dnone{font-size:11px;line-height:1.5;color:var(--cyan-dim)}
+@media (max-width:600px){
+  .dots{padding:13px 13px 4px}
+  .dsq{width:9px;height:9px}
+  .dgrid{gap:2.5px}
+  /* symbol, money and share stay on one line; the chain and date get their
+     own, so every row breaks the same way instead of wherever it runs out */
+  .dmeta{order:4;flex-basis:100%;margin-top:2px}
+  .dshare{min-width:0}
+  .dcoin.self{margin:0 -13px;padding-left:13px;padding-right:13px}
+}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0}
 .fact{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
 .fact b{display:block;font-size:19px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums;line-height:1.2}
@@ -584,19 +620,13 @@ footer a:hover{color:var(--cyan)}
 
       <h3 data-i="slotSizeH">What that slot is worth on the chains that filled it</h3>
       <p data-i="slotSizeLead"></p>
-      <div class="tblwrap">
-        <table class="cmp">
-          <thead>
-            <tr>
-              <th data-i="thSlotAsset">Meme</th>
-              <th data-i="thSlotChain">Chain</th>
-              <th data-i="thSlotPeak">Peak market cap</th>
-              <th data-i="thSlotWhen">When</th>
-              <th data-i="thSlotShare">Share of its chain</th>
-            </tr>
-          </thead>
-          <tbody id="slotRows"></tbody>
-        </table>
+      <div class="dots">
+        <div class="dkeys">
+          <span class="dkey"><i class="dsq"></i><span data-i="dotUnit"></span></span>
+          <span class="dkey"><i class="dsq btc"></i><span data-i="dotBtcKey"></span></span>
+          <span class="dkey dright" data-i="dotShareKey"></span>
+        </div>
+        <div id="slotDots"></div>
       </div>
       <p class="tblnote" data-i="slotNote"></p>
       <p data-i="slotDogeP"></p>
@@ -765,13 +795,17 @@ en:{
     ecoH:'The empty slot on the biggest chain',
     ecoLead:'Every large chain eventually produced one meme that came to stand for the whole thing. Ethereum got SHIB, Solana got BONK, Base got BRETT. Bitcoin never did: the oldest chain, the largest, the one carrying the most cultural weight in the industry. This section starts there, with the absence, and not with NOODL.',
     slotSizeH:'What that slot is worth on the chains that filled it',
-    slotSizeLead:'The seat is not a metaphor. On every chain that filled it, the meme that came to stand for the chain ended up worth a few per cent of the chain itself — and at the far end, several times it. Below is the highest market capitalisation each one ever printed, against the highest its own chain ever printed. Both ends are all-time highs, so the last column answers one question: at its very best, how much of its chain was this thing worth?',
+    slotSizeLead:'The seat is not a metaphor. On every chain that filled it, the meme that came to stand for the chain ended up worth a few per cent of the chain itself — and at the far end, several times it. Below is the highest market capitalisation each one ever printed, against the highest its own chain ever printed. Both ends are all-time highs, so the figure on the right answers one question: at its very best, how much of its chain was this thing worth?',
     slotFork:'forked from it',
+    dotUnit:'Each square = $250M',
+    dotBtcKey:'on Bitcoin',
+    dotShareKey:'figure on the right: share of its own chain\u2019s peak',
+    dotNone:'Not one square. NOODL would have to be {n}\u00d7 its own peak before it filled a single one.',
     thSlotAsset:'Meme',thSlotChain:'Chain',thSlotPeak:'Peak market cap',
     thSlotWhen:'When',thSlotShare:'Share of its chain',
-    slotNote:'Each figure is a market capitalisation the market actually printed, read off a historical market-cap series rather than an all-time-high price multiplied by supply — that shortcut, which several coin sites publish as an "ATH market cap", overstates DOGE by about 9% and SHIB by about 24%. Every number was sourced twice from independent providers before it went in. Dogecoin is measured against Litecoin because that is where it came from: a 2013 fork of Litecoin\'s codebase, merge-mined with Litecoin since 2014, and Litecoin\'s own peak was about $26.3B in May 2021. TRUMP is circulating market cap, not fully diluted. NOODL\'s row is a peak too — the highest it has ever printed, 4.12 BTC on 5 August 2026, found by scanning all 6,035 of its trades — and it only moves if NOODL makes a new high.',
+    slotNote:'Each figure is a market capitalisation the market actually printed, read off a historical market-cap series rather than an all-time-high price multiplied by supply — that shortcut, which several coin sites publish as an "ATH market cap", overstates DOGE by about 9% and SHIB by about 24%. Every number was sourced twice from independent providers before it went in. FLOKI, PENGU, FARTCOIN and SPX were added later and read off CoinMarketCap’s daily market-cap series; that source was checked before it was trusted, and it reproduces DOGE at $88.68B, SHIB at $41.08B and BONK at $4.02B — within 0.13% of figures that had already been sourced twice. FLOKI is counted on Ethereum, where its contract began, though it also trades on BNB Chain. Dogecoin is measured against Litecoin because that is where it came from: a 2013 fork of Litecoin\'s codebase, merge-mined with Litecoin since 2014, and Litecoin\'s own peak was about $26.3B in May 2021. TRUMP is circulating market cap, not fully diluted. NOODL\'s is a peak too — the highest it has ever printed, read live from its own trade history rather than typed in here, and it only moves if NOODL makes a new high.',
     slotDogeP:'Start at the top, because it is the least expected line here. Dogecoin was forked out of Litecoin, and at its peak it was worth about three and a half times what Litecoin has ever been worth. The joke outgrew the chain it was made from, and it did so in the same week of May 2021 that Litecoin set its own record — they were not competing for the same money so much as demonstrating that the two are not the same kind of asset. Nothing about Litecoin\'s engineering explains it.',
-    slotReadP:'Two more things fall out of the table. The first is that the multiple these things reach is a property of the room they are standing in: BONK and WIF are triumphs on Solana and would be rounding errors on Bitcoin, because a few per cent of $143B and a few per cent of $2.51T are different sentences. The second is the gap at the bottom. ORDI is the largest thing Bitcoin\'s token era has produced and it reached eight hundredths of one per cent of its own chain — an order of magnitude below what the smallest of the others managed. That is the shape of the empty seat: not that Bitcoin has no tokens, but that nothing on it has ever been used the way SHIB is used on Ethereum. If assets do keep settling back to Bitcoin, the room stays the largest one in the industry and the seat stays empty; a meme that reached SHIB\'s share of it would be a very large number, and reaching it is a different matter from the room existing.',
+    slotReadP:'Two more things fall out of the table. The first is that the multiple these things reach is a property of the room they are standing in: BONK and WIF are triumphs on Solana and would be rounding errors on Bitcoin, because a few per cent of $143B and a few per cent of $2.51T are different sentences. The second is the gap at the bottom. ORDI is the largest thing Bitcoin\'s token era has produced and it reached eight hundredths of one per cent of its own chain — the smallest share on the chart bar NOODL’s own, and about a quarter of the one directly above it. That is the shape of the empty seat: not that Bitcoin has no tokens, but that nothing on it has ever been used the way SHIB is used on Ethereum. If assets do keep settling back to Bitcoin, the room stays the largest one in the industry and the seat stays empty; a meme that reached SHIB\'s share of it would be a very large number, and reaching it is a different matter from the room existing.',
     ecoWhyH:'Why the oldest chain never got one',
     ecoWhyP:"It was never a shortage of tokens. Bitcoin's ecosystem has produced countless of them: coloured coins, Genesis spells, rare pepes, Counterparty, Ordinals, BRC-20, Runes. That is more than ten years of issuing things on Bitcoin. What was missing was a venue where a Bitcoin asset could trade at lightning speed. Ten-minute blocks and order books are a fine way to settle a treasury and a poor way to run a punchline: you eat whatever someone happened to list, and a sell order may never find a buyer at all. The other half is temperament. Bitcoin's culture was built on refusing to be a casino, so the tokens that did appear got treated as protocol artefacts to be collected rather than jokes to be repeated. ORDI comes closest to a defining Bitcoin-ecosystem asset, and it is a claim on a standard rather than a culture with a punchline attached. Ten years, seven token eras, no totem.",
     ecoF1:'chain-defining memes Bitcoin has produced in more than ten years of tokens',
@@ -879,13 +913,17 @@ zh:{
     ecoH:'空着的那个位置',
     ecoLead:'每条大公链最后都长出了一枚代表它自己的币：以太坊有 SHIB，Solana 有 BONK，Base 有 BRETT。比特币没有。最老、最大、文化包袱最重的那一条，至今没有。常见的解释是文化问题，更朴素的解释是机制问题，所以这篇的起点不是 NOODL，而是这个一直空着的位置。',
     slotSizeH:'在填上了这个位置的链上，这个位置值多少',
-    slotSizeLead:'这个位置不是比喻。凡是填上了它的公链，那枚代表整条链的币，最后都值到了这条链自身的百分之几——最极端的那个，值到了几倍。下面是它们各自印出过的最高市值，对照它所在公链印出过的最高市值。两端都取历史最高，所以最后一列回答的是同一个问题：在它最好的时候，它值这条链的多少？',
+    slotSizeLead:'这个位置不是比喻。凡是填上了它的公链，那枚代表整条链的币，最后都值到了这条链自身的百分之几——最极端的那个，值到了几倍。下面是它们各自印出过的最高市值，对照它所在公链印出过的最高市值。两端都取历史最高，所以右侧那个数字回答的是同一个问题：在它最好的时候，它值这条链的多少？',
     slotFork:'从它分叉出来',
+    dotUnit:'每格 = 2.5 亿美元',
+    dotBtcKey:'比特币上的币',
+    dotShareKey:'右侧数字：占该链峰值',
+    dotNone:'一格都填不满。NOODL 要涨到自己峰值的 {n} 倍，才够填满一格。',
     thSlotAsset:'币',thSlotChain:'所在公链',thSlotPeak:'峰值市值',
     thSlotWhen:'时间',thSlotShare:'占该链峰值',
-    slotNote:'每个数字都是市场真实印出过的市值，取自历史市值序列，而不是用历史最高价乘以流通量——后者是不少行情站标注的「ATH 市值」，会把 DOGE 高估约 9%、SHIB 高估约 24%。表里每个数字都由两个互相独立的来源分别取证、核对后才写进来。DOGE 对照的是莱特币，因为它就是从那儿来的：2013 年分叉自莱特币的代码，2014 年起与莱特币联合挖矿；莱特币自己的峰值市值约 263 亿美元，在 2021 年 5 月。TRUMP 取流通市值，不是全稀释估值。NOODL 那一行同样是峰值——把它全部 6035 笔成交扫了一遍得到的最高点，4.12 BTC，2026 年 8 月 5 日——只有创了新高才会变。',
+    slotNote:'每个数字都是市场真实印出过的市值，取自历史市值序列，而不是用历史最高价乘以流通量——后者是不少行情站标注的「ATH 市值」，会把 DOGE 高估约 9%、SHIB 高估约 24%。图里每个数字都由两个互相独立的来源分别取证、核对后才写进来。FLOKI、PENGU、FARTCOIN、SPX 是后加的，取自 CoinMarketCap 的逐日市值序列；这个来源是先验过才用的——它把 DOGE 读成 886.8 亿、SHIB 读成 410.8 亿、BONK 读成 40.2 亿，与那些早已双来源核对过的数字相差不到 0.13%。FLOKI 算在以太坊上（合约起于以太坊），尽管它同时也在 BNB 链交易。DOGE 对照的是莱特币，因为它就是从那儿来的：2013 年分叉自莱特币的代码，2014 年起与莱特币联合挖矿；莱特币自己的峰值市值约 263 亿美元，在 2021 年 5 月。TRUMP 取流通市值，不是全稀释估值。NOODL 那一格同样是峰值——从它自己的成交历史里实时读出来的最高点，不是写死在这里的，只有创了新高才会变。',
     slotDogeP:'先看最上面那行，它是这张表里最出乎意料的一条。狗狗币是从莱特币分叉出来的，而它在最高点的市值，约等于莱特币有史以来最高市值的三倍半。玩笑长得比它所脱胎的那条链还大，而且就发生在 2021 年 5 月的同一周——莱特币自己也正是在那几天创下纪录。它们与其说是在抢同一笔钱，不如说是在证明这两样东西根本不是同一类资产。莱特币的技术本身，解释不了这件事。',
-    slotReadP:'表里还能再读出两件事。第一，这些币能长到多大，取决于它站在多大的屋子里：BONK 和 WIF 在 Solana 上是战绩，放到比特币上就是尾数——1430 亿的百分之几和 2.51 万亿的百分之几，是两句不同的话。第二是最下面那道断层。ORDI 是比特币发币史上最大的一个，它到过自己这条链的万分之八，比其它几枚里最小的那个还低一个数量级。这就是那个空位的形状：不是比特币上没有币，而是它上面从来没有一枚币，被人当成 SHIB 在以太坊上被当成的那种东西来用。如果资产真的会一层层沉回比特币，那这间屋子仍然是全行业最大的一间，而那个位置仍然空着；一枚做到 SHIB 那个比例的币会是一个很大的数字，而屋子在那儿，和有人走进去，是两回事。',
+    slotReadP:'表里还能再读出两件事。第一，这些币能长到多大，取决于它站在多大的屋子里：BONK 和 WIF 在 Solana 上是战绩，放到比特币上就是尾数——1430 亿的百分之几和 2.51 万亿的百分之几，是两句不同的话。第二是最下面那道断层。ORDI 是比特币发币史上最大的一个，它到过自己这条链的万分之八——除了 NOODL 自己，这是整张图上最小的一个，只有排在它上面那一枚的四分之一。这就是那个空位的形状：不是比特币上没有币，而是它上面从来没有一枚币，被人当成 SHIB 在以太坊上被当成的那种东西来用。如果资产真的会一层层沉回比特币，那这间屋子仍然是全行业最大的一间，而那个位置仍然空着；一枚做到 SHIB 那个比例的币会是一个很大的数字，而屋子在那儿，和有人走进去，是两回事。',
     ecoWhyH:'最老的链为什么反而没有',
     ecoWhyP:'不是因为没发过币。比特币生态曾经产生过无数代币：彩色币、Genesis spells、rare pepes、Counterparty、铭文、BRC-20、符文，在比特币上发资产这件事已经有十几年历史。缺的是场子：一个能让比特币资产用闪电的速度成交的地方。十分钟一个块加订单簿，用来结算国库很好，用来跑 meme 很糟：买只能吃别人挂的量，卖则可能永远等不到接盘。另一半原因是脾气。比特币的文化建立在「我们不是赌场」之上，于是真出现的那些代币，都被当成协议产物去收藏，而不是当成段子去复述。ORDI 已经是最接近「比特币生态代表资产」的东西，但它本质是对一个标准的押注，不是一种带梗的文化。十年，七套标准，一个大奇迹币都没有。',
     ecoF1:'比特币十几年代币史里，长出的大奇迹币数量',
@@ -1024,7 +1062,7 @@ const FIRSTS=[
 /* NOODL's peak only ever ratchets up, so it is the running maximum of a
    full-history scan done once by hand, whatever this browser has seen live,
    and a slice of the trade feed pulled after the page goes idle. */
-const NOODL_ATH_SEED=4.12188, NOODL_ATH_ON='2026-08-05';  // BTC and the day it printed,
+const NOODL_ATH_SEED=4.26552, NOODL_ATH_ON='2026-08-25';  // BTC and the day it printed,
                                               // re-scanned across all 6,035 trades 2026-08-21
 const NOODL_SUPPLY=21e6, NOODL_LAUNCH=0.211;  // BTC of launch market cap
 let athMc=NOODL_ATH_SEED, athOn=NOODL_ATH_ON;
@@ -1072,16 +1110,24 @@ function usdPrice(v){
    ends are all-time highs, so the ratio answers one question: at its very best,
    how much of its chain was this thing worth? */
 const CHAIN_PEAK={eth:595e9, sol:142.9e9, btc:2.51e12, ltc:26.3e9};
+/* Ordered by peak, except that the two Bitcoin coins are kept together at the
+   end — which is what the section is about, and costs nothing to arrange: ORDI
+   and SPX are 0.4% apart, closer than the two sources they came from differ. */
 const SLOTS=[
-  {a:'DOGE', c:'ltc',mc:88.8e9, on:'2021-05-08',fork:true},
-  {a:'TRUMP',c:'sol',mc:15.02e9,on:'2025-01-19'},
-  {a:'SHIB', c:'eth',mc:41.08e9,on:'2021-10-29'},
-  {a:'WIF',  c:'sol',mc:4.80e9, on:'2024-03-31'},
-  {a:'BONK', c:'sol',mc:4.02e9, on:'2024-11-21'},
-  {a:'PEPE', c:'eth',mc:11.6e9, on:'2024-12-09'},
-  {a:'ORDI', c:'btc',mc:2.01e9, on:'2024-03-05'},
-  {a:'NOODL',c:'btc',live:true}
+  {a:'DOGE',    c:'ltc',mc:88.8e9, on:'2021-05-08',fork:true},
+  {a:'SHIB',    c:'eth',mc:41.08e9,on:'2021-10-29'},
+  {a:'TRUMP',   c:'sol',mc:15.02e9,on:'2025-01-19'},
+  {a:'PEPE',    c:'eth',mc:11.6e9, on:'2024-12-09'},
+  {a:'WIF',     c:'sol',mc:4.80e9, on:'2024-03-31'},
+  {a:'BONK',    c:'sol',mc:4.02e9, on:'2024-11-21'},
+  {a:'FLOKI',   c:'eth',mc:3.06e9, on:'2024-06-06'},
+  {a:'PENGU',   c:'sol',mc:2.71e9, on:'2025-07-27'},
+  {a:'FARTCOIN',c:'sol',mc:2.10e9, on:'2025-01-19'},
+  {a:'SPX',     c:'eth',mc:2.00e9, on:'2025-07-27'},
+  {a:'ORDI',    c:'btc',mc:2.01e9, on:'2024-03-05'},
+  {a:'NOODL',   c:'btc',live:true}
 ];
+const DOT_UNIT=250e6;   /* dollars per square */
 
 function bigUsd(v){
   if(v>=1e12)return '$'+(v/1e12).toFixed(2)+'T';
@@ -1104,35 +1150,44 @@ function share(p){
 }
 
 function renderSlots(){
-  const tb=$('#slotRows');
-  if(!tb)return;
+  const wrap=$('#slotDots');
+  if(!wrap)return;
   const ui=I18N[lang].ui;
   const chainLab={eth:'Ethereum',sol:'Solana',btc:'Bitcoin',ltc:'Litecoin'};
-  const sub=t=>t?'<span class="era">'+t+'</span>':'';
-  tb.innerHTML=SLOTS.map(r=>{
-    if(r.live){
-      /* NOODL is measured the same way as everything above it, which is the
-         only reason the row is allowed to sit there: its own peak market cap
-         against Bitcoin's peak. Every other row is an all-time high, so this
-         one has to be too — a quiet day for NOODL is not a smaller ceiling.
-         The peak ratchets and never falls back. */
-      bumpAth(state.mc);
-      const btc=state.btcUsd||0;
-      const usd=btc?athMc*btc:0;
-      return '<tr class="self"><td class="asset">NOODL</td>'
-        +'<td class="proto">Bitcoin'+sub('ODIN·FUN')+'</td>'
-        +'<td class="mc">'+(usd?bigUsd(usd):'—')+sub(fmtBtc(athMc)+' BTC')+'</td>'
-        +'<td class="start">'+athOn+'</td>'
-        +'<td class="x">'+(usd?share(usd/CHAIN_PEAK.btc*100):'—')+'</td></tr>';
-    }
-    return '<tr><td class="asset">'+r.a+'</td>'
-      +'<td class="proto">'+chainLab[r.c]+sub(r.fork?ui.slotFork:'')+'</td>'
-      +'<td class="mc">'+bigUsd(r.mc)+'</td>'
-      +'<td class="start">'+r.on+'</td>'
-      +'<td class="x">'+share(r.mc/CHAIN_PEAK[r.c]*100)+'</td></tr>';
+  const rows=SLOTS.map(r=>{
+    if(!r.live)return r;
+    /* NOODL is measured exactly like everything above it, which is the only
+       reason it is allowed on the same axis: its own peak market cap against
+       Bitcoin's. The peak ratchets and never falls back, so a quiet day does
+       not shrink the bar. */
+    bumpAth(state.mc);
+    return {a:'NOODL',c:'btc',mc:(state.btcUsd||0)*athMc,on:athOn,
+            self:true,sub:fmtBtc(athMc)+' BTC'};
+  });
+  wrap.innerHTML=rows.map(r=>{
+    const n=r.mc>0?r.mc/DOT_UNIT:0;
+    const full=Math.floor(n),frac=n-full;
+    let sq='';
+    for(let i=0;i<full;i++)sq+='<i class="dsq"></i>';
+    /* the remainder is drawn as a narrowed square rather than rounded up:
+       rounding would hand every small coin up to half a unit it never had */
+    if(frac>=0.06)sq+='<i class="dsq" style="width:'+Math.max(2,Math.round(frac*11))+'px"></i>';
+    const body=sq
+      ?'<div class="dgrid">'+sq+'</div>'
+      /* under one square there is nothing honest to draw, so say the number */
+      :'<div class="dnone">'+esc(ui.dotNone.replace('{n}',r.mc>0?fmtInt(Math.round(DOT_UNIT/r.mc)):'—'))+'</div>';
+    const meta=chainLab[r.c]+(r.fork?' · '+ui.slotFork:'')+' · '+(r.on||'—')
+      +(r.sub?' · '+r.sub:'');
+    return '<div class="dcoin'+(r.c==='btc'?' btc':'')+(r.self?' self':'')+'">'
+      +'<div class="dhead"><span class="dsym">'+esc(r.a)+'</span>'
+      +'<span class="dmeta">'+esc(meta)+'</span>'
+      +'<span class="dmc">'+(r.mc>0?bigUsd(r.mc):'—')+'</span>'
+      +'<span class="dshare">'+(r.mc>0?share(r.mc/CHAIN_PEAK[r.c]*100):'—')+'</span></div>'
+      +body+'</div>';
   }).join('');
 }
-
+/* thousands separators for a plain count, which bigUsd would dollar-sign */
+function fmtInt(v){return v.toLocaleString('en-US');}
 function renderCmp(){
   const tb=$('#cmpRows');
   if(!tb)return;
