@@ -171,6 +171,11 @@ a{color:inherit}
 .fl-st{margin-top:2px;font-size:10px;line-height:1.5;color:var(--text-2)}
 .fl-st.warn{color:var(--noodle-y)}
 .fl-net{margin-top:1px;font-size:9.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.fl-fact{margin-top:3px;font-size:10px;line-height:1.55;color:var(--text);font-variant-numeric:tabular-nums}
+.fl-id{margin-top:2px;font-size:9px;line-height:1.45;color:var(--dim);word-break:break-all;cursor:pointer}
+.fl-id:hover{color:var(--cyan)}
+.fl-who{margin:-1px 0 7px;font-size:9px;line-height:1.6;color:var(--dim);word-break:break-all}
+.fl-who b{color:var(--text-2);font-weight:600}
 .fl-foot{margin-top:6px;font-size:9.5px;line-height:1.55;color:var(--dim)}
 .fl-foot b{color:var(--text-2);font-weight:600;font-variant-numeric:tabular-nums}
 @media (max-width:1200px){
@@ -367,7 +372,10 @@ en:{
   flPast:'. Odin\'s index is already past block {b} and it still has not been credited — if it stays like this past an hour, take the txid to odin support.',
   flSeenMem:'odin has already seen this one while it sits in the mempool — it will be credited once it gets its first confirmation',
   flSeen:'odin has picked this one up ({n} confirmations) and is crediting it — normally within a minute',
-  flSwept:'odin has already moved this money out of the deposit address ({n} confirmations) and STILL has not credited it. Take this txid to odin support.',
+  flSwept:'NOT credited to this odin account \u2014 there is no deposit record for this transaction. The output has since been spent from the deposit address, so the coins are no longer sitting there.',
+  flBlk:'mainnet: confirmed in block {h} at {t}, {ago} ago \u2014 {n} confirmations',
+  flTxid:'txid {x}',
+  flWhoA:'odin account',flWhoB:'deposit address',
   flOn:'{ago} ago on-chain',
   flNet:'≈ {v} will land in the balance — odin keeps a flat {f}',
   flNoneDep:'nothing waiting at the deposit address',
@@ -453,7 +461,10 @@ zh:{
   flPast:'。odin 的索引早已越过 {b} 区块却仍未入账 —— 再等一小时还这样，就拿这个 txid 去找 odin 官方。',
   flSeenMem:'odin 已经看到这笔了 —— 它还在内存池里等第一个确认，确认后就会入账',
   flSeen:'odin 已经检索到这笔（主网 {n} 次确认），正在入账 —— 通常一分钟内到账',
-  flSwept:'odin 已经把这笔钱从充值地址转走了（主网 {n} 次确认），账上却仍然没有入账记录。拿这个 txid 去找 odin 官方。',
+  flSwept:'这个奥丁账号里没有这笔交易的充值记录。充值地址上的这笔输出已经被花掉，钱已经不在那个地址上了。',
+  flBlk:'主网：{t} 在区块 {h} 确认，距今 {ago} \u2014\u2014 {n} 次确认',
+  flTxid:'交易号 {x}',
+  flWhoA:'奥丁账号',flWhoB:'充值地址',
   flOn:'{ago}前上链',
   flNet:'到账约 {v} —— odin 固定收 {f} 手续费',
   flNoneDep:'充值地址上没有等着的钱',
@@ -1599,6 +1610,20 @@ function fAgo(ms){
   if(h<24)return lang==='zh'?h+' 小时':h+' h';
   return lang==='zh'?Math.floor(h/24)+' 天':Math.floor(h/24)+' d';
 }
+/* support reads timestamps, not "2 d ago" — give them the block clock */
+function utcStamp(ms){
+  const d=new Date(ms),p=n=>String(n).padStart(2,"0");
+  return d.getUTCFullYear()+"-"+p(d.getUTCMonth()+1)+"-"+p(d.getUTCDate())
+    +" "+p(d.getUTCHours())+":"+p(d.getUTCMinutes())+" UTC";
+}
+/* fAgo rounds a two-day-old deposit down to "2 d"; a ticket wants the hours */
+function fSpan(ms){
+  const m=Math.max(0,Math.round(ms/60000)),h=Math.floor(m/60),d=Math.floor(h/24);
+  const en=(n,w)=>n+" "+w+(n===1?"":"s");
+  if(d>0)return lang==="zh"?d+" 天 "+(h%24)+" 小时":en(d,"day")+" "+en(h%24,"hour");
+  if(h>0)return lang==="zh"?h+" 小时 "+(m%60)+" 分钟":en(h,"hour")+" "+en(m%60,"minute");
+  return lang==="zh"?m+" 分钟":en(m,"minute");
+}
 const DEP_FEE=2010;   /* sats; flat across all 60 of the most recent deposits */
 const FLIGHT_DAYS=7;  /* how far back a payment can be and still count as "in
    flight". The v2 ledger starts at the V2 launch (~2026-06), so a deposit
@@ -1753,6 +1778,18 @@ function depLine(d,f){
   if(d.conf<=2)return {t:u.flWait.replace('{n}',n),warn:false};
   return {t:u.flWait.replace('{n}',n)+u.flPast.replace('{b}',fmtN(d.h)),warn:true};
 }
+/* Everything here is copied off the block, so a support agent can check each
+   field independently. Deliberately says nothing about WHO spent the deposit
+   output afterwards: the chain does not record that, and odin's own sweep,
+   the ckBTC minter and any other spender are indistinguishable from outside. */
+function depFact(d){
+  const u=ui();
+  if(!d.conf||!d.h)return '';           /* still in the mempool: no block to cite */
+  return u.flBlk.replace('{h}',fmtN(d.h))
+    .replace('{t}',d.ts?utcStamp(d.ts):'\u2014')
+    .replace('{ago}',d.ts?fSpan(Date.now()-d.ts):'\u2014')
+    .replace('{n}',fmtN(d.conf));
+}
 function idxLine(tip){
   if(!tip||!tip.odin)return '';
   const u=ui();
@@ -1773,15 +1810,24 @@ function flightHtml(st){
   const hot=f.dep.length||f.wit.length;
   let h='<div class="fl-sec'+(hot?'':' calm')+'"><div class="fl-h"><h3>'+esc(u.secFlight)+'</h3>'
     +'<button type="button" data-flrefresh="1">'+esc(u.flAgain)+'</button></div>';
+  /* whoever reads the screenshot needs to know which account it is about */
+  if(st.p)h+='<div class="fl-who"><b>'+esc(u.flWhoA)+'</b> '+esc(st.p)
+    +(f.addr?'<br><b>'+esc(u.flWhoB)+'</b> '+esc(f.addr):'')+'</div>';
   for(const d of f.dep){
-    const L=depLine(d,f);
-    const age=d.ts?u.flOn.replace('{ago}',fAgo(Date.now()-d.ts)):'';
+    const L=depLine(d,f),fact=depFact(d);
+    /* the fact line already carries the age to the hour; repeating a coarse
+       "2 d ago" in the header would only make the screenshot noisier */
+    const age=(!fact&&d.ts)?u.flOn.replace('{ago}',fAgo(Date.now()-d.ts)):'';
     const usd=BTCUSD?fUsd(d.sats/1e8*BTCUSD):'';
     h+='<div class="fl-row"><div class="fl-top"><span class="fl-tag in">'+esc(u.flDep)+'</span>'
       +'<b>'+esc(fSats(d.sats))+'</b><em>'+esc(usd+(usd&&age?' · ':'')+age)+'</em>'
       +txLink(d.txid,u.flTx)+'</div>'
+      +(fact?'<div class="fl-fact">'+esc(fact)+'</div>':'')
       +'<div class="fl-st'+(L.warn?' warn':'')+'">'+esc(L.t)+'</div>'
       +(d.sats>DEP_FEE?'<div class="fl-net">'+esc(u.flNet.replace('{v}',fSats(d.sats-DEP_FEE)).replace('{f}',fSats(DEP_FEE)))+'</div>':'')
+      /* the full txid in plain text: a screenshot handed to support is useless
+         if the identifier only exists inside a link's href */
+      +(d.txid?'<div class="fl-id addr" data-copy="'+esc(d.txid)+'">'+esc(u.flTxid.replace('{x}',d.txid))+'</div>':'')
       +'</div>';
   }
   for(const w of f.wit){
