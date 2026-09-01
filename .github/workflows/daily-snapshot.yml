@@ -1,11 +1,12 @@
-name: nightly snapshot
+name: snapshot (noon + midnight Beijing)
 
-# 00:00 Beijing time = 16:00 UTC. GitHub's scheduler is best-effort and often
-# runs a few minutes late on a busy hour, so the pages quote the timestamp the
-# bake actually recorded rather than the word "midnight".
+# Twice a day: 12:00 Beijing = 04:00 UTC, 00:00 Beijing = 16:00 UTC.
+# GitHub's scheduler is best-effort and often runs a few minutes late on a
+# busy hour, so the pages quote the timestamp the bake actually recorded
+# rather than the words "noon" or "midnight".
 on:
   schedule:
-    - cron: '0 16 * * *'
+    - cron: '0 4,16 * * *'
   workflow_dispatch:
 
 permissions:
@@ -48,5 +49,5 @@ jobs:
           # real address stays out of this public repo.
           git config user.name  "8896Infinity"
           git config user.email "132675725+8896Infinity@users.noreply.github.com"
-          git commit -m "data: nightly snapshot ($(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M') Beijing)"
+          git commit -m "data: snapshot ($(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M') Beijing)"
           git push
