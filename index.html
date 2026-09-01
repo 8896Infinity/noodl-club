@@ -1278,8 +1278,8 @@ const I18N={
   refresh:'刷新数据',loading:'正在读取 odin.fun…',
   drawing:'正在读取 odin.fun，生成日报海报…',failed:'海报没有生成，可以点「刷新数据」重试。',
   ready:t=>'数据抓取时间 '+t,
-  snapReady:t=>'数据读取于北京时间 '+t+'（每晚零点自动读取）',
-  snapOld:(t,n)=>'数据是北京时间 '+t+' 的 —— 已过期 '+n+' 天，每晚的自动读取没有跑',
+  snapReady:t=>'数据读取于北京时间 '+t+'（每天中午 12 点与零点自动读取）',
+  snapOld:(t,n)=>'数据是北京时间 '+t+' 的 —— 已过期 '+n+' 天，每天两次的自动读取没有跑',
   goLive:'读取实时数据',
   err:'连不上 odin.fun 接口。它有频率限制，偶尔也会拦非浏览器流量，过一分钟再试。',
   alt:d=>'NOODL 日报，数据抓取时间 '+d
@@ -1289,8 +1289,8 @@ const I18N={
   refresh:'Refresh',loading:'Reading odin.fun…',
   drawing:'Reading odin.fun and drawing the poster…',failed:'The poster was not drawn. Use Refresh to try again.',
   ready:t=>'captured '+t,
-  snapReady:t=>'read at '+t+' Beijing time (baked nightly at midnight)',
-  snapOld:(t,n)=>'read '+t+' Beijing time — '+n+'d old, the nightly read has not run since',
+  snapReady:t=>'read at '+t+' Beijing time (baked at noon and midnight, Beijing)',
+  snapOld:(t,n)=>'read '+t+' Beijing time — '+n+'d old, the twice-daily read has not run since',
   goLive:'Load live data',
   err:'Could not reach the odin.fun API. It rate-limits and occasionally blocks non-browser traffic; try again in a minute.',
   alt:d=>'NOODL daily report, captured '+d
@@ -1533,8 +1533,9 @@ async function load(){
     },
     series:series
   };
-  /* a bake older than a day and a half means the nightly job stopped */
-  const stale=SNAPMODE&&(Date.now()-now)>36*3600e3;
+  /* the bake runs every 12 hours; past 26 hours two consecutive runs were
+     missed — broken, not merely late */
+  const stale=SNAPMODE&&(Date.now()-now)>26*3600e3;
   $('#dStatus').textContent=!SNAPMODE?ui.ready(fmtStamp(now))
     :stale?ui.snapOld(bjStamp(now),Math.floor((Date.now()-now)/864e5))
     :ui.snapReady(bjStamp(now));

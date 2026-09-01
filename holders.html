@@ -376,8 +376,8 @@ const I18N={
   swapOnly:'swap fees only, excludes bonding',swaps:' swaps',swapped:' BTC swapped · NOODL ',
   unattributed:p=>p+'% pre-dates the ledger',
   liveOk:d=>'Live · updated '+d,liveBusy:'Loading from odin.fun…',liveFail:'odin.fun unreachable',
-  snapOk:d=>'Read overnight · '+d+' Beijing time',goLive:'Load live data',goLiveBusy:'Loading…',
-  snapOld:(d,n)=>'Read '+d+' Beijing time — '+n+'d old, the nightly read has not run since',
+  snapOk:d=>'Scheduled read · '+d+' Beijing time',goLive:'Load live data',goLiveBusy:'Loading…',
+  snapOld:(d,n)=>'Read '+d+' Beijing time — '+n+'d old, the twice-daily read has not run since',
   mc:'Market cap',price:'Price',d1:'24 hours',d7:'7 days',d30:'30 days',
   holders:'Holders',over:n=>'Over $'+n,heldN:n=>'Held '+n+'+ days',
   newIn:n=>n===1?'Joined in 24h':'Joined in '+n+'d',ofTotal:p=>p+'% of holders',
@@ -426,8 +426,8 @@ const I18N={
   swapOnly:'仅交易手续费，不含毕业环节',swaps:' 笔',swapped:' BTC 成交 · NOODL 占 ',
   unattributed:p=>p+'% 早于台账起点',
   liveOk:d=>'实时 · 更新于 '+d,liveBusy:'正在从 odin.fun 读取…',liveFail:'odin.fun 连不上',
-  snapOk:d=>'昨夜读取 · 北京时间 '+d,goLive:'读取实时数据',goLiveBusy:'读取中…',
-  snapOld:(d,n)=>'数据是北京时间 '+d+' 的 —— 已过期 '+n+' 天，每晚的自动读取没有跑',
+  snapOk:d=>'定时读取 · 北京时间 '+d,goLive:'读取实时数据',goLiveBusy:'读取中…',
+  snapOld:(d,n)=>'数据是北京时间 '+d+' 的 —— 已过期 '+n+' 天，每天两次的自动读取没有跑',
   mc:'市值',price:'单价',d1:'24 小时',d7:'7 天',d30:'30 天',
   holders:'持有人数',over:n=>'持仓超 $'+n,heldN:n=>'持有满 '+n+' 天',
   newIn:n=>n===1?'24 小时新增':n+' 天新增',ofTotal:p=>'占 '+p+'%',
@@ -554,11 +554,12 @@ async function api(path){
 function paintLive(){
   const ui=I18N[lang],b=$('#goLive');
   if(S&&S.snap){
-    /* a bake older than a day and a half means the nightly job stopped; say so
-       rather than passing last week's numbers off as this morning's */
+    /* the bake runs every 12 hours, so past 26 hours means two consecutive
+       runs were missed — the job is broken, not merely late. Say so rather
+       than passing last week's numbers off as this morning's. */
     const age=Date.now()-S.stamp, days=Math.floor(age/864e5);
-    setLive(age>36*3600e3?'fail':'ok',
-      age>36*3600e3?ui.snapOld(bjStamp(S.stamp),days):ui.snapOk(bjStamp(S.stamp)));
+    setLive(age>26*3600e3?'fail':'ok',
+      age>26*3600e3?ui.snapOld(bjStamp(S.stamp),days):ui.snapOk(bjStamp(S.stamp)));
     b.hidden=false;b.textContent=ui.goLive;b.disabled=false;
   }
   else if(S){setLive('ok',ui.liveOk(fmtTime(S.stamp)));b.hidden=true;}
