@@ -17,6 +17,17 @@
 <style>@font-face{font-family:"Work Sans";font-style:normal;font-weight:400 800;font-display:swap;
   src:url("/fonts/work-sans.woff2") format("woff2-variations");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
+<script>/* Theme before first paint: a stored choice wins; otherwise the visitor's
+   clock decides (07:00–19:00 is day). One delegated listener serves the toggle
+   so the button needs no wiring of its own. */
+(function(){var t=null;try{t=localStorage.getItem('noodl_theme');}catch(e){}
+if(t!=='day'&&t!=='night'){var h=new Date().getHours();t=(h>=7&&h<19)?'day':'night';}
+document.documentElement.setAttribute('data-theme',t);
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest?e.target.closest('#themeBtn'):null;if(!b)return;
+  var n=document.documentElement.getAttribute('data-theme')==='day'?'night':'day';
+  document.documentElement.setAttribute('data-theme',n);
+  try{localStorage.setItem('noodl_theme',n);}catch(e2){}});})();</script>
 <style>
 /* Same palette as index.html — taken from odin.fun's own computed styles. */
 :root{
@@ -35,6 +46,23 @@ a{color:inherit}
 @keyframes tw{0%,100%{opacity:.12}50%{opacity:.9}}
 
 .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:18px 18px 60px}
+/* ================= day theme =================
+   Porcelain daylight: the bowl's cream for paper, odin cyan and noodle gold
+   deepened until they read on it. Night stays the default and untouched. */
+html[data-theme="day"]{
+  --bg:#f4efe1;--panel:#fdfaf1;--line:#ddd4bc;--line-soft:#e8e1cd;
+  --cyan:#0a8f8f;--cyan-dim:#0b7676;--text:#22232b;--text-2:#585b68;--dim:#8a8a90;
+  --noodle-y:#d59a10;--noodle-o:#d0700e;
+  --up:#0f8f4d;--down:#c23b3b;
+}
+html[data-theme="day"] #stars{display:none}
+html[data-theme="day"] th{background:#efe8d4}
+html[data-theme="day"] tbody tr:hover{background:#f1ecdc}
+html[data-theme="day"] .note code{background:#efe8d4}
+/* pressed segments keep dark-on-cyan; day cyan is deep, so the ink turns white */
+html[data-theme="day"] .sort[aria-pressed="true"],html[data-theme="day"] .seg button[aria-pressed="true"]{color:#fff}
+#themeBtn::before{content:"☀"}
+html[data-theme="day"] #themeBtn::before{content:"☾"}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;
   padding-bottom:14px;border-bottom:1px solid var(--line)}
 .wordmark{font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--cyan);text-decoration:none;display:flex;align-items:center;gap:8px}
@@ -236,6 +264,7 @@ footer a:hover{color:var(--cyan)}
       <a class="btn" href="defi.html" data-i="navDefi">Defi</a>
       <a class="btn" href="community.html" data-i="navCom">Community</a>
       <a class="btn" href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun ↗</a>
+      <button class="btn" id="themeBtn" type="button" aria-label="day / night"></button>
       <button class="btn" id="langBtn" type="button">中文</button>
     </nav>
   </header>

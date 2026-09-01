@@ -21,6 +21,17 @@
 <style>@font-face{font-family:"Work Sans";font-style:normal;font-weight:400 800;font-display:swap;
   src:url("/fonts/work-sans.woff2") format("woff2-variations");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
+<script>/* Theme before first paint: a stored choice wins; otherwise the visitor's
+   clock decides (07:00–19:00 is day). One delegated listener serves the toggle
+   so the button needs no wiring of its own. */
+(function(){var t=null;try{t=localStorage.getItem('noodl_theme');}catch(e){}
+if(t!=='day'&&t!=='night'){var h=new Date().getHours();t=(h>=7&&h<19)?'day':'night';}
+document.documentElement.setAttribute('data-theme',t);
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest?e.target.closest('#themeBtn'):null;if(!b)return;
+  var n=document.documentElement.getAttribute('data-theme')==='day'?'night':'day';
+  document.documentElement.setAttribute('data-theme',n);
+  try{localStorage.setItem('noodl_theme',n);}catch(e2){}});})();</script>
 <style>
 /* Palette lifted from odin.fun's own computed styles so this reads as part of
    the platform: Work Sans, near-black #111117, cyan accent, hairline borders. */
@@ -81,14 +92,31 @@ a{color:inherit}
   text-decoration:none;display:flex;align-items:center;gap:8px;
 }
 .toplinks{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.toplinks a,#langBtn{
+/* ================= day theme =================
+   Porcelain daylight: the bowl's cream for paper, odin cyan and noodle gold
+   deepened until they read on it. Night stays the default and untouched. */
+html[data-theme="day"]{
+  --bg:#f4efe1;--panel:#fdfaf1;--line:#ddd4bc;--line-soft:#e8e1cd;
+  --cyan:#0a8f8f;--cyan-dim:#0b7676;--text:#22232b;--text-2:#585b68;--dim:#8a8a90;
+  --noodle-y:#d59a10;--noodle-o:#d0700e;
+  --up:#0c8a35;--down:#b00b0b;--card-bg:#fdfaf1;--text-dim:#585b68;--teal:#0a8f8f;
+}
+/* body ink is the bowl cream at night; daylight needs real ink */
+html[data-theme="day"] body{color:var(--text)}
+html[data-theme="day"] .topbar{background:rgba(247,241,228,.9)}
+html[data-theme="day"] .secnav,html[data-theme="day"] .subnav{background:rgba(247,241,228,.94)}
+/* the two charts sit on their own slightly-sunken paper */
+html[data-theme="day"] .dots,html[data-theme="day"] .bub{background:#f6f0df}
+#themeBtn::before{content:"☀"}
+html[data-theme="day"] #themeBtn::before{content:"☾"}
+.toplinks a,#langBtn,#themeBtn{
   font-family:inherit;font-weight:500;font-size:13px;letter-spacing:.02em;
   color:var(--text-2);text-decoration:none;cursor:pointer;
   border:1px solid var(--line);border-radius:6px;
   padding:6px 12px;background:transparent;
   transition:border-color .15s,color .15s,background .15s;
 }
-.toplinks a:hover,#langBtn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
+.toplinks a:hover,#langBtn:hover,#themeBtn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,255,.06)}
 #langBtn{color:var(--cyan);border-color:rgba(0,255,255,.35)}
 
 /* ---------- section nav ---------- */
@@ -241,6 +269,20 @@ table.cmp .era{font-size:10.5px;color:var(--dim);display:block;font-weight:400;m
 .dcoin.self .dsq{background:var(--cyan)}
 /* below one square there is nothing to draw, and saying so is the point */
 .dnone{font-size:11px;line-height:1.5;color:var(--cyan-dim)}
+.bub{margin:20px 0 10px;border:1px solid var(--line);border-radius:10px;
+  background:#141419;padding:10px 8px 2px}
+.bub svg{display:block;width:100%;height:auto}
+.bub .bc,.bub .bm{fill:#5c5e6b}
+.bub .bl{stroke:#3a3b45;stroke-width:1.5}
+/* the seat is drawn hollow because it is not filled — that is the argument */
+.bub .bghost{fill:none;stroke:#8a8d9c;stroke-width:1.6;stroke-dasharray:5 4}
+.bub .bnow{fill:var(--noodle-o)}
+.bub text{font-family:inherit;text-anchor:middle;font-variant-numeric:tabular-nums}
+.bub .bt{fill:var(--text);font-weight:700;font-size:31px;letter-spacing:.03em}
+.bub .bt.selfb{fill:var(--cyan)}
+.bub .bv{fill:var(--text-2);font-size:24px}
+.bub .bv.dimv{fill:var(--dim)}
+.bub .bv.nowv{fill:var(--noodle-o);font-weight:600}
 @media (max-width:600px){
   .dots{padding:13px 13px 4px}
   .dsq{width:9px;height:9px}
@@ -499,6 +541,7 @@ footer a:hover{color:var(--cyan)}
     <a href="https://odin.fun/token/hjrg" target="_blank" rel="noopener" data-i="linkToken">Odin.Fun ↗</a>
     <a href="https://odin.fun/c/7ij3h-flwdx-jncgk-765tf-qyu7w-cr77f-wjvqt-bvapu-tgx56-aydty-bqe?r=u1jr4b658e" target="_blank" rel="noopener" data-i="linkCommunity">Community ↗</a>
     <a href="https://deliveroo.co.uk/menu/london/temple/noodle-nova" target="_blank" rel="noopener" data-i="linkNoodle">Noodle Nova 🍜 ↗</a>
+    <button id="themeBtn" type="button" aria-label="day / night"></button>
     <button id="langBtn" type="button">中文</button>
   </nav>
 </header>
@@ -631,6 +674,11 @@ footer a:hover{color:var(--cyan)}
       <p class="tblnote" data-i="slotNote"></p>
       <p data-i="slotDogeP"></p>
       <p data-i="slotReadP"></p>
+
+      <h3 data-i="bubH">The same seats, drawn to scale</h3>
+      <p data-i="bubLead"></p>
+      <div class="bub"><svg id="bubSvg" viewBox="0 0 1000 672" role="img" aria-label="Chains and their defining memes, sized by market cap"></svg></div>
+      <p class="tblnote" id="bubNote"></p>
 
       <h3 data-i="ecoWhyH">Why the oldest chain never got one</h3>
       <p data-i="ecoWhyP">It was never a shortage of tokens. Bitcoin's ecosystem has produced countless of them: coloured coins, Genesis spells, rare pepes, Counterparty, Ordinals, BRC-20, Runes. That is more than ten years of issuing things on Bitcoin. What was missing was a venue where a Bitcoin asset could trade at lightning speed. Ten-minute blocks and order books are a fine way to settle a treasury and a poor way to run a punchline: you eat whatever someone happened to list, and a sell order may never find a buyer at all. The other half is temperament. Bitcoin's culture was built on refusing to be a casino, so the tokens that did appear got treated as protocol artefacts to be collected rather than jokes to be repeated. ORDI comes closest to a defining Bitcoin-ecosystem asset, and it is a claim on a standard rather than a culture with a punchline attached. Ten years, seven token eras, no totem.</p>
@@ -797,6 +845,10 @@ en:{
     slotSizeH:'What that slot is worth on the chains that filled it',
     slotSizeLead:'The seat is not a metaphor. On every chain that filled it, the meme that came to stand for the chain ended up worth a few per cent of the chain itself — and at the far end, several times it. Below is the highest market capitalisation each one ever printed, against the highest its own chain ever printed. Both ends are all-time highs, so the figure on the right answers one question: at its very best, how much of its chain was this thing worth?',
     slotFork:'forked from it',
+    bubH:'The same seats, drawn to scale',
+    bubLead:'Each chain is a circle sized by today\u2019s market cap, and hanging under it, on the same scale, is the meme that came to stand for it. Under Bitcoin there is only a dashed outline: the seat itself, sized at what a Bitcoin meme would be worth if the seat were filled the way SHIB fills Ethereum\u2019s. The orange fleck inside it is NOODL today.',
+    bubNote:'Live figures \u2014 the chain and meme capitalisations come from CoinGecko on every visit, NOODL\u2019s from odin.fun itself. The dashed seat is Bitcoin\u2019s market cap \u00d7 SHIB\u2019s share of Ethereum ({p} today), the going rate for a chain\u2019s defining meme. The orange dot is drawn about {m}\u00d7 larger than scale: at true scale it would be smaller than a pixel.',
+    bubCur:'{v} (current)',bubImp:'{v} (implied)',
     dotUnit:'Each square = $250M',
     dotBtcKey:'on Bitcoin',
     dotShareKey:'figure on the right: share of its own chain\u2019s peak',
@@ -915,6 +967,10 @@ zh:{
     slotSizeH:'在填上了这个位置的链上，这个位置值多少',
     slotSizeLead:'这个位置不是比喻。凡是填上了它的公链，那枚代表整条链的币，最后都值到了这条链自身的百分之几——最极端的那个，值到了几倍。下面是它们各自印出过的最高市值，对照它所在公链印出过的最高市值。两端都取历史最高，所以右侧那个数字回答的是同一个问题：在它最好的时候，它值这条链的多少？',
     slotFork:'从它分叉出来',
+    bubH:'把这几个位置按今天的市值画在同一张图上',
+    bubLead:'每条链是一个圆，大小就是它今天的市值；吊在下面、按同一比例画的，是代表这条链的那枚 meme。比特币下面只有一个虚线圆——那就是位置本身：如果它像 SHIB 填满以太坊那样被填满，该有多大。虚线圆里那个橙色的点，是今天的 NOODL。',
+    bubNote:'实时数据——各链与 meme 的市值来自 CoinGecko，每次访问都会刷新；NOODL 的市值来自 odin.fun。虚线圆 = 比特币市值 \u00d7 SHIB 占以太坊的比例（今天是 {p}），这就是「一条链的代表 meme」的行情价。橙点被放大了约 {m} 倍：按真实比例画，它比一个像素还小。',
+    bubCur:'{v}（当前）',bubImp:'{v}（应有的大小）',
     dotUnit:'每格 = 2.5 亿美元',
     dotBtcKey:'比特币上的币',
     dotShareKey:'右侧数字：占该链峰值',
@@ -1149,6 +1205,59 @@ function share(p){
   return p.toFixed(7).replace(/0+$/,'')+'%';
 }
 
+/* today's caps for the bubble chart; the baked figures (2026-09-01) only carry
+   it until CoinGecko answers, or forever when it cannot */
+const BUB_FB={btc:1571.6e9,eth:296.7e9,sol:60.3e9,shib:2.99e9,pengu:0.548e9};
+let BUB=Object.assign({},BUB_FB);
+(async()=>{try{
+  const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,shiba-inu,pudgy-penguins&vs_currencies=usd&include_market_cap=true',{cache:'default'});
+  const j=await r.json();
+  const g=k=>(j[k]&&Number(j[k].usd_market_cap))||0;
+  if(g('bitcoin')>1e11&&g('ethereum')>1e10&&g('shiba-inu')>1e8){
+    BUB={btc:g('bitcoin'),eth:g('ethereum'),sol:g('solana')||BUB_FB.sol,
+         shib:g('shiba-inu'),pengu:g('pudgy-penguins')||BUB_FB.pengu};
+    renderBubbles();
+  }
+}catch(e){}})();
+function renderBubbles(){
+  const svg=$('#bubSvg');
+  if(!svg)return;
+  const ui=I18N[lang].ui;
+  /* area carries the value: r \u221d \u221amc, anchored so Bitcoin's circle is 205 */
+  const K=205/Math.sqrt(BUB.btc), r=v=>K*Math.sqrt(Math.max(0,v));
+  const BASE=480, DOT=560;
+  const noodl=(state.btcUsd||0)*(state.mc||0);
+  const implied=BUB.btc*(BUB.shib/BUB.eth);
+  const rNow=r(noodl), rDraw=Math.max(2.2,rNow);
+  const cols=[
+    {x:250,cap:BUB.btc,name:'BITCOIN',meme:'NOODL',self:true},
+    {x:620,cap:BUB.eth,name:'ETHEREUM',meme:'SHIB',mcap:BUB.shib},
+    {x:868,cap:BUB.sol,name:'SOLANA',meme:'PENGU',mcap:BUB.pengu}
+  ];
+  svg.innerHTML=cols.map(c=>{
+    const rc=r(c.cap), top=BASE-2*rc;
+    let h='<text class="bt" x="'+c.x+'" y="'+(top-46)+'">'+c.name+'</text>'
+      +'<text class="bv" x="'+c.x+'" y="'+(top-16)+'">'+esc(bigUsd(c.cap))+'</text>'
+      +'<circle class="bc" cx="'+c.x+'" cy="'+(BASE-rc)+'" r="'+rc.toFixed(1)+'"/>'
+      +'<line class="bl" x1="'+c.x+'" x2="'+c.x+'" y1="'+(BASE+6)+'" y2="'+(DOT-24)+'"/>';
+    if(c.self){
+      h+='<circle class="bghost" cx="'+c.x+'" cy="'+DOT+'" r="'+r(implied).toFixed(1)+'"/>'
+        +'<circle class="bnow" cx="'+c.x+'" cy="'+DOT+'" r="'+rDraw.toFixed(1)+'"/>'
+        +'<text class="bt selfb" x="'+c.x+'" y="612">NOODL</text>'
+        +'<text class="bv nowv" x="'+c.x+'" y="640">'+esc(ui.bubCur.replace('{v}',noodl>0?bigUsd(noodl):'\u2026'))+'</text>'
+        +'<text class="bv dimv" x="'+c.x+'" y="666">'+esc(ui.bubImp.replace('{v}',bigUsd(implied)))+'</text>';
+    }else{
+      h+='<circle class="bm" cx="'+c.x+'" cy="'+DOT+'" r="'+r(c.mcap).toFixed(1)+'"/>'
+        +'<text class="bt" x="'+c.x+'" y="612">'+c.meme+'</text>'
+        +'<text class="bv" x="'+c.x+'" y="640">'+esc(bigUsd(c.mcap))+'</text>';
+    }
+    return h;
+  }).join('');
+  const note=$('#bubNote');
+  if(note)note.textContent=ui.bubNote
+    .replace('{p}',(BUB.shib/BUB.eth*100).toFixed(1)+'%')
+    .replace('{m}',rNow>0?fmtInt(Math.round(rDraw/rNow)):'\u2014');
+}
 function renderSlots(){
   const wrap=$('#slotDots');
   if(!wrap)return;
@@ -1185,6 +1294,7 @@ function renderSlots(){
       +'<span class="dshare">'+(r.mc>0?share(r.mc/CHAIN_PEAK[r.c]*100):'—')+'</span></div>'
       +body+'</div>';
   }).join('');
+  renderBubbles();
 }
 /* thousands separators for a plain count, which bigUsd would dollar-sign */
 function fmtInt(v){return v.toLocaleString('en-US');}

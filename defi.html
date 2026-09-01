@@ -17,6 +17,17 @@
 <style>@font-face{font-family:"Work Sans";font-style:normal;font-weight:400 800;font-display:swap;
   src:url("/fonts/work-sans.woff2") format("woff2-variations");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
+<script>/* Theme before first paint: a stored choice wins; otherwise the visitor's
+   clock decides (07:00–19:00 is day). One delegated listener serves the toggle
+   so the button needs no wiring of its own. */
+(function(){var t=null;try{t=localStorage.getItem('noodl_theme');}catch(e){}
+if(t!=='day'&&t!=='night'){var h=new Date().getHours();t=(h>=7&&h<19)?'day':'night';}
+document.documentElement.setAttribute('data-theme',t);
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest?e.target.closest('#themeBtn'):null;if(!b)return;
+  var n=document.documentElement.getAttribute('data-theme')==='day'?'night':'day';
+  document.documentElement.setAttribute('data-theme',n);
+  try{localStorage.setItem('noodl_theme',n);}catch(e2){}});})();</script>
 <style>
 :root{
   --bg:#111117;--panel:#18181d;--line:#27272a;--line-soft:#1f1f25;
@@ -31,6 +42,19 @@ body{
   display:flex;flex-direction:column;
 }
 a{color:inherit}
+/* ================= day theme =================
+   Porcelain daylight: the bowl's cream for paper, odin cyan and noodle gold
+   deepened until they read on it. Night stays the default and untouched. */
+html[data-theme="day"]{
+  --bg:#f4efe1;--panel:#fdfaf1;--line:#ddd4bc;--line-soft:#e8e1cd;
+  --cyan:#0a8f8f;--cyan-dim:#0b7676;--text:#22232b;--text-2:#585b68;--dim:#8a8a90;
+  --noodle-y:#d59a10;--noodle-o:#d0700e;
+  --up:#0f8f4d;--down:#c23b3b;
+}
+html[data-theme="day"] .dfnav{background:rgba(247,241,228,.94)}
+/* #stage stays dark: the chapters inside it are night scenes on a screen */
+#themeBtn::before{content:"☀"}
+html[data-theme="day"] #themeBtn::before{content:"☾"}
 .topbar{flex:none;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
   padding:12px 16px 11px;border-bottom:1px solid var(--line)}
 .wordmark{font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--cyan);text-decoration:none;display:flex;align-items:center;gap:8px}
@@ -76,6 +100,7 @@ a{color:inherit}
       <a class="btn on" href="defi.html" aria-current="page" data-i="navDefi">Defi</a>
       <a class="btn" href="community.html" data-i="navCom">Community</a>
       <a class="btn" href="https://odin.fun/token/hjrg" target="_blank" rel="noopener">odin.fun ↗</a>
+      <button class="btn" id="themeBtn" type="button" aria-label="day / night"></button>
       <button class="btn" id="langBtn" type="button">中文</button>
     </nav>
   </header>
