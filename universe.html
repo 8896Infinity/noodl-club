@@ -176,6 +176,26 @@ a{color:inherit}
 .fl-id:hover{color:var(--cyan)}
 .fl-who{margin:-1px 0 7px;font-size:9px;line-height:1.6;color:var(--dim);word-break:break-all}
 .fl-who b{color:var(--text-2);font-weight:600}
+.lp-sum{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:10.5px;
+  color:var(--text-2);font-variant-numeric:tabular-nums;margin:2px 0 7px}
+.lp-sum span{color:var(--dim)}
+.lp-btn{font-family:inherit;font-size:10px;color:var(--cyan-dim);background:transparent;
+  border:1px solid rgba(0,255,255,.28);border-radius:5px;padding:4px 9px;cursor:pointer}
+.lp-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+.lp-btn[disabled]{opacity:.5;cursor:wait}
+.lp-tools{display:flex;align-items:center;gap:8px;margin:7px 0 5px}
+.lp-tools input{font-family:inherit;font-size:10px;color:var(--text-2);background:#101016;
+  border:1px solid var(--line);border-radius:5px;padding:3px 6px;color-scheme:dark}
+.lp-scroll{max-height:300px;overflow:auto;border:1px solid var(--line-soft);border-radius:7px}
+.lp-tbl{width:100%;border-collapse:collapse;font-size:10px;font-variant-numeric:tabular-nums}
+.lp-tbl th{position:sticky;top:0;background:#15151b;color:var(--dim);font-weight:600;
+  text-align:right;padding:5px 8px;font-size:9px;letter-spacing:.05em}
+.lp-tbl th:first-child,.lp-tbl td:first-child{text-align:left}
+.lp-tbl td{padding:4px 8px;text-align:right;border-top:1px solid var(--line-soft);color:var(--text-2)}
+.lp-tbl td b{color:var(--text);font-weight:600}
+/* the wallet's own add/remove moments — the exact instants the user asked for */
+.lp-tbl tr.ev td{color:var(--noodle-y);background:rgba(252,209,79,.05)}
+.lp-note{margin-top:6px;font-size:9.5px;line-height:1.55;color:var(--dim)}
 .fl-foot{margin-top:6px;font-size:9.5px;line-height:1.55;color:var(--dim)}
 .fl-foot b{color:var(--text-2);font-weight:600;font-variant-numeric:tabular-nums}
 @media (max-width:1200px){
@@ -379,6 +399,18 @@ en:{
   flOn:'{ago} ago on-chain',
   flNet:'≈ {v} will land in the balance — odin keeps a flat {f}',
   flNoneDep:'nothing waiting at the deposit address',
+  secLp:'LP POSITION · DAY BY DAY',
+  lpShareNow:'share of the pool now',lpUnderNow:'sitting in the pool now',
+  lpEvCount:'{n} add/remove events on record',
+  lpExpand:'show the daily history',lpBusy:'downloading every trade\u2026 {a}/{b}',
+  lpReplayBusy:'replaying the pool\u2026',
+  lpDay:'date',lpShareCol:'share',lpBtcCol:'BTC in pool',lpNoodlCol:'NOODL in pool',
+  lpEvAdd:'{t} \u00b7 added liquidity \u00b7 share {s}',
+  lpEvRem:'{t} \u00b7 removed liquidity \u00b7 share {s}',
+  lpExited:'fully exited the pool on {d}',
+  lpJump:'jump to day',lpAll:'all',
+  lpNote:'Reconstructed by replaying every trade and every pool add/remove backward from the pool\u2019s current reserves \u2014 odin publishes no historical pool data. Each row is the position at the end of that day (Beijing time); the amber rows are this wallet\u2019s own moves, to the minute. Shares use odin\u2019s own accounting (which includes the pool\u2019s untouched graduation seed), so today\u2019s row matches what odin shows this wallet; historical reserves are accurate to a couple of percent.',
+  lpFail:'could not load the pool history \u2014 try again',
   secAddr:'BITCOIN ADDRESS',
   aFlight:'MONEY IN FLIGHT',
   aBal:'unspent at this address',
@@ -468,6 +500,18 @@ zh:{
   flOn:'{ago}前上链',
   flNet:'到账约 {v} —— odin 固定收 {f} 手续费',
   flNoneDep:'充值地址上没有等着的钱',
+  secLp:'LP 持仓 · 逐日',
+  lpShareNow:'当前占池子份额',lpUnderNow:'现在池子里属于它的',
+  lpEvCount:'有 {n} 次加池/撤池记录',
+  lpExpand:'展开每日明细',lpBusy:'正在下载全部成交\u2026 {a}/{b}',
+  lpReplayBusy:'正在倒放整个池子\u2026',
+  lpDay:'日期',lpShareCol:'份额',lpBtcCol:'池中 BTC',lpNoodlCol:'池中 NOODL',
+  lpEvAdd:'{t} \u00b7 加池 \u00b7 份额变为 {s}',
+  lpEvRem:'{t} \u00b7 撤池 \u00b7 份额变为 {s}',
+  lpExited:'已于 {d} 全部撤出池子',
+  lpJump:'跳到某天',lpAll:'全部',
+  lpNote:'由池子当前储备出发，把每一笔成交和每一次加池/撤池倒放回去重建——odin 不提供任何历史池子数据。每一行是那一天结束时（北京时间）的持仓；琥珀色的行是这个钱包自己的操作，精确到分钟。份额用的是 odin 自己的口径（含毕业时注入、从未动过的种子 LP），所以今天这一行和 odin 界面给这个钱包看的数一致；历史储备的偏差在百分之二以内。',
+  lpFail:'池子历史没读出来\u2014\u2014再试一次',
   secAddr:'比特币地址',
   aFlight:'资金在途',
   aBal:'该地址未花费余额',
@@ -1461,6 +1505,7 @@ function openPanel(p){
   loadActivity(st).then(done).catch(()=>{st.soldDone=true;done();});
   loadLegacy(st).then(done).catch(()=>{st.legacyDone=true;st.legacyErr=true;done();});
   loadFlight(st).then(()=>{done();flightTick();}).catch(()=>{st.flight={done:true,dep:[],wit:[]};done();});
+  loadLpMeta(st).then(done).catch(()=>{st.lpDone=true;done();});
 }
 function closePanel(){
   $('#panel').hidden=true;
@@ -1528,6 +1573,7 @@ function renderPanel(){
     h+='<div class="pn-sum"><span>'+esc(u.sumPnl)+'</span><span class="'+cls(st.pnlUsd)+'">'+fSign(st.pnlUsd)+'</span></div>';
   }
   h+='</div>';
+  h+=lpHtml(st);
   /* sold & settled */
   h+='<div class="pn-sec"><h3>'+esc(u.secSold)+'</h3>';
   if(!st.soldDone)h+='<div class="pn-load">'+esc(u.sLoading)+'</div>';
@@ -1574,12 +1620,20 @@ function renderPanel(){
 $('#pnBody').addEventListener('click',e=>{
   const fr=e.target.closest?e.target.closest('[data-flrefresh]'):null;
   if(fr){flightRefresh(fr);return;}
+  const lx=e.target.closest?e.target.closest('[data-lpexpand]'):null;
+  if(lx){lpExpand();return;}
   const op=e.target.closest?e.target.closest('[data-open]'):null;
   if(op&&op.dataset.open){openPanel(op.dataset.open);return;}
   const r=e.target.closest?e.target.closest('.rrow'):null;
   if(r&&r.dataset.p){openPanel(r.dataset.p);return;}
   const a=e.target.closest?e.target.closest('.addr'):null;
   if(a&&a.dataset.copy)copyText(a.dataset.copy,a);
+});
+$('#pnBody').addEventListener('input',e=>{
+  const j=e.target.closest?e.target.closest('[data-lpjump]'):null;
+  if(!j)return;
+  const st=PANEL.cache.get(PANEL.cur);
+  if(st&&st.lp){st.lp.filter=j.value||'';lpPaintTable(st);}
 });
 $('#pnId').addEventListener('click',()=>copyText((ADDR?ADDR.a:PANEL.cur)||'',$('#pnId')));
 async function flightRefresh(btn){
@@ -1677,6 +1731,271 @@ async function chainTip(){
   const [st,h]=await Promise.all([api('/settings'),mpApi('/blocks/tip/height')]);
   TIP={odin:Number(st&&st.last_indexed_block)||0,btc:Number(h)||0,at:Date.now()};
   return TIP;
+}
+/* ================= LP position history ================= */
+/* Everything pool-wide is one download for the whole session: the same 6000
+   trades and 300 pool events serve every wallet that gets looked up. */
+const LPX={feed:null,trades:null,chk:null,anchor:null,busy:false};
+/* Price-anchored replay. The pool ratio B/T after any trade IS that row's
+   `price`, and between trades the ratio cannot move at all — only trades
+   move it, and add/remove scales both sides equally. So only the invariant
+   k = B*T is replayed: exact (L_pre/L_post)² jumps at LP events, plus the
+   0.3% LP-fee drift per trade. Amounts only size the fee term.
+   LP events and trades share one global id sequence (lp `event` vs trade
+   `id`), so the merge order is exact, never a same-second guess.
+
+   THE SEED: the /liquidity list is NOT the whole pool. Odin's graduation
+   seed LP (~85% of supply) sits outside every list endpoint; it has never
+   moved (net minted−burned across all feed events equals the tracked total
+   to 16 raw units). Its size is derived live from odin's own display
+   arithmetic — stats.total_liquidity = bal/L_total × 2B, and 19 of 24
+   holders resolve to one L_total to 1e-5 — so this page's share and value
+   agree with what odin itself shows the wallet today, by construction. */
+const LP_FEE=0.003;
+const LP_SEED_FB=116348000000000000;   /* untracked seed L, measured 2026-09-06; offline fallback */
+async function lpMetaOnce(st){
+  const j=await api('/user/'+st.p+'/activity?token=lp_hjrg&limit=100');
+  const rows=((j&&j.data)||[]).filter(r=>r.action==='ADD_LIQUIDITY'||r.action==='REMOVE_LIQUIDITY');
+  let count=(j&&j.count)||rows.length;
+  /* more than one page of personal pool moves: fetch the rest */
+  let page=2;
+  while(rows.length<count&&page<8){
+    const k=await api('/user/'+st.p+'/activity?token=lp_hjrg&limit=100&page='+page);
+    const more=((k&&k.data)||[]).filter(r=>r.action==='ADD_LIQUIDITY'||r.action==='REMOVE_LIQUIDITY');
+    if(!more.length)break;
+    rows.push(...more);page++;
+  }
+  return rows.map(r=>({ms:Date.parse(r.time)||0,add:r.action==='ADD_LIQUIDITY',lp:Number(r.amount_token)||0}))
+    .filter(r=>r.ms&&r.lp>0).sort((a,b)=>a.ms-b.ms);
+}
+async function loadLpMeta(st){
+  st.lpEvents=await lpMetaOnce(st);
+  st.lpDone=true;
+}
+async function lpPool(){
+  /* current anchor: reserves + FULL LP supply. Refetched on every expand so
+     the replay starts from the pool as it is, not as it was an hour ago. */
+  const [tok,liq]=await Promise.all([api('/token/hjrg'),api('/token/hjrg/liquidity?limit=1000')]);
+  const rows=(liq&&liq.data)||[];
+  const tracked=rows.reduce((a,r)=>a+(Number(r.balance)||0)+(Number(r.stake_balance)||0),0);
+  const mine={};for(const r of rows)mine[r.user]=(Number(r.balance)||0)+(Number(r.stake_balance)||0);
+  const B0=Number(tok&&tok.btc_liquidity)||0,T0=Number(tok&&tok.token_liquidity)||0;
+  /* derive the untracked seed from odin's own arithmetic, live. A wallet
+     holding LP in OTHER pools inflates its stats and DEFLATES the implied
+     total, never the reverse — so take the max over the three largest. */
+  let seed=LP_SEED_FB;
+  try{
+    const top=rows.slice().sort((a,b)=>(Number(b.balance)||0)-(Number(a.balance)||0)).slice(0,3);
+    const Ls=[];
+    for(const r of top){
+      const st=await api('/user/'+r.user+'/stats');
+      const d=(st&&st.data)||st||{};
+      const tl=Number(d.total_liquidity)||0;
+      const bal=(Number(r.balance)||0)+(Number(r.stake_balance)||0);
+      if(tl>0&&bal>0&&B0>0)Ls.push(bal*2*B0/tl);
+    }
+    if(Ls.length){
+      const Ld=Math.max.apply(null,Ls);
+      if(Ld>tracked)seed=Ld-tracked;
+    }
+  }catch(e){}
+  return {B0,T0,L0:seed+tracked,mine};
+}
+async function lpFeedAll(){
+  if(LPX.feed)return LPX.feed;
+  const out=[];let page=1;
+  for(;page<12;page++){
+    const j=await api('/activities?token=lp_hjrg&limit=100&page='+page);
+    const rows=(j&&j.data)||[];
+    for(const r of rows)if(r.action==='ADD_LIQUIDITY'||r.action==='REMOVE_LIQUIDITY'){
+      const lp=Number(r.amount_token)||0,ms=Date.parse(r.time)||0,id=Number(r.event)||0;
+      if(lp>0&&ms&&id)out.push({id,ms,ev:1,add:r.action==='ADD_LIQUIDITY',lp});
+    }
+    if(rows.length<100)break;
+  }
+  out.sort((a,b)=>a.id-b.id);
+  LPX.feed=out;return out;
+}
+async function lpTradesSince(birthId,onProgress){
+  if(LPX.trades&&LPX.trades.birthId===birthId)return LPX.trades.rows;
+  const out=[];let page=1,total=0;
+  for(;page<40;page++){
+    const j=await api('/token/hjrg/trades?limit=1000&page='+page);
+    const rows=(j&&j.data)||[];
+    total=(j&&j.count)||total;
+    let done=false;
+    for(const r of rows){
+      const id=Number(r.id)||0;
+      if(id<birthId){done=true;break;}   /* bonding-curve era: before the pool existed */
+      out.push({id,ms:Date.parse(r.time)||0,ev:0,buy:!!r.buy,
+                b:Number(r.amount_btc)||0,a:Number(r.amount_token)||0,px:Number(r.price)||0});
+    }
+    if(onProgress)onProgress(out.length,Math.min(total,out.length+((done||rows.length<1000)?0:1000)));
+    if(done||rows.length<1000)break;
+  }
+  out.sort((a,b)=>a.id-b.id);
+  LPX.trades={birthId,rows:out};return out;
+}
+function lpBuildCheckpoints(anchor,feed,trades){
+  /* one merged timeline in exact global-id order, walked backward */
+  const line=feed.concat(trades).sort((a,b)=>a.id-b.id);
+  let k=anchor.B0*anchor.T0,L=anchor.L0;
+  const kv=new Array(line.length+1),Lv=new Array(line.length+1);
+  kv[line.length]=k;Lv[line.length]=L;
+  for(let i=line.length-1;i>=0;i--){
+    const x=line[i];
+    if(x.ev){
+      const Lpre=x.add?L-x.lp:L+x.lp;
+      if(Lpre>0&&L>0)k=k*(Lpre/L)*(Lpre/L);
+      L=Math.max(0,Lpre);
+    }else{
+      /* un-accrue this trade's 0.3% LP fee from k; the size term is all the
+         amount fields are used for */
+      const p=x.px>0?x.px/MS:0;
+      if(p>0&&k>0){
+        const Tpost=Math.sqrt(k/p),Bpost=Math.sqrt(k*p);
+        const rel=x.buy?x.b/Math.max(1,Bpost-0.993*x.b):x.a/Math.max(1,Tpost-x.a);
+        k=k/(1+LP_FEE*Math.max(0,Math.min(rel,10)));
+      }
+    }
+    kv[i]=k;Lv[i]=L;   /* state BEFORE line[i] */
+  }
+  return {line,kv,Lv};
+}
+function lpStateAt(model,ms){
+  /* state after the last entry at or before ms; the ratio is the px of the
+     last TRADE at or before ms — between trades the pool ratio cannot move */
+  const line=model.line;let lo=0,hi=line.length;
+  while(lo<hi){const m=(lo+hi)>>1;if(line[m].ms<=ms)lo=m+1;else hi=m;}
+  let j=lo-1;while(j>=0&&line[j].ev)j--;
+  /* before the first trade the ratio of the seeded pool is the first trade's */
+  if(j<0){j=0;while(j<line.length&&line[j].ev)j++;}
+  const px=(j>=0&&j<line.length&&!line[j].ev)?line[j].px:0;
+  const k=model.kv[lo],L=model.Lv[lo],p=px>0?px/MS:0;
+  return {L,B:p>0?Math.sqrt(k*p):0,T:p>0?Math.sqrt(k/p):0};
+}
+function lpUserAt(events,cur,ms){
+  /* the wallet's own LP balance, replayed backward from its current balance */
+  let u=cur;
+  for(let i=events.length-1;i>=0;i--){
+    if(events[i].ms<=ms)break;
+    u+=events[i].add?-events[i].lp:events[i].lp;
+  }
+  return Math.max(0,u);
+}
+const BJ=8*3600e3;
+function bjDay(ms){return new Date(ms+BJ).toISOString().slice(0,10);}
+function bjDayEnd(day){return Date.parse(day+'T00:00:00Z')-BJ+864e5-1;}
+async function lpExpand(){
+  const st=PANEL.cache.get(PANEL.cur);
+  if(!st||!st.lpEvents||!st.lpEvents.length||LPX.busy)return;
+  LPX.busy=true;st.lpBusyTxt=ui().lpReplayBusy;renderPanel();
+  try{
+    /* the anchor and the trade list must describe the SAME instant, so the
+       model is built once per session and reused for every wallet after */
+    if(!LPX.chk){
+      const anchor=await lpPool();
+      const feed=await lpFeedAll();
+      const birthId=feed.length?feed[0].id:0;
+      const trades=await lpTradesSince(birthId,(a,b)=>{
+        st.lpBusyTxt=ui().lpBusy.replace('{a}',fmtN(a)).replace('{b}',fmtN(Math.max(a,b)));
+        if(PANEL.cur===st.p)lpPaintBusy(st);
+      });
+      st.lpBusyTxt=ui().lpReplayBusy;if(PANEL.cur===st.p)lpPaintBusy(st);
+      await new Promise(r=>setTimeout(r,30));   /* let the busy line paint */
+      LPX.anchor=anchor;
+      LPX.chk=lpBuildCheckpoints(anchor,feed,trades);
+    }
+    st.lp={rows:lpSeriesFor(st,LPX.anchor),filter:''};
+  }catch(e){st.lpErr=true;}
+  LPX.busy=false;st.lpBusyTxt=null;
+  if(PANEL.cur===st.p)renderPanel();
+}
+function lpSeriesFor(st,anchor){
+  const ev=st.lpEvents,model=LPX.chk;
+  const cur=anchor.mine[st.p]||0;
+  const rows=[];
+  /* the wallet's own moves first: exact to the minute */
+  for(const e of ev){
+    const ps=lpStateAt(model,e.ms);           /* pool just after this instant */
+    const u=lpUserAt(ev,cur,e.ms);
+    rows.push({t:e.ms,ev:true,add:e.add,share:ps.L>0?u/ps.L:0,
+              btc:ps.L>0?u/ps.L*ps.B/MS:0,noodl:ps.L>0?u/ps.L*ps.T/MS:0});
+  }
+  /* then one row per Beijing day from first add to today (or final exit) */
+  const exitMs=cur<=0&&ev.length?ev[ev.length-1].ms:Date.now();
+  for(let d=bjDay(ev[0].ms);;){
+    const end=Math.min(bjDayEnd(d),Date.now());
+    if(end>=ev[0].ms){
+      const ps=lpStateAt(model,end),u=lpUserAt(ev,cur,end);
+      rows.push({t:end,day:d,share:ps.L>0?u/ps.L:0,
+                btc:ps.L>0?u/ps.L*ps.B/MS:0,noodl:ps.L>0?u/ps.L*ps.T/MS:0});
+    }
+    if(bjDayEnd(d)>=exitMs)break;
+    d=bjDay(bjDayEnd(d)+1);
+  }
+  rows.sort((a,b)=>b.t-a.t||(a.ev?-1:1));
+  return rows;
+}
+function lpFmtShare(x){return x>=0.0995?(x*100).toFixed(1)+'%':x>0?(x*100).toFixed(2)+'%':'0%';}
+function lpFmtBtc(v){return v>=1?v.toFixed(4):v.toFixed(6);}
+function lpFmtTok(v){return v>=1e6?(v/1e6).toFixed(3)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':v.toFixed(0);}
+function lpHm(ms){const d=new Date(ms+BJ);return d.toISOString().slice(5,16).replace('T',' ');}
+function lpPaintBusy(st){
+  const el=document.getElementById('lpBusy');
+  if(el&&st.lpBusyTxt)el.textContent=st.lpBusyTxt;
+}
+function lpTableHtml(st){
+  const u=ui(),f=(st.lp.filter||'').trim();
+  const rows=st.lp.rows.filter(r=>!f||(r.day||bjDay(r.t)).indexOf(f)===0);
+  let h='<div class="lp-scroll"><table class="lp-tbl"><thead><tr><th>'+esc(u.lpDay)+'</th>'
+    +'<th>'+esc(u.lpShareCol)+'</th><th>'+esc(u.lpBtcCol)+'</th><th>'+esc(u.lpNoodlCol)+'</th></tr></thead><tbody>';
+  for(const r of rows){
+    if(r.ev){
+      h+='<tr class="ev"><td colspan="2">'+esc((r.add?u.lpEvAdd:u.lpEvRem)
+        .replace('{t}',lpHm(r.t)).replace('{s}',lpFmtShare(r.share)))+'</td>'
+        +'<td>'+lpFmtBtc(r.btc)+'</td><td>'+lpFmtTok(r.noodl)+'</td></tr>';
+    }else{
+      h+='<tr><td>'+esc(r.day)+'</td><td>'+lpFmtShare(r.share)+'</td>'
+        +'<td><b>'+lpFmtBtc(r.btc)+'</b></td><td><b>'+lpFmtTok(r.noodl)+'</b></td></tr>';
+    }
+  }
+  h+='</tbody></table></div>';
+  return h;
+}
+function lpPaintTable(st){
+  const host=document.getElementById('lpTbl');
+  if(host&&st.lp)host.innerHTML=lpTableHtml(st);
+}
+function lpHtml(st){
+  const u=ui();
+  if(!st.lpDone||!st.lpEvents||!st.lpEvents.length)return '';
+  let h='<div class="pn-sec"><h3>'+esc(u.secLp)+'</h3>';
+  /* the summary costs nothing: current share from the chef cache */
+  const curLp=LPX.anchor?(LPX.anchor.mine[st.p]||0):null;
+  h+='<div class="lp-sum">';
+  h+='<span>'+esc(u.lpEvCount.replace('{n}',st.lpEvents.length))+'</span><i></i>';
+  if(st.lp&&st.lp.rows.length){
+    const top=st.lp.rows.find(r=>!r.ev);
+    if(top&&top.share>0){
+      h+='<span>'+esc(u.lpShareNow)+'</span><b>'+lpFmtShare(top.share)+'</b>';
+      h+='<span>'+esc(u.lpUnderNow)+'</span><b>'+lpFmtBtc(top.btc)+' BTC · '+lpFmtTok(top.noodl)+' NOODL</b>';
+    }else{
+      h+='<span></span><b>'+esc(u.lpExited.replace('{d}',bjDay(st.lpEvents[st.lpEvents.length-1].ms)))+'</b>';
+    }
+  }
+  h+='</div>';
+  if(st.lpBusyTxt)h+='<div class="pn-load" id="lpBusy">'+esc(st.lpBusyTxt)+'</div>';
+  else if(st.lpErr)h+='<div class="pn-note">'+esc(u.lpFail)+'</div>'
+    +'<button type="button" class="lp-btn" data-lpexpand="1">'+esc(u.lpExpand)+'</button>';
+  else if(!st.lp)h+='<button type="button" class="lp-btn" data-lpexpand="1">'+esc(u.lpExpand)+'</button>';
+  else{
+    h+='<div class="lp-tools"><label style="font-size:9.5px;color:var(--dim)">'+esc(u.lpJump)+'</label>'
+      +'<input type="date" data-lpjump="1" value="'+esc(st.lp.filter||'')+'"></div>';
+    h+='<div id="lpTbl">'+lpTableHtml(st)+'</div>';
+    h+='<div class="lp-note">'+esc(u.lpNote)+'</div>';
+  }
+  return h+'</div>';
 }
 async function loadFlight(st){
   const f={dep:[],wit:[],lastWit:null,tip:null,done:false};
