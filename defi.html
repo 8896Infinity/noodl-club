@@ -109,6 +109,7 @@ html[data-theme="day"] #themeBtn::before{content:"☾"}
     <button type="button" data-v="road" data-i="navRoad">The road here</button>
     <button type="button" data-v="battle" data-i="navWar">Read the battle</button>
     <button type="button" data-v="universe" data-i="navUv">NOODL Universe</button>
+    <button type="button" data-v="runes" data-i="navRunes">Runes bridge</button>
     <button type="button" class="jn" data-v="join" data-i="navJoin">Join the battle</button>
   </nav>
 
@@ -121,9 +122,9 @@ const $=s=>document.querySelector(s);
 /* ================= i18n ================= */
 const I18N={
  en:{navHome:'Home',navBoard:'Holder board',navRev:'NOODL Revelation',navDefi:'Defi',navCom:'Community',
-     navRoad:'The road here',navWar:'Read the battle',navUv:'NOODL Universe',navJoin:'Join the battle'},
+     navRoad:'The road here',navWar:'Read the battle',navUv:'NOODL Universe',navRunes:'Runes bridge',navJoin:'Join the battle'},
  zh:{navHome:'首页',navBoard:'持仓看板',navRev:'NOODL 启示录',navDefi:'Defi',navCom:'加入社区',
-     navRoad:'来时路',navWar:'分析战局',navUv:'NOODL 宇宙',navJoin:'加入战场'}
+     navRoad:'来时路',navWar:'分析战局',navUv:'NOODL 宇宙',navRunes:'符文跨链',navJoin:'加入战场'}
 };
 let lang;try{const s=localStorage.getItem('noodl_lang');if(s==='en'||s==='zh')lang=s;}catch(e){}
 if(!lang)lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
@@ -147,7 +148,7 @@ $('#langBtn').addEventListener('click',()=>{
    road restarts each visit — that also stops its music the honest way.
    The battle stays alive in the background; it was built to survive
    hidden tabs and pick the fight back up. */
-const V={road:null,battle:null,universe:null};
+const V={road:null,battle:null,universe:null,runes:null};
 function mk(src){
   const f=document.createElement('iframe');
   f.src=src;
@@ -157,7 +158,10 @@ function mk(src){
     f.__ready=true;
     try{
       const st=f.contentDocument.createElement('style');
-      st.textContent='.secnav{display:none!important}';
+      /* inner pages carry their own nav rows; inside the Defi shell those
+         rows are doubled chrome, so both variants are tucked away */
+      st.textContent='.secnav{display:none!important}'+
+        (f.src.indexOf('runes.html')>=0?'.topbar{display:none!important}':'');
       f.contentDocument.head.appendChild(st);
     }catch(e){}
   });
@@ -169,6 +173,7 @@ function show(v){
     b.classList.toggle('on',b.dataset.v===(v==='join'?'battle':v)));
   if(v==='road'){
     if(V.universe){V.universe.remove();V.universe=null;}
+    if(V.runes){V.runes.remove();V.runes=null;}
     if(!V.road)V.road=mk('road.html');
     V.road.style.display='block';
     if(V.battle)V.battle.style.display='none';
@@ -178,14 +183,24 @@ function show(v){
     /* the universe restarts each visit, like the road — and hands its
        GPU memory back when you leave */
     if(V.road){V.road.remove();V.road=null;}
+    if(V.runes){V.runes.remove();V.runes=null;}
     if(!V.universe)V.universe=mk('universe.html');
     V.universe.style.display='block';
+    if(V.battle)V.battle.style.display='none';
+    return;
+  }
+  if(v==='runes'){
+    if(V.road){V.road.remove();V.road=null;}
+    if(V.universe){V.universe.remove();V.universe=null;}
+    if(!V.runes)V.runes=mk('runes.html');
+    V.runes.style.display='block';
     if(V.battle)V.battle.style.display='none';
     return;
   }
   /* battle and the recruiting desk share one frame */
   if(V.road){V.road.remove();V.road=null;}
   if(V.universe){V.universe.remove();V.universe=null;}
+  if(V.runes){V.runes.remove();V.runes=null;}
   const fresh=!V.battle;
   if(fresh)V.battle=mk(v==='join'?'battle.html#join':'battle.html');
   V.battle.style.display='block';
@@ -205,7 +220,7 @@ document.querySelector('.dfnav').addEventListener('click',e=>{
 
 render();
 /* the road first: the story starts at the beginning */
-show(location.hash==='#battle'?'battle':location.hash==='#join'?'join':location.hash==='#universe'?'universe':'road');
+show(location.hash==='#battle'?'battle':location.hash==='#join'?'join':location.hash==='#universe'?'universe':location.hash==='#runes'?'runes':'road');
 </script>
 </body>
 </html>
