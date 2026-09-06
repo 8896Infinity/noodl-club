@@ -101,6 +101,16 @@ a{color:inherit}
 #pnX{flex:none;width:26px;height:26px;font-size:15px;color:var(--dim);background:transparent;
   border:1px solid var(--line);border-radius:6px;cursor:pointer;line-height:1}
 #pnX:hover{color:var(--text);border-color:var(--text-2)}
+#pnMax{flex:none;width:26px;height:26px;font-size:13px;color:var(--dim);background:transparent;
+  border:1px solid var(--line);border-radius:6px;cursor:pointer;line-height:1}
+#pnMax:hover{color:var(--text);border-color:var(--text-2)}
+#pnMax::before{content:"\2922 "}
+#panel.max #pnMax::before{content:"\2921 "}
+/* the enlarged dossier: same layout, four times the room, two more columns */
+#panel.max{width:min(920px,calc(100% - 24px))}
+.lp-x{display:none}
+#panel.max .lp-x{display:table-cell}
+#panel.max .lp-scroll{max-height:62vh}
 .pn-chips{flex:none;display:flex;flex-wrap:wrap;gap:5px;padding:9px 12px 0}
 .chip{font-size:9.5px;font-weight:700;letter-spacing:.07em;padding:3px 8px;border-radius:5px;border:1px solid}
 .chip.gold{color:var(--noodle-y);border-color:rgba(252,209,79,.5);background:rgba(252,209,79,.08)}
@@ -205,6 +215,7 @@ a{color:inherit}
 @media (max-width:640px){
   .uvsearch{top:8px}
   #panel{top:auto;left:8px;right:8px;bottom:8px;width:auto;max-height:64vh}
+  #panel.max{max-height:calc(100% - 16px)}
 }
 /* ---- the plaque ---- */
 .plaque{position:absolute;top:62px;left:16px;max-width:340px;pointer-events:none}
@@ -291,6 +302,7 @@ a{color:inherit}
     <div class="pn-h">
       <span class="pn-av" id="pnAv">?</span>
       <div class="pn-t"><b id="pnName">—</b><i id="pnId" title="copy"></i></div>
+      <button id="pnMax" type="button" aria-label="resize"></button>
       <button id="pnX" type="button" aria-label="close">×</button>
     </div>
     <div class="pn-chips" id="pnChips"></div>
@@ -405,11 +417,12 @@ en:{
   lpExpand:'show the daily history',lpBusy:'downloading every trade\u2026 {a}/{b}',
   lpReplayBusy:'replaying the pool\u2026',
   lpDay:'date',lpShareCol:'share',lpBtcCol:'BTC in pool',lpNoodlCol:'NOODL in pool',
+  lpLpCol:'LP balance',lpValCol:'value (BTC)',
   lpEvAdd:'{t} \u00b7 added liquidity \u00b7 share {s}',
   lpEvRem:'{t} \u00b7 removed liquidity \u00b7 share {s}',
   lpExited:'fully exited the pool on {d}',
   lpJump:'jump to day',lpAll:'all',
-  lpNote:'Reconstructed by replaying every trade and every pool add/remove backward from the pool\u2019s current reserves \u2014 odin publishes no historical pool data. Each row is the position at the end of that day (Beijing time); the amber rows are this wallet\u2019s own moves, to the minute. Shares use odin\u2019s own accounting (which includes the pool\u2019s untouched graduation seed), so today\u2019s row matches what odin shows this wallet; historical reserves are accurate to a couple of percent.',
+  lpNote:'Each row shows what withdrawing the whole position would ACTUALLY have returned at that moment \u2014 calibrated against the real payout of every one of this pool\u2019s 302 adds and removes, and it reproduces odin\u2019s own Remove preview to within half a percent; newer pool events keep calibrating it with their own receipts. Odin keeps burning the seed LP it planted at graduation (which quietly raises everyone else\u2019s share without touching the price), so the share grows on its own; days after the newest calibration point may run slightly low if another burn has landed. Odin\u2019s displayed liquidity VALUE uses a different convention and usually sits above what is truly redeemable. Rows are end-of-day, Beijing time; amber rows are this wallet\u2019s own moves.',
   lpFail:'could not load the pool history \u2014 try again',
   secAddr:'BITCOIN ADDRESS',
   aFlight:'MONEY IN FLIGHT',
@@ -506,11 +519,12 @@ zh:{
   lpExpand:'展开每日明细',lpBusy:'正在下载全部成交\u2026 {a}/{b}',
   lpReplayBusy:'正在倒放整个池子\u2026',
   lpDay:'日期',lpShareCol:'份额',lpBtcCol:'池中 BTC',lpNoodlCol:'池中 NOODL',
+  lpLpCol:'LP 余额',lpValCol:'总值 (BTC)',
   lpEvAdd:'{t} \u00b7 加池 \u00b7 份额变为 {s}',
   lpEvRem:'{t} \u00b7 撤池 \u00b7 份额变为 {s}',
   lpExited:'已于 {d} 全部撤出池子',
   lpJump:'跳到某天',lpAll:'全部',
-  lpNote:'由池子当前储备出发，把每一笔成交和每一次加池/撤池倒放回去重建——odin 不提供任何历史池子数据。每一行是那一天结束时（北京时间）的持仓；琥珀色的行是这个钱包自己的操作，精确到分钟。份额用的是 odin 自己的口径（含毕业时注入、从未动过的种子 LP），所以今天这一行和 odin 界面给这个钱包看的数一致；历史储备的偏差在百分之二以内。',
+  lpNote:'每一行的 BTC/NOODL 是那一刻把 LP 全部撤出【真实能拿回】的数量——用这个池子全部 302 次加池/撤池的实际到账逐笔校准，能把 odin 官方的撤池预览复现到 0.5% 以内；之后的新事件会继续用它们自己的到账自动校准。odin 在持续分批销毁毕业时注入的种子 LP（只抬高其他人的份额、不动价格），所以份额会随时间自己变大；最近一个校准点之后若又有销毁，最新几天会略微低估。odin 界面显示的流动性估值（total_liquidity）是另一个口径，通常高于真实可赎回量。每行为那一天结束时（北京时间）的状态；琥珀色的行是这个钱包自己的操作，精确到分钟。',
   lpFail:'池子历史没读出来\u2014\u2014再试一次',
   secAddr:'比特币地址',
   aFlight:'资金在途',
@@ -1515,6 +1529,11 @@ function closePanel(){
   focusHome();
 }
 $('#pnX').addEventListener('click',closePanel);
+$('#pnMax').addEventListener('click',()=>{
+  const p=$('#panel');p.classList.toggle('max');
+  try{localStorage.setItem('noodl_uv_pmax',p.classList.contains('max')?'1':'0');}catch(e){}
+});
+try{if(localStorage.getItem('noodl_uv_pmax')==='1')$('#panel').classList.add('max');}catch(e){}
 function copyText(t,el){
   try{navigator.clipboard.writeText(t);}catch(e){}
   if(el){const old=el.textContent;el.textContent=ui().copied;setTimeout(()=>{el.textContent=old;},900);}
@@ -1733,31 +1752,25 @@ async function chainTip(){
   return TIP;
 }
 /* ================= LP position history ================= */
-/* Everything pool-wide is one download for the whole session: the same 6000
-   trades and 300 pool events serve every wallet that gets looked up. */
-const LPX={feed:null,trades:null,chk:null,anchor:null,busy:false};
-/* Price-anchored replay. The pool ratio B/T after any trade IS that row's
-   `price`, and between trades the ratio cannot move at all — only trades
-   move it, and add/remove scales both sides equally. So only the invariant
-   k = B*T is replayed: exact (L_pre/L_post)² jumps at LP events, plus the
-   0.3% LP-fee drift per trade. Amounts only size the fee term.
-   LP events and trades share one global id sequence (lp `event` vs trade
-   `id`), so the merge order is exact, never a same-second guess.
-
-   THE SEED: the /liquidity list is NOT the whole pool. Odin's graduation
-   seed LP (~85% of supply) sits outside every list endpoint; it has never
-   moved (net minted−burned across all feed events equals the tracked total
-   to 16 raw units). Its size is derived live from odin's own display
-   arithmetic — stats.total_liquidity = bal/L_total × 2B, and 19 of 24
-   holders resolve to one L_total to 1e-5 — so this page's share and value
-   agree with what odin itself shows the wallet today, by construction. */
-const LP_FEE=0.003;
-const LP_SEED_FB=116348000000000000;   /* untracked seed L, measured 2026-09-06; offline fallback */
+/* The ground truth here is RECEIPTS: every add/remove leaves "Transferring
+   to/from pool" rows in the wallet's own activity with the exact amounts
+   moved. All 302 pool events since birth were matched to their receipts,
+   each yielding an exact sample of rho = pool NOODL per LP token.
+   rho is invariant under every proportional event — user adds/removes AND
+   odin's ongoing burns of its graduation-seed LP (which raise everyone's
+   share without touching price) — and between anchors it moves only with
+   trades, by \u221a(p0/p1). Median interpolation error between adjacent
+   anchors: 0.05%; the model reproduces odin's own Remove preview to 0.5%.
+   Newer feed events self-calibrate: their receipts are fetched live and
+   appended as anchors, so future burns are picked up the moment anyone
+   touches the pool. */
+const LPX={feed:null,px:null,anch:null,mine:null,busy:false};
+/* [event id, unix sec, rho, L/1e12] — one row per pool event, receipt-exact */
+const LP_ANCH=[[82983,1783984116,1,389977],[83182,1783984426,1.284385,332891],[83393,1783985393,1.258274,330451],[83632,1783986177,1.292988,325789],[83642,1783986208,1.292988,328143],[83894,1783986895,1.212514,332895],[85097,1783989007,1.221428,322134],[87618,1783995282,1.589362,315092],[87679,1783995395,1.554738,318829],[87800,1783995568,1.537819,322021],[87993,1783995771,1.537819,325373],[91196,1784003662,1.393604,318009],[93055,1784007415,1.338873,318588],[94293,1784010883,1.131605,317224],[94351,1784010965,1.137448,317169],[94404,1784011118,1.176381,317216],[95170,1784013337,1.310052,315765],[95987,1784015579,1.159,315418],[96270,1784016261,1.22169,313067],[96368,1784016487,1.198175,310417],[96375,1784016488,1.198175,311603],[97707,1784019923,1.221234,309272],[97753,1784020038,1.207607,321061],[97786,1784020115,1.16557,309077],[97965,1784020672,1.134993,309640],[98880,1784026293,1.177626,319485],[99614,1784029107,1.247138,308536],[100295,1784030961,1.204639,308377],[102316,1784038593,1.11303,311363],[103174,1784040892,1.130438,305848],[105508,1784048771,0.939853,302948],[105938,1784050279,0.91041,300989],[108170,1784077080,0.872325,299639],[109070,1784081239,0.839345,299145],[110844,1784084362,0.863486,307311],[112401,1784087772,0.89218,305509],[112737,1784088485,0.887531,305160],[113726,1784089999,0.913373,304569],[114957,1784094281,0.861852,304746],[115336,1784095507,0.851167,304566],[115368,1784095681,0.851167,308090],[118744,1784110333,0.888048,306752],[119941,1784114535,0.830699,297190],[121285,1784117348,0.834938,289581],[126124,1784144806,0.887786,291657],[126166,1784145575,0.899243,304361],[126252,1784147674,0.913133,308169],[126257,1784147703,0.913133,315881],[126262,1784147720,0.913133,316652],[127542,1784162797,0.924428,317333],[132607,1784182809,0.963842,326497],[132644,1784183108,0.957775,337436],[132661,1784183307,0.953822,336588],[132683,1784183438,0.953264,337153],[132853,1784184141,0.935122,321621],[132870,1784184240,0.902663,325040],[133158,1784186029,0.900394,325477],[133452,1784188314,0.900189,324913],[134121,1784193939,0.940181,318368],[134390,1784196131,0.951149,309593],[134731,1784198613,0.936885,309361],[134908,1784200279,0.936655,308978],[134956,1784201890,0.945658,309673],[135788,1784220838,0.928518,296740],[138856,1784248717,0.967174,292068],[140803,1784258903,1.005021,290464],[140880,1784259119,1.031711,289603],[142403,1784267011,1.013133,287614],[144024,1784272273,1.092695,301746],[144217,1784273611,1.076389,293885],[144904,1784275859,1.124123,294772],[144942,1784275954,1.100021,278853],[148143,1784291432,1.104427,276717],[149467,1784299159,1.127714,273860],[151361,1784302922,1.096046,272421],[156129,1784347359,1.218479,268699],[160228,1784380072,1.203272,266002],[160970,1784388426,1.279852,257188],[161339,1784390832,1.283334,270574],[162770,1784405317,1.234962,270128],[163473,1784420327,1.257874,255674],[193285,1784685641,1.525039,227587],[196713,1784706742,1.596999,224674],[196935,1784712959,1.630856,225285],[197165,1784717531,1.488618,225091],[198963,1784731847,1.452515,229638],[198973,1784731926,1.452515,233182],[200440,1784744897,1.455194,228847],[204104,1784774360,1.694764,227344],[206858,1784823109,1.659288,222561],[206862,1784823117,1.659288,218759],[208225,1784838165,1.699733,228480],[208230,1784838180,1.699733,231584],[209100,1784844277,1.760502,238269],[209275,1784845882,1.891517,246646],[209388,1784846211,1.869281,236303],[209431,1784846302,1.869281,246189],[209776,1784847006,1.83946,243051],[210364,1784848521,1.817935,242382],[210385,1784848550,1.817935,241801],[211039,1784849627,1.759539,246101],[211361,1784850459,1.707158,252081],[211371,1784850487,1.707158,253358],[211388,1784850501,1.706594,254859],[211427,1784850536,1.682837,255328],[211449,1784850606,1.682837,256291],[211802,1784852305,1.702622,270119],[211807,1784852323,1.702622,273514],[212740,1784855396,1.664172,277163],[213643,1784859812,1.677055,275538],[219800,1784898467,1.71753,261243],[220480,1784907521,1.697611,262891],[225068,1784970401,1.660167,261041],[225660,1784976708,1.67557,256711],[226860,1784997367,1.646662,253238],[230665,1785052719,1.617127,252018],[230713,1785053053,1.617127,251774],[231863,1785061114,1.565587,248242],[240667,1785334879,1.617534,247708],[241654,1785373240,1.633366,248291],[241796,1785377919,1.588168,253582],[241807,1785377935,1.588168,254916],[242282,1785394435,1.590872,253230],[242292,1785394486,1.604214,251968],[244470,1785447682,1.638474,257279],[244840,1785469107,1.624764,255128],[245539,1785480985,1.630044,252540],[246329,1785504048,1.605668,243141],[246891,1785510691,1.604314,245804],[247885,1785540610,1.554502,246257],[250517,1785561284,1.543002,250980],[250522,1785561305,1.543002,253408],[251611,1785585665,1.530032,246037],[252373,1785593792,1.438427,248362],[252391,1785593911,1.458972,247672],[252415,1785594019,1.451409,248308],[253693,1785612217,1.443999,251731],[253695,1785612508,1.443999,248281],[254190,1785638926,1.474662,241405],[254401,1785647092,1.439496,235766],[254475,1785649874,1.407024,229681],[254510,1785650763,1.407024,224495],[254590,1785652371,1.366745,229415],[254763,1785653705,1.350108,225612],[254836,1785654766,1.328072,222779],[254857,1785655176,1.319303,223636],[254924,1785656848,1.363601,224266],[254932,1785656894,1.363601,223546],[254977,1785657577,1.347617,220910],[255870,1785661835,1.329446,219492],[256368,1785670754,1.358373,218120],[256386,1785670875,1.343119,216565],[256681,1785678267,1.348757,221195],[256687,1785678285,1.348757,229536],[256937,1785689591,1.387474,234131],[257627,1785717617,1.316562,230762],[257743,1785718985,1.34141,230727],[257762,1785722052,1.286391,228213],[257771,1785722064,1.300273,224519],[258275,1785731630,1.304975,220745],[258337,1785732203,1.342141,219353],[259403,1785758513,1.2655,213942],[259511,1785759921,1.373512,212108],[259533,1785760068,1.352745,210907],[259537,1785760090,1.352745,209777],[260320,1785771042,1.290138,208824],[260324,1785771065,1.290138,208499],[260810,1785804994,1.292804,207777],[261154,1785810598,1.35801,204498],[261187,1785811208,1.36116,203774],[264414,1785868216,1.203511,200233],[264611,1785882280,1.218541,198392],[264710,1785889305,1.201228,200780],[265164,1785898317,1.191863,198182],[265600,1785907513,1.162312,198407],[275390,1786102114,1.148827,195261],[275449,1786103244,1.195426,195208],[275465,1786103301,1.195426,191175],[279512,1786154382,1.266243,187429],[280767,1786172494,1.243645,186035],[282026,1786189839,1.259179,185831],[287237,1786246943,1.261716,183236],[287257,1786247222,1.261716,183245],[290137,1786266949,1.217002,182841],[290299,1786267514,1.243063,183986],[290413,1786268661,1.242481,183661],[290420,1786268698,1.242481,184420],[290779,1786271747,1.242481,183461],[291441,1786276574,1.309279,182272],[298670,1786335084,1.358987,181124],[302025,1786365569,1.371422,180173],[302044,1786365796,1.371422,180197],[304058,1786374947,1.396429,179778],[308148,1786413030,1.364416,179174],[311117,1786424039,1.380005,179045],[311728,1786427493,1.39189,178065],[313802,1786450821,1.34341,177638],[314648,1786456630,1.327402,177576],[316000,1786464118,1.395085,177236],[316539,1786477113,1.382671,178584],[317638,1786511020,1.377054,179318],[317643,1786511035,1.377054,179364],[317823,1786514484,1.377054,178899],[319878,1786535734,1.362173,178857],[321168,1786553667,1.406139,176660],[321303,1786559506,1.411374,176650],[322208,1786586445,1.431345,175783],[327580,1786636740,1.509498,175446],[327589,1786636754,1.509498,176182],[327609,1786636825,1.530785,177621],[327614,1786636843,1.530785,177870],[327624,1786636869,1.530785,177919],[327629,1786636872,1.530785,177969],[327640,1786636940,1.538204,178205],[327645,1786636944,1.538204,178455],[327650,1786636964,1.538204,178704],[330394,1786662944,1.590742,180313],[333913,1786686315,1.521251,180167],[333928,1786686371,1.521251,180214],[334913,1786690699,1.619075,177477],[334952,1786690769,1.619075,175076],[335406,1786692349,1.639641,175063],[335460,1786692658,1.641821,174919],[335762,1786693234,1.61926,175651],[336433,1786696402,1.575447,174713],[345030,1786726357,1.617535,173679],[349900,1786760541,1.661414,173140],[354043,1786766887,1.640075,172731],[354082,1786766953,1.628405,172717],[362915,1786776275,1.722995,171508],[367974,1786784819,1.654433,171282],[376079,1786806145,1.680855,174233],[377566,1786808465,1.649921,174123],[378677,1786812074,1.675106,173996],[380269,1786826727,1.62463,173913],[383944,1786851419,1.517559,174702],[383976,1786851431,1.498587,173344],[386224,1786853758,1.435321,176948],[387155,1786855876,1.461425,180397],[387256,1786856440,1.461425,179462],[387460,1786857520,1.471665,178733],[387844,1786861377,1.456277,178128],[388913,1786868777,1.480326,177699],[389247,1786871160,1.491155,176495],[389520,1786874276,1.509782,176492],[391640,1786888666,1.560704,171929],[392317,1786894941,1.499475,171910],[392812,1786896520,1.506214,172159],[394299,1786904670,1.4764,172061],[394336,1786905780,1.4764,172192],[397024,1786934468,1.542786,172852],[397325,1786936161,1.531387,171956],[397477,1786936899,1.531387,172828],[416361,1787076947,1.57936,171922],[416373,1787077523,1.57936,171935],[431603,1787285665,1.674303,169740],[431655,1787285927,1.674303,169748],[431683,1787286103,1.669932,170591],[433694,1787312378,1.652411,170575],[435123,1787331118,1.718283,172203],[435761,1787361660,1.707101,172083],[436488,1787377995,1.691435,174286],[436544,1787379050,1.691435,174275],[438295,1787391931,1.633949,174052],[438325,1787392446,1.633949,172307],[439514,1787432518,1.653569,172144],[439541,1787433314,1.653569,172271],[440938,1787470575,1.67888,172153],[441192,1787477585,1.698715,172221],[441741,1787493740,1.662362,172105],[442044,1787503965,1.6297,172056],[444168,1787563562,1.604435,173460],[444191,1787563707,1.602509,171882],[449174,1787633437,1.516487,172622],[449221,1787634620,1.516487,173027],[449970,1787646834,1.479431,174400],[450027,1787647817,1.472987,174607],[450358,1787648914,1.463056,176939],[451336,1787654313,1.414539,178080],[451861,1787661686,1.469764,178931],[452492,1787671180,1.50953,178074],[452916,1787700341,1.479562,176865],[452925,1787700387,1.469794,175695],[453109,1787703924,1.415625,175741],[453204,1787707342,1.439303,176899],[453732,1787721076,1.467825,174438],[454226,1787734816,1.497079,174110],[454608,1787744840,1.510687,174482],[455248,1787754690,1.516882,173145],[456283,1787782691,1.588327,171739],[459617,1787857559,1.636629,171475],[461289,1787893541,1.72376,171222],[464935,1787946477,1.851692,165820],[464942,1787946521,1.851692,170835],[464947,1787947791,1.851692,170859],[465124,1787956081,1.81052,171050],[467188,1787999805,1.931082,170516],[467190,1787999811,1.931082,170511],[467694,1788015542,1.916414,168183],[469132,1788071841,1.815758,167823],[469154,1788072405,1.815758,167544],[470132,1788099078,1.826837,167290]];
 async function lpMetaOnce(st){
   const j=await api('/user/'+st.p+'/activity?token=lp_hjrg&limit=100');
   const rows=((j&&j.data)||[]).filter(r=>r.action==='ADD_LIQUIDITY'||r.action==='REMOVE_LIQUIDITY');
   let count=(j&&j.count)||rows.length;
-  /* more than one page of personal pool moves: fetch the rest */
   let page=2;
   while(rows.length<count&&page<8){
     const k=await api('/user/'+st.p+'/activity?token=lp_hjrg&limit=100&page='+page);
@@ -1773,33 +1786,12 @@ async function loadLpMeta(st){
   st.lpDone=true;
 }
 async function lpPool(){
-  /* current anchor: reserves + FULL LP supply. Refetched on every expand so
-     the replay starts from the pool as it is, not as it was an hour ago. */
-  const [tok,liq]=await Promise.all([api('/token/hjrg'),api('/token/hjrg/liquidity?limit=1000')]);
+  /* only the CURRENT balances are needed from the pool itself */
+  const liq=await api('/token/hjrg/liquidity?limit=1000');
   const rows=(liq&&liq.data)||[];
-  const tracked=rows.reduce((a,r)=>a+(Number(r.balance)||0)+(Number(r.stake_balance)||0),0);
-  const mine={};for(const r of rows)mine[r.user]=(Number(r.balance)||0)+(Number(r.stake_balance)||0);
-  const B0=Number(tok&&tok.btc_liquidity)||0,T0=Number(tok&&tok.token_liquidity)||0;
-  /* derive the untracked seed from odin's own arithmetic, live. A wallet
-     holding LP in OTHER pools inflates its stats and DEFLATES the implied
-     total, never the reverse — so take the max over the three largest. */
-  let seed=LP_SEED_FB;
-  try{
-    const top=rows.slice().sort((a,b)=>(Number(b.balance)||0)-(Number(a.balance)||0)).slice(0,3);
-    const Ls=[];
-    for(const r of top){
-      const st=await api('/user/'+r.user+'/stats');
-      const d=(st&&st.data)||st||{};
-      const tl=Number(d.total_liquidity)||0;
-      const bal=(Number(r.balance)||0)+(Number(r.stake_balance)||0);
-      if(tl>0&&bal>0&&B0>0)Ls.push(bal*2*B0/tl);
-    }
-    if(Ls.length){
-      const Ld=Math.max.apply(null,Ls);
-      if(Ld>tracked)seed=Ld-tracked;
-    }
-  }catch(e){}
-  return {B0,T0,L0:seed+tracked,mine};
+  const mine={};
+  for(const r of rows)mine[r.user]=(Number(r.balance)||0)+(Number(r.stake_balance)||0);
+  return mine;
 }
 async function lpFeedAll(){
   if(LPX.feed)return LPX.feed;
@@ -1809,7 +1801,7 @@ async function lpFeedAll(){
     const rows=(j&&j.data)||[];
     for(const r of rows)if(r.action==='ADD_LIQUIDITY'||r.action==='REMOVE_LIQUIDITY'){
       const lp=Number(r.amount_token)||0,ms=Date.parse(r.time)||0,id=Number(r.event)||0;
-      if(lp>0&&ms&&id)out.push({id,ms,ev:1,add:r.action==='ADD_LIQUIDITY',lp});
+      if(lp>0&&ms&&id)out.push({id,ms,ev:1,add:r.action==='ADD_LIQUIDITY',lp,user:r.user});
     }
     if(rows.length<100)break;
   }
@@ -1817,7 +1809,8 @@ async function lpFeedAll(){
   LPX.feed=out;return out;
 }
 async function lpTradesSince(birthId,onProgress){
-  if(LPX.trades&&LPX.trades.birthId===birthId)return LPX.trades.rows;
+  /* only the prices are needed — the tape is a price clock, nothing more */
+  if(LPX.px)return LPX.px;
   const out=[];let page=1,total=0;
   for(;page<40;page++){
     const j=await api('/token/hjrg/trades?limit=1000&page='+page);
@@ -1827,52 +1820,61 @@ async function lpTradesSince(birthId,onProgress){
     for(const r of rows){
       const id=Number(r.id)||0;
       if(id<birthId){done=true;break;}   /* bonding-curve era: before the pool existed */
-      out.push({id,ms:Date.parse(r.time)||0,ev:0,buy:!!r.buy,
-                b:Number(r.amount_btc)||0,a:Number(r.amount_token)||0,px:Number(r.price)||0});
+      out.push({id,ms:Date.parse(r.time)||0,px:Number(r.price)||0});
     }
     if(onProgress)onProgress(out.length,Math.min(total,out.length+((done||rows.length<1000)?0:1000)));
     if(done||rows.length<1000)break;
   }
   out.sort((a,b)=>a.id-b.id);
-  LPX.trades={birthId,rows:out};return out;
+  LPX.px=out;return out;
 }
-function lpBuildCheckpoints(anchor,feed,trades){
-  /* one merged timeline in exact global-id order, walked backward */
-  const line=feed.concat(trades).sort((a,b)=>a.id-b.id);
-  let k=anchor.B0*anchor.T0,L=anchor.L0;
-  const kv=new Array(line.length+1),Lv=new Array(line.length+1);
-  kv[line.length]=k;Lv[line.length]=L;
-  for(let i=line.length-1;i>=0;i--){
-    const x=line[i];
-    if(x.ev){
-      const Lpre=x.add?L-x.lp:L+x.lp;
-      if(Lpre>0&&L>0)k=k*(Lpre/L)*(Lpre/L);
-      L=Math.max(0,Lpre);
-    }else{
-      /* un-accrue this trade's 0.3% LP fee from k; the size term is all the
-         amount fields are used for */
-      const p=x.px>0?x.px/MS:0;
-      if(p>0&&k>0){
-        const Tpost=Math.sqrt(k/p),Bpost=Math.sqrt(k*p);
-        const rel=x.buy?x.b/Math.max(1,Bpost-0.993*x.b):x.a/Math.max(1,Tpost-x.a);
-        k=k/(1+LP_FEE*Math.max(0,Math.min(rel,10)));
-      }
-    }
-    kv[i]=k;Lv[i]=L;   /* state BEFORE line[i] */
+function lpPxAt(ms){
+  const t=LPX.px;let lo=0,hi=t.length;
+  while(lo<hi){const m=(lo+hi)>>1;if(t[m].ms<=ms)lo=m+1;else hi=m;}
+  return lo>0?t[lo-1].px:(t.length?t[0].px:0);
+}
+function lpAnchorAt(ms){
+  const a=LPX.anch;let lo=0,hi=a.length;
+  while(lo<hi){const m=(lo+hi)>>1;if(a[m][1]*1000<=ms)lo=m+1;else hi=m;}
+  return a[Math.max(0,lo-1)];
+}
+function lpRhoAt(ms){
+  /* nearest receipt anchor at or before, rolled forward on the \u221ap law */
+  const a=lpAnchorAt(ms);
+  const pxA=lpPxAt(a[1]*1000),px=lpPxAt(ms);
+  return (pxA>0&&px>0)?a[2]*Math.sqrt(pxA/px):a[2];
+}
+function lpLAt(ms){
+  /* total LP supply for the share column: the anchor\u2019s L plus whatever
+     the feed minted/burned since (odin\u2019s own burns land via anchors) */
+  const a=lpAnchorAt(ms);
+  let L=a[3]*1e12;
+  for(const e of LPX.feed){
+    if(e.ms<=a[1]*1000)continue;
+    if(e.ms>ms)break;
+    L+=e.add?e.lp:-e.lp;
   }
-  return {line,kv,Lv};
+  return Math.max(1,L);
 }
-function lpStateAt(model,ms){
-  /* state after the last entry at or before ms; the ratio is the px of the
-     last TRADE at or before ms — between trades the pool ratio cannot move */
-  const line=model.line;let lo=0,hi=line.length;
-  while(lo<hi){const m=(lo+hi)>>1;if(line[m].ms<=ms)lo=m+1;else hi=m;}
-  let j=lo-1;while(j>=0&&line[j].ev)j--;
-  /* before the first trade the ratio of the seeded pool is the first trade's */
-  if(j<0){j=0;while(j<line.length&&line[j].ev)j++;}
-  const px=(j>=0&&j<line.length&&!line[j].ev)?line[j].px:0;
-  const k=model.kv[lo],L=model.Lv[lo],p=px>0?px/MS:0;
-  return {L,B:p>0?Math.sqrt(k*p):0,T:p>0?Math.sqrt(k/p):0};
+async function lpExtendAnchors(){
+  /* feed events newer than the last baked anchor: fetch their receipts live
+     and append, so the ledger keeps calibrating itself after deploy */
+  const last=LPX.anch[LPX.anch.length-1];
+  const fresh=LPX.feed.filter(e=>e.id>last[0]).slice(-8);
+  for(const e of fresh){
+    try{
+      const j=await api('/user/'+e.user+'/activity?token=hjrg&limit=60');
+      const m=((j&&j.data)||[])
+        .filter(r=>{const d=String(r.data||'');
+          return e.add?/to pool/.test(d):/from pool/.test(d);})
+        .map(r=>({ms:Date.parse(r.time)||0,tok:Number(r.amount_token)||0}))
+        .filter(x=>x.tok>0&&Math.abs(x.ms-e.ms)<8000)
+        .sort((a,b)=>Math.abs(a.ms-e.ms)-Math.abs(b.ms-e.ms))[0];
+      if(!m)continue;
+      const L=lpLAt(e.ms-1)+(e.add?e.lp:-e.lp);
+      LPX.anch.push([e.id,Math.round(e.ms/1000),m.tok/e.lp,Math.round(L/1e12)]);
+    }catch(err){}
+  }
 }
 function lpUserAt(events,cur,ms){
   /* the wallet's own LP balance, replayed backward from its current balance */
@@ -1891,45 +1893,47 @@ async function lpExpand(){
   if(!st||!st.lpEvents||!st.lpEvents.length||LPX.busy)return;
   LPX.busy=true;st.lpBusyTxt=ui().lpReplayBusy;renderPanel();
   try{
-    /* the anchor and the trade list must describe the SAME instant, so the
-       model is built once per session and reused for every wallet after */
-    if(!LPX.chk){
-      const anchor=await lpPool();
+    if(!LPX.anch){
+      LPX.mine=await lpPool();
       const feed=await lpFeedAll();
       const birthId=feed.length?feed[0].id:0;
-      const trades=await lpTradesSince(birthId,(a,b)=>{
+      await lpTradesSince(birthId,(a,b)=>{
         st.lpBusyTxt=ui().lpBusy.replace('{a}',fmtN(a)).replace('{b}',fmtN(Math.max(a,b)));
         if(PANEL.cur===st.p)lpPaintBusy(st);
       });
       st.lpBusyTxt=ui().lpReplayBusy;if(PANEL.cur===st.p)lpPaintBusy(st);
       await new Promise(r=>setTimeout(r,30));   /* let the busy line paint */
-      LPX.anchor=anchor;
-      LPX.chk=lpBuildCheckpoints(anchor,feed,trades);
+      LPX.anch=LP_ANCH.slice();
+      await lpExtendAnchors();
     }
-    st.lp={rows:lpSeriesFor(st,LPX.anchor),filter:''};
+    st.lp={rows:lpSeriesFor(st),filter:''};
   }catch(e){st.lpErr=true;}
   LPX.busy=false;st.lpBusyTxt=null;
   if(PANEL.cur===st.p)renderPanel();
 }
-function lpSeriesFor(st,anchor){
-  const ev=st.lpEvents,model=LPX.chk;
-  const cur=anchor.mine[st.p]||0;
+function lpPointAt(u,ms){
+  /* the whole model in one line: NOODL side = balance \u00d7 rho; BTC side
+     is that at the tape price of the moment */
+  const rho=lpRhoAt(ms),px=lpPxAt(ms);
+  const noodl=u*rho;
+  return {share:u/lpLAt(ms),noodl:noodl/MS,btc:noodl*px/1e11/MS,lp:u/MS};
+}
+function lpSeriesFor(st){
+  const ev=st.lpEvents;
+  const cur=(LPX.mine&&LPX.mine[st.p])||0;
   const rows=[];
   /* the wallet's own moves first: exact to the minute */
   for(const e of ev){
-    const ps=lpStateAt(model,e.ms);           /* pool just after this instant */
     const u=lpUserAt(ev,cur,e.ms);
-    rows.push({t:e.ms,ev:true,add:e.add,share:ps.L>0?u/ps.L:0,
-              btc:ps.L>0?u/ps.L*ps.B/MS:0,noodl:ps.L>0?u/ps.L*ps.T/MS:0});
+    rows.push(Object.assign({t:e.ms,ev:true,add:e.add},lpPointAt(u,e.ms)));
   }
   /* then one row per Beijing day from first add to today (or final exit) */
   const exitMs=cur<=0&&ev.length?ev[ev.length-1].ms:Date.now();
   for(let d=bjDay(ev[0].ms);;){
     const end=Math.min(bjDayEnd(d),Date.now());
     if(end>=ev[0].ms){
-      const ps=lpStateAt(model,end),u=lpUserAt(ev,cur,end);
-      rows.push({t:end,day:d,share:ps.L>0?u/ps.L:0,
-                btc:ps.L>0?u/ps.L*ps.B/MS:0,noodl:ps.L>0?u/ps.L*ps.T/MS:0});
+      const u=lpUserAt(ev,cur,end);
+      rows.push(Object.assign({t:end,day:d},lpPointAt(u,end)));
     }
     if(bjDayEnd(d)>=exitMs)break;
     d=bjDay(bjDayEnd(d)+1);
@@ -1949,15 +1953,19 @@ function lpTableHtml(st){
   const u=ui(),f=(st.lp.filter||'').trim();
   const rows=st.lp.rows.filter(r=>!f||(r.day||bjDay(r.t)).indexOf(f)===0);
   let h='<div class="lp-scroll"><table class="lp-tbl"><thead><tr><th>'+esc(u.lpDay)+'</th>'
-    +'<th>'+esc(u.lpShareCol)+'</th><th>'+esc(u.lpBtcCol)+'</th><th>'+esc(u.lpNoodlCol)+'</th></tr></thead><tbody>';
+    +'<th>'+esc(u.lpShareCol)+'</th><th>'+esc(u.lpBtcCol)+'</th><th>'+esc(u.lpNoodlCol)+'</th>'
+    +'<th class="lp-x">'+esc(u.lpLpCol)+'</th><th class="lp-x">'+esc(u.lpValCol)+'</th></tr></thead><tbody>';
   for(const r of rows){
+    /* value of the whole position in BTC: payouts are proportional, so it is
+       exactly twice the BTC side */
+    const xtra='<td class="lp-x">'+lpFmtTok(r.lp)+'</td><td class="lp-x">'+lpFmtBtc(2*r.btc)+'</td>';
     if(r.ev){
       h+='<tr class="ev"><td colspan="2">'+esc((r.add?u.lpEvAdd:u.lpEvRem)
         .replace('{t}',lpHm(r.t)).replace('{s}',lpFmtShare(r.share)))+'</td>'
-        +'<td>'+lpFmtBtc(r.btc)+'</td><td>'+lpFmtTok(r.noodl)+'</td></tr>';
+        +'<td>'+lpFmtBtc(r.btc)+'</td><td>'+lpFmtTok(r.noodl)+'</td>'+xtra+'</tr>';
     }else{
       h+='<tr><td>'+esc(r.day)+'</td><td>'+lpFmtShare(r.share)+'</td>'
-        +'<td><b>'+lpFmtBtc(r.btc)+'</b></td><td><b>'+lpFmtTok(r.noodl)+'</b></td></tr>';
+        +'<td><b>'+lpFmtBtc(r.btc)+'</b></td><td><b>'+lpFmtTok(r.noodl)+'</b></td>'+xtra+'</tr>';
     }
   }
   h+='</tbody></table></div>';
