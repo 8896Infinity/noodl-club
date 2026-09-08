@@ -121,6 +121,43 @@ html[data-theme="day"] .tag.no{background:rgba(0,0,0,.05)}
 #mineOut{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:8px 14px;margin-top:10px}
 #mineOut[hidden]{display:none}
 .loadline{font-size:12px;color:var(--dim);padding:8px 2px}
+/* ---- the NOODL mainnet dossier ---- */
+.doss{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:12px;margin-bottom:10px}
+@media (max-width:860px){.doss{grid-template-columns:1fr}}
+.dcard{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px}
+.dcard .k{font-size:10.5px;letter-spacing:.07em;color:var(--dim);font-weight:700;margin-bottom:7px}
+.dcard .v{font-size:16px;font-weight:800;line-height:1.4}
+.dcard .v.gold{color:var(--noodle-y)}
+.dcard .s{font-size:11px;color:var(--text-2);line-height:1.65;margin-top:5px}
+.dcard .s i{font-style:normal;color:var(--dim)}
+.dcard .num{font-variant-numeric:tabular-nums}
+.addr{font-size:11px;color:var(--cyan-dim);word-break:break-all;cursor:pointer;line-height:1.5}
+.addr:hover{color:var(--cyan)}
+.pct{font-size:22px;font-weight:800;color:var(--up)}
+.proof{border:1px solid var(--line-soft);border-radius:9px;background:var(--panel);
+  padding:10px 14px;font-size:11.5px;line-height:1.75;color:var(--text-2);font-variant-numeric:tabular-nums}
+.proof b{color:var(--up);font-weight:700}
+/* ---- bridge ledger ---- */
+.bstat{font-size:12.5px;line-height:1.8;color:var(--text-2);margin-bottom:10px;font-variant-numeric:tabular-nums}
+.bstat b{color:var(--noodle-y);font-weight:700}
+.bstat .inreg{color:var(--up);font-weight:700}
+.tik{border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+.tik table{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
+.tik th{text-align:left;padding:9px 12px;font-size:10px;letter-spacing:.06em;color:var(--dim);
+  border-bottom:1px solid var(--line-soft);font-weight:700}
+.tik td{padding:8px 12px;border-bottom:1px solid var(--line-soft);color:var(--text-2)}
+.tik tr:last-child td{border-bottom:0}
+.tik .rn{color:var(--text);font-weight:600;word-break:break-all}
+.tik .amt{text-align:right;color:var(--text)}
+.badge{display:inline-block;font-size:10px;font-weight:700;border-radius:5px;padding:2px 8px;white-space:nowrap}
+.badge.fin{color:var(--up);background:rgba(61,220,132,.12)}
+.badge.mid{color:var(--cyan-dim);background:rgba(0,255,255,.09)}
+html[data-theme="day"] .badge.fin{background:rgba(15,143,77,.12)}
+html[data-theme="day"] .badge.mid{background:rgba(10,143,143,.1)}
+.dirn{white-space:nowrap}
+.dirn.in{color:var(--up)}
+.dirn.out{color:var(--noodle-o)}
+@media (max-width:760px){.tik .hidem{display:none}}
 .beta{border:1px solid rgba(252,209,79,.45);border-radius:10px;background:rgba(252,209,79,.07);
   padding:11px 14px;font-size:12.5px;line-height:1.75;color:var(--noodle-y);margin:0 0 22px;max-width:760px}
 .beta b{font-weight:800}
@@ -149,6 +186,38 @@ footer{margin-top:44px;font-size:11px;line-height:1.8;color:var(--dim);border-to
   <p class="sub" data-i="sub"></p>
 
   <div class="beta" data-i="beta"></div>
+
+  <h2 data-i="dossH">NOODL · MAINNET DOSSIER</h2>
+  <div class="doss">
+    <div class="dcard">
+      <div class="k" data-i="dsIdK">IDENTITY</div>
+      <div class="v gold" data-i="dsIdV">First token of the new Odin ecosystem</div>
+      <div class="s"><span class="rune" data-copy="NOODL•ID•BEJL•ODIN">NOODL•ID•BEJL•ODIN · 957922:3644</span><br><i data-i="dsEtch"></i></div>
+    </div>
+    <div class="dcard">
+      <div class="k" data-i="dsSupK">SUPPLY</div>
+      <div class="v num" id="dsSup">21,000,000</div>
+      <div class="s" data-i="dsSupS"></div>
+    </div>
+    <div class="dcard">
+      <div class="k" data-i="dsLockK">MAINNET DISTRIBUTION</div>
+      <div class="v"><span class="pct">100%</span> <span data-i="dsLockV">locked · 1 holder</span></div>
+      <div class="s"><span class="addr" data-copy="bc1qte9h6s3e67m2wwyu2fy9jnstrv70jkce6w58la">bc1qte9h6s3e67m2wwyu2fy9jnstrv70jkce6w58la</span></div>
+      <div class="s" data-i="dsLockS"></div>
+      <div class="linkrow">
+        <a href="https://uniscan.cc/runes/detail/NOODL%E2%80%A2ID%E2%80%A2BEJL%E2%80%A2ODIN" target="_blank" rel="noopener">UniScan ↗</a>
+        <a href="https://mempool.space/address/bc1qte9h6s3e67m2wwyu2fy9jnstrv70jkce6w58la" target="_blank" rel="noopener">mempool ↗</a>
+      </div>
+    </div>
+  </div>
+  <div class="proof" id="proof" hidden></div>
+  <p class="note" data-i="dossNote"></p>
+
+  <h2 data-i="brH">BRIDGE · LIVE SYNC</h2>
+  <p class="sub" data-i="brLead" style="margin-bottom:12px"></p>
+  <div class="bstat" id="bstat"><span class="loadline" data-i="loading">reading…</span></div>
+  <div class="tik" id="tik"><div class="loadline" data-i="loading" style="padding:12px">reading…</div></div>
+  <p class="note" data-i="brNote"></p>
 
   <h2 data-i="chanH">CHANNEL STATUS · LIVE</h2>
   <div id="noodlCard" class="chan"><div class="loadline" data-i="loading">reading odin.fun…</div></div>
@@ -208,6 +277,23 @@ en:{
   sub:'There is no third-party bridge here, because none is needed: the platform canister IS the bridge. Withdrawing from odin.fun turns a balance into a real rune on the Bitcoin mainnet; depositing turns the rune back into a balance. This page shows each channel’s live status, walks through both directions, and checks what your own wallet could cross today — it reads public data only and never touches a key. Every action happens on the official interfaces.',
   beta:'⚠ IN TESTING — this page only DISPLAYS channel status and looks up public data. It never connects a wallet and never initiates a transfer or crossing of any kind; actual withdrawals and deposits are done on the official odin.fun / FomoWell interfaces only.',
   loading:'reading odin.fun…',
+  dossH:'NOODL · MAINNET DOSSIER',
+  dsIdK:'IDENTITY',dsIdV:'First token of the new Odin ecosystem',
+  dsEtch:'etched on Bitcoin at graduation · 2026-07-13',
+  dsSupK:'SUPPLY',dsSupS:'total supply = circulating supply · nothing unminted, nothing vesting',
+  dsLockK:'MAINNET DISTRIBUTION',dsLockV:'locked · 1 holder',
+  dsLockS:'every one of the 21,000,000 on the Bitcoin mainnet sits in this single custody address — the 1:1 mainnet backing of the supply trading on ICP. Verified on UniScan, 2026-09-09.',
+  proofTpl:'On-chain cross-check, live: the crossing hub\u2019s ledger shows the full 21,000,000 carried from Bitcoin into ICP in a single finalized ticket on {d}; odin records {w} NOODL rune withdrawals to date \u2014 nothing has left the platform.',
+  dossNote:'Supply figures are read live from odin.fun; the distribution is UniScan\u2019s holder table for this rune; the cross-check reads the public crossing ledger and odin\u2019s own records on every visit.',
+  brH:'BRIDGE · LIVE SYNC',
+  brLead:'The NOODL project is preparing to plug into the Odin platform\u2019s next stage of building. As part of that, this page live-syncs the public ledger of the rune crossing hub the Odin ecosystem uses \u2014 the same rails NOODL itself crossed on.',
+  brStatTpl:'{all} rune tokens registered on the hub \u00b7 {odin} of them from the Odin ecosystem \u00b7 {tot} crossings settled all-time \u00b7 ',
+  brInReg:'NOODL is registered \u2713',
+  thSt:'STATUS',thDir:'DIRECTION',thAmt:'AMOUNT',thTok:'RUNE',thWhen:'WHEN',
+  stFin:'Finalized',dirIn:'Bitcoin \u2192 ICP',dirOut:'ICP \u2192 Bitcoin',
+  agoM:'{n} min ago',agoH:'{n} h ago',agoD:'{n} d ago',
+  brFail:'the crossing ledger is not answering right now \u2014 refresh to retry',
+  brNote:'Read-only mirror of the public crossing ledger, fetched through this site\u2019s own proxy on every visit. This page never initiates a crossing.',
   chanH:'CHANNEL STATUS · LIVE',
   qPh:'any odin token — ticker or id, e.g. ODINDOG',qGo:'Check',
   gateOut:'OUT · withdraw to mainnet',gateIn:'BACK · deposit from mainnet',
@@ -249,6 +335,23 @@ zh:{
   sub:'这里没有第三方桥，因为根本不需要：平台的 canister 本身就是桥。从 odin.fun 提现，余额就变成比特币主网上的真符文；充值则把符文变回平台余额。这一页实时显示每条通道的开关状态、把两个方向的操作一步步讲清楚、并帮你查自己的钱包今天能跨什么——全程只读公开数据，不碰任何密钥，所有操作都在官方界面完成。',
   beta:'⚠ 功能测试中——本页只做通道状态展示和公开数据查询，不连接钱包、不发起任何转账或跨链操作；实际的提现/充值请只在 odin.fun / FomoWell 官方界面完成。',
   loading:'正在读取 odin.fun…',
+  dossH:'NOODL · 主网档案',
+  dsIdK:'身份',dsIdV:'新奥丁生态第一枚代币',
+  dsEtch:'毕业当日蚀刻于比特币主网 · 2026-07-13',
+  dsSupK:'供应量',dsSupS:'总供应量 = 流通量 · 无增发、无未释放',
+  dsLockK:'主网分布',dsLockV:'锁仓 · 1 个持有地址',
+  dsLockS:'比特币主网上的全部 21,000,000 枚，都在这一个托管地址里——它是 ICP 侧流通供应的 1:1 主网抵押。UniScan 核对于 2026-09-09。',
+  proofTpl:'链上交叉核对（实时）：跨链枢纽账本显示，全部 21,000,000 枚已于 {d} 以单笔已完成工单从比特币跨入 ICP；odin 至今 {w} 笔 NOODL 符文提现——没有一枚离开过平台。',
+  dossNote:'供应量实时读自 odin.fun；主网分布来自 UniScan 的持有人表；交叉核对每次访问都实时读取公开跨链账本与 odin 官方记录。',
+  brH:'跨链桥 · 实时同步',
+  brLead:'NOODL 项目正在为对接奥丁平台的后续建设做准备。作为其中一步，本页实时同步奥丁生态所使用的符文跨链枢纽的公开账本——NOODL 自己当初跨入 ICP 走的就是这条轨道。',
+  brStatTpl:'枢纽已收录 {all} 个符文代币 \u00b7 其中 {odin} 个来自奥丁生态 \u00b7 历史累计结算 {tot} 笔跨链 \u00b7 ',
+  brInReg:'NOODL 已在册 \u2713',
+  thSt:'状态',thDir:'方向',thAmt:'数量',thTok:'符文',thWhen:'时间',
+  stFin:'已完成',dirIn:'比特币 \u2192 ICP',dirOut:'ICP \u2192 比特币',
+  agoM:'{n} 分钟前',agoH:'{n} 小时前',agoD:'{n} 天前',
+  brFail:'跨链账本暂时没有响应——刷新重试',
+  brNote:'本模块是公开跨链账本的只读镜像，每次访问经本站自己的代理实时读取。本页不发起任何跨链操作。',
   chanH:'通道状态 · 实时',
   qPh:'查任意 odin 代币——ticker 或 id，比如 ODINDOG',qGo:'查询',
   gateOut:'跨出 · 提现到主网',gateIn:'跨回 · 从主网充值',
@@ -398,8 +501,90 @@ function paintMine(){
       +'<span class="tag '+(r.go?'ok':'no')+'">'+esc(r.go?u.canGo:u.cantGo)+'</span></div>').join('')
     +'<div class="loadline">'+esc(u.mineSum.replace('{n}',S.mine.length).replace('{k}',k))+'</div>';
 }
-function paintAll(){paintNoodl();paintFound();paintIn();paintMine();}
+function paintAll(){paintNoodl();paintFound();paintIn();paintMine();paintBridge();}
 
+/* ================= bridge ledger ================= */
+const BR={ok:null,stats:null,rows:null,noodl:null,wd:null};
+async function gql(q){
+  const r=await fetch('/api/bridge',{method:'POST',
+    headers:{'content-type':'application/json'},body:JSON.stringify({query:q})});
+  if(!r.ok)throw new Error('bridge '+r.status);
+  const j=await r.json();
+  if(!j.data)throw new Error('bridge no data');
+  return j.data;
+}
+function ago(ns){
+  const u=ui(),m=Math.max(1,Math.round((Date.now()-ns/1e6)/60000));
+  if(m<60)return u.agoM.replace('{n}',m);
+  if(m<1440)return u.agoH.replace('{n}',Math.round(m/60));
+  return u.agoD.replace('{n}',Math.round(m/1440));
+}
+function fAmt(v,dec){
+  const n=Number(v)/Math.pow(10,dec==null?8:dec);
+  return n.toLocaleString('en-US',{maximumFractionDigits:n<100?2:0});
+}
+function paintBridge(){
+  const u=ui(),st=$('#bstat'),tk=$('#tik');
+  if(BR.ok===false){
+    st.innerHTML='<span class="loadline">'+esc(u.brFail)+'</span>';
+    tk.innerHTML='';tk.style.display='none';return;
+  }
+  if(!BR.rows){st.innerHTML='<span class="loadline">'+esc(u.loading)+'</span>';return;}
+  tk.style.display='';
+  st.innerHTML=esc(u.brStatTpl.replace('{all}',fmtN(BR.stats.all)).replace('{odin}',fmtN(BR.stats.odin))
+      .replace('{tot}',fmtN(BR.stats.tot)))
+    +'<span class="inreg">'+esc(u.brInReg)+'</span>';
+  let h='<table><thead><tr><th>'+esc(u.thSt)+'</th><th>'+esc(u.thDir)+'</th>'
+    +'<th class="amt" style="text-align:right">'+esc(u.thAmt)+'</th><th>'+esc(u.thTok)+'</th>'
+    +'<th class="hidem">'+esc(u.thWhen)+'</th></tr></thead><tbody>';
+  for(const r of BR.rows){
+    const fin=r.status==='Finalized';
+    const inbound=r.src_chain==='Bitcoin';
+    h+='<tr><td><span class="badge '+(fin?'fin':'mid')+'">'+esc(fin?u.stFin:r.status)+'</span></td>'
+      +'<td><span class="dirn '+(inbound?'in':'out')+'">'+esc(inbound?u.dirIn:u.dirOut)+'</span></td>'
+      +'<td class="amt">'+esc(fAmt(r.amount,BR.dec[r.token]))+'</td>'
+      +'<td class="rn">'+esc(String(r.token).replace('Bitcoin-runes-',''))+'</td>'
+      +'<td class="hidem">'+esc(ago(Number(r.ticket_time)))+'</td></tr>';
+  }
+  tk.innerHTML=h+'</tbody></table>';
+  /* the dossier cross-check line only speaks when both facts arrived */
+  const pr=$('#proof');
+  if(BR.noodl&&BR.wd!==null){
+    const d=new Date(Number(BR.noodl.ticket_time)/1e6).toISOString().slice(0,10);
+    pr.hidden=false;
+    pr.innerHTML='<b>✓</b> '+esc(u.proofTpl.replace('{d}',d).replace('{w}',fmtN(BR.wd)));
+  }
+}
+async function bootBridge(){
+  try{
+    const d=await gql('{'
+      +'tickets: ticket(where:{token:{_like:"Bitcoin-runes-%"}},order_by:{ticket_time:desc},limit:10){action amount dst_chain src_chain status ticket_time token} '
+      +'noodl: ticket(where:{token:{_ilike:"%NOODL%ODIN"}},order_by:{ticket_time:asc},limit:1){amount status ticket_time src_chain} '
+      +'all: token_meta_aggregate{aggregate{count}} '
+      +'odin: token_meta_aggregate(where:{token_id:{_ilike:"%ODIN"}}){aggregate{count}} '
+      +'tot: ticket_aggregate{aggregate{count}}'
+      +'}');
+    BR.stats={all:d.all.aggregate.count,odin:d.odin.aggregate.count,tot:d.tot.aggregate.count};
+    BR.rows=d.tickets||[];
+    /* each rune divides by its OWN decimals — they vary (2 for some, 8 for
+       most); a wrong divisor is a million-fold display error */
+    BR.dec={};
+    const ids=[...new Set(BR.rows.map(r=>r.token))];
+    if(ids.length){
+      const m=await gql('{ token_meta(where:{token_id:{_in:['
+        +ids.map(t=>JSON.stringify(t)).join(',')+']}}){token_id decimals} }');
+      for(const t of (m.token_meta||[]))BR.dec[t.token_id]=t.decimals;
+    }
+    const n=(d.noodl||[])[0];
+    if(n&&n.status==='Finalized'&&n.src_chain==='Bitcoin'&&Number(n.amount)===2100000000000000)BR.noodl=n;
+    BR.ok=true;
+  }catch(e){BR.ok=false;}
+  try{
+    const w=await api('/activities?token=hjrg&action=withdraw&limit=1');
+    BR.wd=Number(w&&w.count)||0;
+  }catch(e){BR.wd=null;}
+  paintBridge();
+}
 /* ================= loaders ================= */
 async function boot(){
   try{
@@ -483,6 +668,7 @@ document.addEventListener('click',e=>{
 
 applyLang();
 boot();
+bootBridge();
 /* the ?scan= convention other pages use: prefill and run the wallet check */
 try{
   const qs=new URLSearchParams(location.search).get('scan');

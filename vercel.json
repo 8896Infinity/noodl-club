@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/odin/:path*", "destination": "https://api.odin.fun/v2/:path*" }
+    { "source": "/api/odin/:path*", "destination": "https://api.odin.fun/v2/:path*" },
+    { "source": "/api/bridge", "destination": "https://hub-hasura-mainnet.omnity.network/v1/graphql" }
   ],
   "headers": [
     {
