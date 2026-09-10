@@ -392,6 +392,11 @@ en:{
   relNote:'green lines: tokens received · orange: sent — drawn in the sky',
   secFlight:'MONEY IN FLIGHT',
   flDep:'DEPOSIT',flWit:'WITHDRAW',flTx:'on-chain ↗',flAgain:'refresh',
+  secLed:'BTC IN & OUT · LEDGER',
+  ledIn:'total deposited',ledOut:'total withdrawn',ledNet:'net flow',
+  ledCnt:'{n} tx',ledTime:'TIME (UTC+8)',ledDir:'TYPE',ledAmt:'BTC',ledChain:'ON-CHAIN',
+  ledTrunc:'only the latest {n} rows are loaded — the totals cover those rows only',
+  ledNote:'From the public odin ledger (V2, since 2026-06 — V1-era transfers are not public). A deposit row is the credited amount: the on-chain send minus the fixed 0.0000201 BTC fee. A withdraw row is the amount deducted from the odin balance; its on-chain leg is not published.',
   flMem:'still in the mempool — waiting for its first confirmation. Nothing is lost; a thin fee just means a longer queue.',
   flJust:'confirmed {n}× — odin normally credits it within a minute of the block',
   flLate:'confirmed {n}× and odin has still not credited it. Odin only counts a deposit after it is mined, then its own indexer has to catch up.',
@@ -494,6 +499,11 @@ zh:{
   relNote:'绿线：收到代币 · 橙线：转出 —— 已画进星空',
   secFlight:'资金在途',
   flDep:'充值',flWit:'提现',flTx:'看链上 ↗',flAgain:'刷新',
+  secLed:'BTC 充提 · 总账',
+  ledIn:'累计充值',ledOut:'累计提现',ledNet:'净流入',
+  ledCnt:'{n} 笔',ledTime:'时间（北京）',ledDir:'方向',ledAmt:'BTC',ledChain:'链上',
+  ledTrunc:'仅拉取了最近 {n} 笔，合计只含这些',
+  ledNote:'来自 odin 公开账本（V2，2026-06 起；更早的 V1 时代充提不公开）。充值行是入账净额 = 链上转入 − 固定 0.0000201 BTC 手续费；提现行是从 odin 余额扣出的金额，其链上那一步 odin 不公开。',
   flMem:'还在内存池 —— 等第一个确认。钱没丢，手续费给低了就只是排队久一点。',
   flJust:'已确认 {n} 次 —— odin 一般在上链后一分钟内入账',
   flLate:'已确认 {n} 次，odin 仍未入账。odin 只认已打包的充值，之后还要它自己的索引器追上来。',
@@ -1506,6 +1516,7 @@ function openPanel(p){
   if(st.edges)REL.edges=refEdges(st);
   if(!fresh){ /* the dossier keeps, but money in flight does not */
     loadFlight(st).then(()=>{if(PANEL.cur===st.p)renderPanel();}).catch(()=>{});
+    loadLedger(st).then(()=>{if(PANEL.cur===st.p)renderPanel();}).catch(()=>{});
     flightTick();return;}
   /* every load reports to one desk, and the desk only serves whoever is
      under the glass RIGHT NOW — late arrivals for other stars are ignored */
@@ -1520,6 +1531,7 @@ function openPanel(p){
   loadLegacy(st).then(done).catch(()=>{st.legacyDone=true;st.legacyErr=true;done();});
   loadFlight(st).then(()=>{done();flightTick();}).catch(()=>{st.flight={done:true,dep:[],wit:[]};done();});
   loadLpMeta(st).then(done).catch(()=>{st.lpDone=true;done();});
+  loadLedger(st).then(done).catch(()=>{st.led={done:true,rows:[],dep:0,wit:0,nd:0,nw:0,trunc:0};done();});
 }
 function closePanel(){
   $('#panel').hidden=true;
@@ -1593,6 +1605,7 @@ function renderPanel(){
   }
   h+='</div>';
   h+=lpHtml(st);
+  h+=ledHtml(st);
   /* sold & settled */
   h+='<div class="pn-sec"><h3>'+esc(u.secSold)+'</h3>';
   if(!st.soldDone)h+='<div class="pn-load">'+esc(u.sLoading)+'</div>';
@@ -2004,6 +2017,62 @@ function lpHtml(st){
     h+='<div class="lp-note">'+esc(u.lpNote)+'</div>';
   }
   return h+'</div>';
+}
+/* ---- lifetime BTC in & out: every DEPOSIT / WITHDRAW the ledger records.
+   Sums run on the raw 1e-11 integers so 500 rows cannot drift a satoshi. */
+async function loadLedger(st){
+  const led={rows:[],dep:0,wit:0,nd:0,nw:0,trunc:0,done:false};
+  let page=1,count=0,depRaw=0,witRaw=0;
+  const seen=new Set();   /* a deposit landing mid-pagination shifts the pages */
+  for(;;){
+    const j=await api('/user/'+st.p+'/activity?action_in=deposit,withdraw&limit=100&page='+page);
+    if(!j||!Array.isArray(j.data))break;
+    count=Math.max(count,Number(j.count)||0);
+    for(const r of j.data){
+      if(seen.has(r.id))continue;
+      seen.add(r.id);
+      const v=Number(r.amount_btc)||0,dep=r.action==='DEPOSIT';
+      if(dep){depRaw+=v;led.nd++;}else{witRaw+=v;led.nw++;}
+      led.rows.push({t:Date.parse(r.time)||0,dep,btc:v/MS,tx:dep&&r.data?String(r.data).split(':')[0]:''});
+    }
+    if(j.data.length<100||page>=5)break;   /* 500 rows is already a whale */
+    page++;
+  }
+  led.dep=depRaw/MS;led.wit=witRaw/MS;
+  led.trunc=Math.max(0,count-led.rows.length);
+  led.done=true;
+  /* an append-only ledger going N rows -> 0 is a failed fetch, never reality:
+     keep the good copy a cached reopen already has */
+  if(led.rows.length||!st.led)st.led=led;
+}
+function ledBtc(b){
+  const t=(Number(b)||0).toFixed(8).replace(/0+$/,'').replace(/\.$/,'');
+  return t||'0';
+}
+function ledHm(ms){if(!isFinite(ms)||!ms)return '—';const d=new Date(ms+BJ);return d.toISOString().slice(0,16).replace('T',' ');}
+function ledHtml(st){
+  const u=ui(),d=st.led;
+  if(!d||!d.done||!d.rows.length)return '';
+  const net=d.dep-d.wit;
+  let h='<div class="pn-sec"><h3>'+esc(u.secLed)+'</h3>';
+  h+='<div class="lp-sum">'
+    +'<span>'+esc(u.ledIn)+'</span><b>'+ledBtc(d.dep)+' BTC · '+esc(u.ledCnt.replace('{n}',fmtN(d.nd)))+'</b>'
+    +'<span>'+esc(u.ledOut)+'</span><b>'+ledBtc(d.wit)+' BTC · '+esc(u.ledCnt.replace('{n}',fmtN(d.nw)))+'</b>'
+    +'<span>'+esc(u.ledNet)+'</span><b>'+(net<0?'−':'')+ledBtc(Math.abs(net))+' BTC</b>'
+    +'</div>';
+  h+='<div class="lp-scroll"><table class="lp-tbl"><thead><tr><th>'+esc(u.ledTime)+'</th>'
+    +'<th>'+esc(u.ledDir)+'</th><th>'+esc(u.ledAmt)+'</th><th class="lp-x">'+esc(u.ledChain)+'</th></tr></thead><tbody>';
+  for(const r of d.rows){
+    h+='<tr><td>'+ledHm(r.t)+'</td>'
+      +'<td><span class="fl-tag '+(r.dep?'in':'out')+'">'+esc(r.dep?u.flDep:u.flWit)+'</span></td>'
+      +'<td><b>'+ledBtc(r.btc)+'</b></td>'
+      +'<td class="lp-x">'+(r.tx?txLink(r.tx,u.flTx):'—')+'</td></tr>';
+  }
+  h+='</tbody></table></div>';
+  if(d.trunc)h+='<div class="lp-note">'+esc(u.ledTrunc.replace('{n}',fmtN(d.rows.length)))+'</div>';
+  h+='<div class="lp-note">'+esc(u.ledNote)+'</div>';
+  h+='</div>';
+  return h;
 }
 async function loadFlight(st){
   const f={dep:[],wit:[],lastWit:null,tip:null,done:false};
