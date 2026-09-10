@@ -340,6 +340,15 @@ const SAYS=[
      asked for is turned into the next reason to leave. */
   {d:'2026-09-01',zh:'锁仓还没上，问题在哪里？',       en:'The staking lock is still not live. What is the holdup?'},
   {d:'2026-09-03',zh:'你更新锁仓也吸引不来忠实粉丝的', en:'Shipping the lock will not win you loyal fans either'},
+  /* postdated, all five: the doubt drifts from the price to the project —
+     rootless, then all talk, then just impatience. Each waits for its day. */
+  {d:'2026-09-13',zh:'昙花一现。',                     en:'A flash in the pan.'},
+  {d:'2026-09-17',zh:'没有根基，这些符文就像浮萍随波逐流',
+                  en:'No roots. These runes are duckweed, drifting wherever the current goes'},
+  {d:'2026-09-21',zh:'不关心你说了什么，都在等实实在在做了什么',
+                  en:'Nobody cares what you say. Everyone is waiting for what you actually do'},
+  {d:'2026-09-25',zh:'更新了没有',                     en:'Any update yet?'},
+  {d:'2026-09-29',zh:'加加速，别墨迹了',               en:'Speed up. Stop dawdling'},
 
   /* ---- still waiting, above every price it has ever printed ---- */
   {mc:350e3, zh:'面条的价格有巨大的泡沫',              en:'The noodle is a giant bubble'},
@@ -484,7 +493,7 @@ function thin(rows,want){
 /* Thirty-seven lines that each have to be read. At the old sixty seconds they
    went past faster than anyone could take them in, which is what the slower
    pace was asked for. */
-const REPLAY=98000;
+const REPLAY=130000;   /* 98s overflowed at 49 lines: the schedule sim read 101.6% */
 const MINSHOW=2400;                  /* what one line is owed, in ms */
 /* Nothing grows until the cap has first printed this. Below the knee the
    number sits at its smallest the whole way up, which is the joke: every line
